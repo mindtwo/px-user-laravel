@@ -1,0 +1,44 @@
+{
+    "name": "mindtwo/px-user-laravel",
+    "description": "Package for handling PX User authentication for Laravel.",
+    "keywords": [
+        "login",
+        "px-user",
+        "vnr",
+        "framework",
+        "laravel"
+    ],
+    "license": "MIT",
+    "homepage": "https://github.com/mindtwo/px-user-laravel",
+    "authors": [
+        {
+            "name": "mindtwo GmbH",
+            "email": "info@mindtwo.de",
+            "homepage": "https://mindtwo.de"
+        }
+    ],
+    "require": {
+        "php": "^8.0",
+        "illuminate/support": "^9.0",
+        "illuminate/database": "^9.0"
+    },
+    "require-dev": {
+        "laravel/pint": "^1.2"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "autoload": {
+        "psr-4": {
+            "Mindtwo\\PxUserLaravel\\": "src/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Mindtwo\\PxUserLaravel\\Providers\\PxUserProvider"
+            ],
+            "aliases": {
+            }
+        }
+    }
+}
