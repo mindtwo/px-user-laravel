@@ -46,7 +46,7 @@ trait UseUserDataCache
     public function dataCache(): Attribute
     {
         return Attribute::make(
-            get: fn ($value) => isset($value) ? $value : UserDataCache::getUserData($this->px_user_id),
+            get: fn ($value) => isset($value) ? $value : UserDataCache::getUserData($this->{config('px-user.px_user_id')}),
         );
     }
 }

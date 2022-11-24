@@ -35,7 +35,7 @@ class PxUserLoginAction
             $userRequest = $this->pxUserClient->getUserData($tokenData['access_token']);
 
             $user = User::firstOrCreate([
-                'px_user_id' => $userRequest['id'],
+                config('px-user.px_user_id') => $userRequest['id'],
             ]);
 
             if (in_array($userRequest['email'], [

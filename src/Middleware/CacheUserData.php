@@ -25,7 +25,7 @@ class CacheUserData
     public function handle(Request $request, Closure $next)
     {
         if (Auth::check()) {
-            $px_user_id = Auth::user()->px_user_id;
+            $px_user_id = Auth::user()->{config('px-user.px_user_id')};
 
             $cachePrefix = ('user:cached_'.$px_user_id);
 

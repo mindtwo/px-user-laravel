@@ -32,6 +32,13 @@ return [
     'domain' => env('PX_USER_DOMAIN'),
 
     /**
+     * Key from User Model for PX User ID
+     *
+     * Default: px_user_id
+     */
+    'px_user_id' => env('PX_USER_ID') ?? 'px_user_id',
+
+    /**
      * Cache time for user data retrieved via PX User client in minutes
      *
      * Default: 120 (mins)
