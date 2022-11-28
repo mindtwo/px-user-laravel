@@ -38,7 +38,7 @@ class PxUserLoginAction
             }
 
             $user = config('px-user.user_model')::firstOrCreate([
-                'px_user_id' => $userRequest['id'],
+                config('px-user.px_user_id') => $userRequest['id'],
             ]);
 
             Auth::login($user);
