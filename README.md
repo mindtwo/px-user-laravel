@@ -50,7 +50,7 @@ To seemlessly integrate the data for use with your `User` model the package prov
 a trait.
 
 ```php
-use Mindtwo\PxUserLaravel\Traits\UseUserDataCache;
+use mindtwo\PxUserLaravel\Traits\UseUserDataCache;
 
 class User extends Model
 {
@@ -73,7 +73,7 @@ use App\Http\Controllers\Controller;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Mindtwo\PxUserLaravel\Actions\PxUserLoginAction;
+use mindtwo\PxUserLaravel\Actions\PxUserLoginAction;
 
 class LoginController extends Controller
 {

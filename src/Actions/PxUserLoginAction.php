@@ -1,12 +1,13 @@
 <?php
 
-namespace Mindtwo\PxUserLaravel\Actions;
+namespace mindtwo\PxUserLaravel\Actions;
 
 use App\Enums\RoleEnum;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Session;
-use Mindtwo\PxUserLaravel\Services\PxUserClient;
+use mindtwo\PxUserLaravel\Events\PxUserLoginEvent;
+use mindtwo\PxUserLaravel\Services\PxUserClient;
 
 class PxUserLoginAction
 {
@@ -34,21 +35,17 @@ class PxUserLoginAction
         try {
             $userRequest = $this->pxUserClient->getUserData($tokenData['access_token']);
 
-            $user = User::firstOrCreate([
-                config('px-user.px_user_id') => $userRequest['id'],
-            ]);
-
-            if (in_array($userRequest['email'], [
-                'emde@mindtwo.de',
-                'schneider@mindtwo.de',
-                'csi@vnr.de',
-                'nik@vnr.de',
-            ])) {
-                $user->role = RoleEnum::Admin;
-                $user->save();
+            if (null !== config('px-user.user_model')) {
+                return false;
             }
 
+            $user = config('px-user.user_model')::firstOrCreate([
+                'px_user_id' => $userRequest['id'],
+            ]);
+
             Auth::login($user);
+
+            PxUserLoginEvent::dispatch($user, $userRequest);
 
             return true;
         } catch (\Throwable $e) {

@@ -1,10 +1,10 @@
 <?php
 
-namespace Mindtwo\PxUserLaravel\Actions;
+namespace mindtwo\PxUserLaravel\Actions;
 
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Session;
-use Mindtwo\PxUserLaravel\Services\PxUserClient;
+use mindtwo\PxUserLaravel\Services\PxUserClient;
 
 class PxUserDataRefreshAction
 {

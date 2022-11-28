@@ -1,6 +1,6 @@
 <?php
 
-namespace Mindtwo\PxUserLaravel\Services;
+namespace mindtwo\PxUserLaravel\Services;
 
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;

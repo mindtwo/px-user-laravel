@@ -1,12 +1,12 @@
 <?php
 
-namespace Mindtwo\PxUserLaravel\Middleware;
+namespace mindtwo\PxUserLaravel\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
-use Mindtwo\PxUserLaravel\Actions\PxUserDataRefreshAction;
+use mindtwo\PxUserLaravel\Actions\PxUserDataRefreshAction;
 
 class CacheUserData
 {

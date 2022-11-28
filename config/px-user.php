@@ -3,6 +3,11 @@
 return [
 
     /**
+     * User model used to Authenticate the user
+     */
+    'user_model' => '',
+
+    /**
      * The stage the app runs in
      *
      * Default: env('APP_ENV')
@@ -44,4 +49,12 @@ return [
      * Default: 120 (mins)
      */
     'px_user_cache_time' => 120,
+
+    /**
+     * Permissions
+     *
+     * TODO: clean up later
+     */
+    'admin_emails' => [
+    ],
 ];

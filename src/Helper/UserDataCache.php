@@ -1,6 +1,6 @@
 <?php
 
-namespace Mindtwo\PxUserLaravel\Helper;
+namespace mindtwo\PxUserLaravel\Helper;
 
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Cache;

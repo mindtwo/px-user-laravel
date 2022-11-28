@@ -1,10 +1,10 @@
 <?php
 
-namespace Mindtwo\PxUserLaravel\Traits;
+namespace mindtwo\PxUserLaravel\Traits;
 
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Support\Str;
-use Mindtwo\PxUserLaravel\Helper\UserDataCache;
+use mindtwo\PxUserLaravel\Helper\UserDataCache;
 
 /**
  * Use UserDataCache to get data from non-persistent cache
