@@ -2,8 +2,6 @@
 
 namespace mindtwo\PxUserLaravel\Actions;
 
-use App\Enums\RoleEnum;
-use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Session;
 use mindtwo\PxUserLaravel\Events\PxUserLoginEvent;
@@ -35,7 +33,7 @@ class PxUserLoginAction
         try {
             $userRequest = $this->pxUserClient->getUserData($tokenData['access_token']);
 
-            if (null !== config('px-user.user_model')) {
+            if (null === config('px-user.user_model')) {
                 return false;
             }
 

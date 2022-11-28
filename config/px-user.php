@@ -57,4 +57,11 @@ return [
      */
     'admin_emails' => [
     ],
+
+    /**
+     * Admin role value
+     *
+     * TODO: clean up later
+     */
+    'admin_role_value' => 0,
 ];
