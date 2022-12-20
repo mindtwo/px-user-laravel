@@ -30,7 +30,7 @@ class CacheUserData
             $cachePrefix = ('user:cached_'.$px_user_id);
 
             // cache user data for specified time period
-            $userData = Cache::remember($cachePrefix, now()->addMinutes(config('px-user.cache_time')), function () {
+            $userData = Cache::remember($cachePrefix, now()->addMinutes(config('px-user.px_user_cache_time')), function () {
                 return $this->pxUserDataRefreshAction->execute();
             });
 
