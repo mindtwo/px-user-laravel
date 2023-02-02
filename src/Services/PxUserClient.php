@@ -9,19 +9,18 @@ use Throwable;
 class PxUserClient
 {
     /**
-     * Machine-to-machine credentials used for communication between backend
-     * and PX User API
-     *
-     * @var ?string
-     */
-    private $m2mCredentials = null;
-
-    /**
      * The stage the app runs in
      *
      * @var ?string
      */
     private $stage = null;
+
+    /**
+     * PX User tenant setting
+     *
+     * @var ?string
+     */
+    private $tenant = null;
 
     /**
      * PX User domain setting
@@ -31,11 +30,12 @@ class PxUserClient
     private $domain = null;
 
     /**
-     * PX User tenant setting
+     * Machine-to-machine credentials used for communication between backend
+     * and PX User API
      *
      * @var ?string
      */
-    private $tenant = null;
+    private $m2mCredentials = null;
 
     /**
      * Urls for available environments.
@@ -54,13 +54,21 @@ class PxUserClient
     ) {
         $this->stage = $config['stage'] ?? 'prod';
 
-        $this->tenant = $config['tenant'] ?? 'plx';
-        $this->m2mCredentials = $config['m2m_credentials'] ?? null;
-        $this->domain = $config['domain'] ?? null;
+        $this->setCredentials(
+            ($config['tenant'] ?? 'plx'),
+            ($config['domain'] ?? null),
+            ($config['m2m_credentials'] ?? null)
+        );
+    }
 
-        $uri = $this->getUri();
-        $m2mCredentials = $this->m2mCredentials;
+    public function setCredentials($tenant, $domain, $m2mCredentials)
+    {
+        $this->tenant = $tenant;
+        $this->domain = $domain;
+        $this->m2mCredentials = $m2mCredentials;
+
         $context = $this->getContext();
+        $uri = $this->getUri();
 
         // create our pxUser macro
         Http::macro('pxUser', function () use ($uri, $m2mCredentials, $context) {
@@ -71,6 +79,8 @@ class PxUserClient
                 'X-M2M-User-Context' => $context,
             ])->baseUrl($uri)->throw();
         });
+
+        return $this;
     }
 
     /**
@@ -149,7 +159,7 @@ class PxUserClient
      *
      * @return string
      */
-    private function getUri(): string
+    public function getUri(): string
     {
         return isset($this->stage) ? $this->uris[$this->stage] : $this->uris['prod'];
     }
@@ -159,7 +169,7 @@ class PxUserClient
      *
      * @return string
      */
-    private function getContext(): string
+    public function getContext(): string
     {
         return "{$this->tenant}:{$this->domain}";
     }
