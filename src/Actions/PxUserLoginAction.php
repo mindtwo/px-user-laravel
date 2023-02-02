@@ -2,9 +2,10 @@
 
 namespace mindtwo\PxUserLaravel\Actions;
 
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Session;
 use mindtwo\PxUserLaravel\Events\PxUserLoginEvent;
+use mindtwo\PxUserLaravel\Helper\SessionHelper;
 use mindtwo\PxUserLaravel\Services\PxUserClient;
 
 class PxUserLoginAction
@@ -22,13 +23,11 @@ class PxUserLoginAction
      *
      * @throws Exception
      */
-    public function execute(?array $tokenData): bool
+    public function execute(Request $request, ?array $tokenData): bool
     {
         if (! $this->validateTokenData($tokenData)) {
             return false;
         }
-
-        $this->saveTokenToSession($tokenData);
 
         try {
             $userRequest = $this->pxUserClient->getUserData($tokenData['access_token']);
@@ -43,20 +42,14 @@ class PxUserLoginAction
 
             Auth::login($user);
 
+            SessionHelper::saveTokenData($request, $tokenData);
+
             PxUserLoginEvent::dispatch($user, $userRequest);
 
             return true;
         } catch (\Throwable $e) {
             throw new \Exception('No user found.', 0, $e);
         }
-    }
-
-    private function saveTokenToSession(array $tokenData): void
-    {
-        Session::put('px_user_token', $tokenData['access_token']);
-        Session::put('px_user_token_expiration_utc', $tokenData['access_token_expiration_utc']);
-        Session::put('px_user_refresh_token', $tokenData['refresh_token']);
-        Session::put('px_user_refresh_token_expiration_utc', $tokenData['refresh_token_expiration_utc']);
     }
 
     private function validateTokenData(?array $tokenData): bool

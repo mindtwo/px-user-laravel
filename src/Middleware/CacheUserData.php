@@ -4,14 +4,15 @@ namespace mindtwo\PxUserLaravel\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use mindtwo\PxUserLaravel\Actions\PxUserDataRefreshAction;
+use mindtwo\PxUserLaravel\Actions\PxUserLogoutAction;
 
 class CacheUserData
 {
     public function __construct(
         protected PxUserDataRefreshAction $pxUserDataRefreshAction,
+        protected PxUserLogoutAction $pxUserLogoutAction,
     ) {
     }
 
@@ -24,23 +25,19 @@ class CacheUserData
      */
     public function handle(Request $request, Closure $next)
     {
-        if (Auth::check()) {
-            $px_user_id = Auth::user()->{config('px-user.px_user_id')};
+        if ($request->user()) {
+            $px_user_id = $request->user()->{config('px-user.px_user_id')};
 
             $cachePrefix = ('user:cached_'.$px_user_id);
 
             // cache user data for specified time period
-            $userData = Cache::remember($cachePrefix, now()->addMinutes(config('px-user.px_user_cache_time')), function () {
-                return $this->pxUserDataRefreshAction->execute();
+            $userData = Cache::remember($cachePrefix, now()->addMinutes(config('px-user.px_user_cache_time')), function () use ($request) {
+                return $this->pxUserDataRefreshAction->execute($request);
             });
 
             // log the user out if we can not refresh
             if (empty($userData)) {
-                Auth::logout();
-
-                $request->session()->invalidate();
-
-                $request->session()->regenerateToken();
+                $this->pxUserLogoutAction->execute($request);
             }
         }
 
