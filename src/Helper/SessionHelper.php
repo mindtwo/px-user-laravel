@@ -34,7 +34,7 @@ class SessionHelper
         foreach ($accessTokenKeys as $key) {
             $sessionKey = self::prefix() . "_$key";
 
-            $request->session()->put($sessionKey, $tokenData[$key]);
+            Session::put($sessionKey, $tokenData[$key]);
         }
     }
 
@@ -56,8 +56,11 @@ class SessionHelper
         //     Cache::forget($refreshTokenPrefix);
         // }
 
-        $request->session()->invalidate();
-        $request->session()->regenerateToken();
+        // $request->session()->invalidate();
+        // $request->session()->regenerateToken();
+
+        Session::invalidate();
+        Session::regenerateToken();
     }
 
     /**
