@@ -18,11 +18,11 @@ class PxUserDataRefreshAction
      * Undocumented function
      *
      * @param Request $request
-     * @return array
+     * @return ?array
      *
      * @throws Throwable
      */
-    public function execute(Request $request): array
+    public function execute(Request $request): ?array
     {
         // if both token are expired return null
         if ($this->tokensExpired($request)) {
