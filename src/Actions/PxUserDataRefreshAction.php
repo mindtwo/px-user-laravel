@@ -4,7 +4,6 @@ namespace mindtwo\PxUserLaravel\Actions;
 
 use Carbon\Carbon;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Log;
 use mindtwo\PxUserLaravel\Helper\SessionHelper;
 use mindtwo\PxUserLaravel\Services\PxUserClient;
 
@@ -15,7 +14,15 @@ class PxUserDataRefreshAction
     ) {
     }
 
-    public function execute(Request $request): ?array
+    /**
+     * Undocumented function
+     *
+     * @param Request $request
+     * @return array
+     *
+     * @throws Throwable
+     */
+    public function execute(Request $request): array
     {
         // if both token are expired return null
         if ($this->tokensExpired($request)) {
@@ -44,10 +51,10 @@ class PxUserDataRefreshAction
      */
     private function tokensExpired(Request $request): bool
     {
-        // TODO configure
-        if ($request->is('api/*')) {
-            return SessionHelper::get('refresh_token') === null;
-        }
+        // TODO remove?
+        // if ($request->is('api/*')) {
+        //     return SessionHelper::get('refresh_token') === null;
+        // }
 
         $token_expired = Carbon::now()->gt(SessionHelper::get('access_token_expiration_utc'));
         $refresh_expired = Carbon::now()->gt(SessionHelper::get('refresh_token_expiration_utc'));
@@ -57,10 +64,10 @@ class PxUserDataRefreshAction
 
     private function needsRefresh(Request $request): bool
     {
-        // TODO configure
-        if ($request->is('api/*')) {
-            return SessionHelper::get('access_token') === null;
-        }
+        // TODO remove?
+        // if ($request->is('api/*')) {
+        //     return SessionHelper::get('access_token') === null;
+        // }
 
         SessionHelper::get('access_token_expiration_utc');
         $token_expired = Carbon::now()->gt(SessionHelper::get('access_token_expiration_utc'));

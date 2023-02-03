@@ -8,7 +8,6 @@ use mindtwo\PxUserLaravel\Helper\SessionHelper;
 
 class PxUserLogoutAction
 {
-
     /**
      * Logout user
      *
@@ -19,10 +18,10 @@ class PxUserLogoutAction
     public function execute(Request $request): bool
     {
         try {
-            // TODO configure
-            if ($request->is('api/*')) {
-                $request->user()->tokens()->delete();
-            }
+            // TODO remove?
+            // if ($request->is('api/*')) {
+            //     $request->user()->tokens()->delete();
+            // }
 
             $px_user_id = $request->user()->{config('px-user.px_user_id')};
             $cachePrefix = ('user:cached_'.$px_user_id);

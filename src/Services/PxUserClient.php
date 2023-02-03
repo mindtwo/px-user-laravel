@@ -92,7 +92,7 @@ class PxUserClient
             Log::error($this->getUri());
             Log::error($e->getMessage());
 
-            return null;
+            throw $e;
         }
 
         // Check if status is 200
