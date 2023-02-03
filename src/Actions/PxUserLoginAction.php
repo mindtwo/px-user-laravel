@@ -47,7 +47,7 @@ class PxUserLoginAction
 
             UserDataCache::saveUserData($userRequest);
 
-            PxUserLoginEvent::dispatch($user, $userRequest);
+            PxUserLoginEvent::dispatch($user, $userRequest, $tokenData['access_token']);
 
             return true;
         } catch (\Throwable $e) {

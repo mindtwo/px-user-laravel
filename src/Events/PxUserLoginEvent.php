@@ -19,6 +19,7 @@ class PxUserLoginEvent
     public function __construct(
         public Authenticatable $user,
         public array $userData,
+        public string $accessToken,
     ) {
     }
 }
