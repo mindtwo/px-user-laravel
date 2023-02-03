@@ -5,9 +5,11 @@ namespace mindtwo\PxUserLaravel\Providers;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\ServiceProvider;
+use mindtwo\PxUserLaravel\Actions\PxUserDataRefreshAction;
 use mindtwo\PxUserLaravel\Events\PxUserLoginEvent;
 use mindtwo\PxUserLaravel\Listeners\UserLoginListener;
 use mindtwo\PxUserLaravel\Services\PxUserClient;
+use mindtwo\PxUserLaravel\Services\UserDataService;
 
 class PxUserProvider extends ServiceProvider
 {
@@ -37,6 +39,12 @@ class PxUserProvider extends ServiceProvider
     {
         $this->app->singleton(PxUserClient::class, function (Application $app) {
             return new PxUserClient(config('px-user'));
+        });
+
+        $this->app->singleton('UserDataCache', function (Application $app) {
+            return new UserDataService(
+                new PxUserDataRefreshAction($app->make(PxUserClient::class)),
+            );
         });
     }
 }

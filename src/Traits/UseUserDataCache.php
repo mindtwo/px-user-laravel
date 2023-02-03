@@ -4,7 +4,7 @@ namespace mindtwo\PxUserLaravel\Traits;
 
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Support\Str;
-use mindtwo\PxUserLaravel\Helper\UserDataCache;
+use mindtwo\PxUserLaravel\Facades\UserDataCache;
 
 /**
  * Use UserDataCache to get data from non-persistent cache
