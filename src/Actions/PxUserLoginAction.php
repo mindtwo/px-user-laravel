@@ -43,7 +43,7 @@ class PxUserLoginAction
 
             Auth::login($user);
 
-            SessionHelper::saveTokenData($request, $tokenData);
+            SessionHelper::saveTokenData($tokenData, $request);
 
             UserDataCache::saveUserData($userRequest);
 

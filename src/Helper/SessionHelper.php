@@ -16,7 +16,7 @@ class SessionHelper
      * @param array $tokenData
      * @return void
      */
-    public static function saveTokenData(Request $request, array $tokenData): void
+    public static function saveTokenData(array $tokenData, ?Request $request = null): void
     {
         // TODO remove?
         // if ($request->is('api/*')) {
@@ -33,6 +33,7 @@ class SessionHelper
         $accessTokenKeys = ['access_token', 'access_token_expiration_utc', 'refresh_token', 'refresh_token_expiration_utc'];
         foreach ($accessTokenKeys as $key) {
             $sessionKey = self::prefix() . "_$key";
+            // Todo: set last user token
 
             Session::put($sessionKey, $tokenData[$key]);
         }

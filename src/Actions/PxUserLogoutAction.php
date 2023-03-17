@@ -27,6 +27,7 @@ class PxUserLogoutAction
             $cachePrefix = ('user:cached_'.$px_user_id);
             // forget user data in cache
             Cache::forget($cachePrefix);
+            Cache::tags($cachePrefix)->flush();
 
             SessionHelper::flush($request);
 
