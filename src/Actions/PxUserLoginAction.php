@@ -45,8 +45,6 @@ class PxUserLoginAction
 
             SessionHelper::saveTokenData($tokenData, $request);
 
-            UserDataCache::saveUserData($userRequest);
-
             PxUserLoginEvent::dispatch($user, $userRequest, $tokenData['access_token']);
 
             return true;

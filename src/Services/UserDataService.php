@@ -6,9 +6,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Log;
-use mindtwo\PxUserLaravel\Actions\PxUserGetDetailsAction;
 use mindtwo\PxUserLaravel\Actions\PxUserDataRefreshAction;
+use mindtwo\PxUserLaravel\Actions\PxUserGetDetailsAction;
 
 class UserDataService
 {
@@ -17,42 +16,6 @@ class UserDataService
         protected PxUserGetDetailsAction $pxUserDataGetDetailsAction,
     ) {
     }
-
-        /*
-    public function getPxUserDataAttribute(): null|Collection
-    {
-        // Todo: moves this to UseUserDataCache
-        return Cache::remember('user: '.$this->uuid, 2628288, function () {
-            try {
-                if (empty($this->tenant_code) || empty($this->domain_code)) {
-                    throw new \Exception('Tenant code or domain code is not set.');
-                }
-
-                $platform = Platform::where([
-                    'px_user_tenant' => $this->tenant_code,
-                    'px_user_domain' => $this->domain_code,
-                ])->first();
-
-                // @phpstan-ignore-next-line
-                return collect(app(PxUserClient::class)->setCredentials(
-                    $platform?->px_user_tenant ?? config('px-user.tenant'),
-                    $platform?->px_user_domain ?? config('px-user.domain'),
-                    $platform?->px_user_secret ?? config('px-user.m2m_credentials')
-                )->getUserData(auth()->user()?->last_px_user_access_token));
-            } catch (\Throwable $e) {
-                // Todo: remove try and placeholder dummy data
-                return collect([
-                    'firstname' => fake()->firstName,
-                    'lastname' => fake()->lastName,
-                    'preferred_username' => null,
-                    'email' => fake()->email,
-                    'staff_id' => fake()->numberBetween(100000, 999999),
-                    'supervisor' => fake()->firstName.' '.fake()->lastName,
-                ]);
-            }
-        });
-    }
-    */
 
     // Todo tenant/domain code
     /**
@@ -83,7 +46,7 @@ class UserDataService
         // Data for current user are cached via request middleware
         // Todo changeable domains/tenant in product
         // cache prefix
-        $cachePrefix = ('user:cached_'.$px_user_id);
+        $cachePrefix = ('user:cached_' . $px_user_id);
 
         // get user data from cache
         $userData = Cache::get($cachePrefix);
@@ -97,7 +60,7 @@ class UserDataService
     }
 
     /**
-     * Refresh data for current request
+     * Refresh data for current request.
      *
      * @param Request $request
      * @return void
@@ -106,7 +69,8 @@ class UserDataService
     {
         $px_user_id = $request->user()->{config('px-user.px_user_id')};
 
-        $cachePrefix = ('user:cached_'.$px_user_id);
+        $cachePrefix = ('user:cached_' . $px_user_id);
+
         return Cache::remember(
             $cachePrefix,
             now()->addMinutes(config('px-user.px_user_cache_time')),
