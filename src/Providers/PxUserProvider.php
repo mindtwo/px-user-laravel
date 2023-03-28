@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Event;
 use Illuminate\Support\ServiceProvider;
 use mindtwo\PxUserLaravel\Actions\PxUserGetDetailsAction;
 use mindtwo\PxUserLaravel\Actions\PxUserDataRefreshAction;
+use mindtwo\PxUserLaravel\Actions\PxUserTokenRefreshAction;
 use mindtwo\PxUserLaravel\Events\PxUserLoginEvent;
 use mindtwo\PxUserLaravel\Listeners\UserLoginListener;
 use mindtwo\PxUserLaravel\Services\PxUserClient;

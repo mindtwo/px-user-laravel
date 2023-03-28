@@ -61,7 +61,6 @@ class UserDataService
     /**
      * Refresh data for current request.
      *
-     * @param Request $request
      * @return void
      */
     public function refreshUserData(Request $request)
@@ -73,7 +72,7 @@ class UserDataService
         return Cache::remember(
             $cachePrefix,
             now()->addMinutes(config('px-user.px_user_cache_time')),
-            fn () => $this->pxUserDataRefreshAction->execute($request)
+            fn () => $this->pxUserDataRefreshAction->execute()
         );
     }
 }

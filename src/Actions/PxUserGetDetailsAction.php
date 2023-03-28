@@ -3,7 +3,6 @@
 namespace mindtwo\PxUserLaravel\Actions;
 
 use Carbon\Carbon;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use mindtwo\PxUserLaravel\Helper\SessionHelper;
@@ -13,7 +12,6 @@ class PxUserGetDetailsAction
 {
     public function __construct(
         protected PxUserClient $pxUserClient,
-        protected PxUserTokenRefreshAction $pxUserTokenRefreshAction,
     ) {
     }
 
@@ -21,20 +19,19 @@ class PxUserGetDetailsAction
      * Undocumented function.
      *
      * @param array $px_user_ids
-     * @param ?Request $request
      * @return ?array
      *
      * @throws Throwable
      */
-    public function execute(string|array $px_user_id, ?Request $request = null): mixed
+    public function execute(string|array $px_user_id): mixed
     {
         // if both token are expired return null
-        if ($this->tokensExpired($request)) {
+        if ($this->tokensExpired()) {
             return null;
         }
 
         // if auth token is expired try to get a new one
-        if ($this->needsRefresh($request) && !$this->pxUserTokenRefreshAction->execute($request)) {
+        if ($this->needsRefresh() && !(new PxUserTokenRefreshAction($this->pxUserClient))->execute()) {
             return null;
         }
 
@@ -87,26 +84,16 @@ class PxUserGetDetailsAction
      *
      * @return bool
      */
-    private function tokensExpired(?Request $request): bool
+    private function tokensExpired(): bool
     {
-        // TODO remove?
-        // if ($request->is('api/*')) {
-        //     return SessionHelper::get('refresh_token') === null;
-        // }
-
         $token_expired = Carbon::now()->gt(SessionHelper::get('access_token_expiration_utc'));
         $refresh_expired = Carbon::now()->gt(SessionHelper::get('refresh_token_expiration_utc'));
 
         return $token_expired && $refresh_expired;
     }
 
-    private function needsRefresh(?Request $request): bool
+    private function needsRefresh(): bool
     {
-        // TODO remove?
-        // if ($request->is('api/*')) {
-        //     return SessionHelper::get('access_token') === null;
-        // }
-
         SessionHelper::get('access_token_expiration_utc');
         $token_expired = Carbon::now()->gt(SessionHelper::get('access_token_expiration_utc'));
         $refresh_expired = Carbon::now()->gt(SessionHelper::get('refresh_token_expiration_utc'));

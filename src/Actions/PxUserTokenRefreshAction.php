@@ -2,7 +2,6 @@
 
 namespace mindtwo\PxUserLaravel\Actions;
 
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use mindtwo\PxUserLaravel\Events\PxUserTokenRefreshEvent;
 use mindtwo\PxUserLaravel\Helper\SessionHelper;
@@ -18,12 +17,11 @@ class PxUserTokenRefreshAction
     /**
      * Undocumented function
      *
-     * @param Request $request
      * @return bool
      *
      * @throws Throwable
      */
-    public function execute(?Request $request = null): bool
+    public function execute(): bool
     {
         $refresh_token = SessionHelper::get('px_user_refresh_token');
 
@@ -34,7 +32,7 @@ class PxUserTokenRefreshAction
         }
 
         // put new tokens into session
-        SessionHelper::saveTokenData($refreshed, $request);
+        SessionHelper::saveTokenData($refreshed);
 
         PxUserTokenRefreshEvent::dispatch(Auth::user(), $refreshed['access_token']);
 
