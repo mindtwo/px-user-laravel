@@ -9,21 +9,21 @@ use Throwable;
 class PxUserClient
 {
     /**
-     * The stage the app runs in
+     * The stage the app runs in.
      *
      * @var ?string
      */
     private $stage = null;
 
     /**
-     * PX User tenant setting
+     * PX User tenant setting.
      *
      * @var ?string
      */
     private $tenant = null;
 
     /**
-     * PX User domain setting
+     * PX User domain setting.
      *
      * @var ?string
      */
@@ -31,7 +31,7 @@ class PxUserClient
 
     /**
      * Machine-to-machine credentials used for communication between backend
-     * and PX User API
+     * and PX User API.
      *
      * @var ?string
      */
@@ -61,24 +61,26 @@ class PxUserClient
         );
     }
 
+    public function request(array $headers = [])
+    {
+        $context = $this->getContext();
+        $uri = $this->getUri();
+
+        $reqHeaders = array_merge([
+            'Content-Type' => 'application/json',
+            'Accept' => 'application/json',
+            'X-M2M-Authorization' => $this->m2mCredentials,
+            'X-M2M-User-Context' => $context,
+        ], $headers);
+
+        return Http::withHeaders($reqHeaders)->baseUrl($uri);
+    }
+
     public function setCredentials($tenant, $domain, $m2mCredentials)
     {
         $this->tenant = $tenant;
         $this->domain = $domain;
         $this->m2mCredentials = $m2mCredentials;
-
-        $context = $this->getContext();
-        $uri = $this->getUri();
-
-        // create our pxUser macro
-        Http::macro('pxUser', function () use ($uri, $m2mCredentials, $context) {
-            return Http::withHeaders([
-                'Content-Type' => 'application/json',
-                'Accept' => 'application/json',
-                'X-M2M-Authorization' => $m2mCredentials,
-                'X-M2M-User-Context' => $context,
-            ])->baseUrl($uri)->throw();
-        });
 
         return $this;
     }
@@ -94,9 +96,10 @@ class PxUserClient
     {
         // check token expiration
         try {
-            $response = Http::pxUser()->withHeaders([
+            $response = $this->request([
                 'Authorization' => "Bearer {$access_token}",
-            ])->get('user');
+
+            ])->get('user')->throw();
         } catch (Throwable $e) {
             Log::error('Failed login for url: ');
             Log::error($this->getUri());
@@ -122,14 +125,54 @@ class PxUserClient
     }
 
     /**
+     * Get user data from PX-User API.
+     *
+     * @return array|null
+     *
+     * @throws Throwable
+     */
+    public function getUserDetails($access_token, array $px_user_ids): ?array
+    {
+        if (count($px_user_ids) < 0) {
+            return null;
+        }
+
+        // check token expiration
+        /** @var \Illuminate\Http\Client\Response $response */
+        $response = $this->request([
+            'Authorization' => "Bearer {$access_token}",
+            'X-Context-Tenant-Code' => $this->tenant,
+            'X-Context-Domain-Code' => $this->domain,
+        ])->post('users/details', [
+            'user_ids' => $px_user_ids,
+        ]);
+
+        // Check if status is 200
+        if ($response->status() === 200) {
+            $body = $response->body();
+
+            $responseData = json_decode((string) $body, true);
+
+            $data = $responseData['response'];
+            if ($data) {
+                return $data;
+            }
+        }
+
+        return null;
+    }
+
+    /**
      * @return array|null
      */
     public function refreshToken($refresh_token)
     {
         try {
-            $response = Http::pxUser()->withHeaders([
+            $response = $this->request([
                 'Authorization' => "Bearer {$refresh_token}",
-            ])->get('refresh-tokens');
+                'X-M2M-Authorization' => $this->m2mCredentials,
+                'X-M2M-User-Context' => $this->getContext(),
+            ])->get('refresh-tokens')->throw();
         } catch (Throwable $e) {
             Log::error('Failed refresh token for url: ');
             Log::error($this->getUri());
@@ -155,7 +198,7 @@ class PxUserClient
     }
 
     /**
-     * Get px-user uri
+     * Get px-user uri.
      *
      * @return string
      */
@@ -165,7 +208,7 @@ class PxUserClient
     }
 
     /**
-     * Get px-user context
+     * Get px-user context.
      *
      * @return string
      */

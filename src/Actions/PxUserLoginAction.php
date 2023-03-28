@@ -6,7 +6,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use mindtwo\PxUserLaravel\Events\PxUserLoginEvent;
 use mindtwo\PxUserLaravel\Helper\SessionHelper;
-use mindtwo\PxUserLaravel\Facades\UserDataCache;
 use mindtwo\PxUserLaravel\Services\PxUserClient;
 
 class PxUserLoginAction
@@ -43,9 +42,7 @@ class PxUserLoginAction
 
             Auth::login($user);
 
-            SessionHelper::saveTokenData($request, $tokenData);
-
-            UserDataCache::saveUserData($userRequest);
+            SessionHelper::saveTokenData($tokenData, $request);
 
             PxUserLoginEvent::dispatch($user, $userRequest, $tokenData['access_token']);
 

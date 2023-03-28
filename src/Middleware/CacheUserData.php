@@ -28,9 +28,6 @@ class CacheUserData
 
             $cachePrefix = ('user:cached_'.$px_user_id);
 
-            // Log::debug('session:');
-            // Log::debug($request->session()->all());
-
             try {
                 // cache user data for specified time period
                 $userData = UserDataCache::refreshUserData($request);

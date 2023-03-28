@@ -22,7 +22,7 @@ class PxUserDataRefreshAction
      *
      * @throws Throwable
      */
-    public function execute(Request $request): ?array
+    public function execute(?Request $request = null): ?array
     {
         // if both token are expired return null
         if ($this->tokensExpired($request)) {
@@ -35,7 +35,7 @@ class PxUserDataRefreshAction
             $refreshed = $this->pxUserClient->refreshToken($refresh_token);
 
             // put new tokens into session
-            SessionHelper::saveTokenData($request, $refreshed);
+            SessionHelper::saveTokenData($refreshed, $request);
         }
 
         // fetch with session token
@@ -49,7 +49,7 @@ class PxUserDataRefreshAction
      *
      * @return bool
      */
-    private function tokensExpired(Request $request): bool
+    private function tokensExpired(?Request $request = null): bool
     {
         // TODO remove?
         // if ($request->is('api/*')) {
@@ -62,7 +62,7 @@ class PxUserDataRefreshAction
         return $token_expired && $refresh_expired;
     }
 
-    private function needsRefresh(Request $request): bool
+    private function needsRefresh(?Request $request = null): bool
     {
         // TODO remove?
         // if ($request->is('api/*')) {
