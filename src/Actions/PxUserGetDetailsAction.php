@@ -13,6 +13,7 @@ class PxUserGetDetailsAction
 {
     public function __construct(
         protected PxUserClient $pxUserClient,
+        protected PxUserTokenRefreshAction $pxUserTokenRefreshAction,
     ) {
     }
 
@@ -33,12 +34,8 @@ class PxUserGetDetailsAction
         }
 
         // if auth token is expired try to get a new one
-        if ($this->needsRefresh($request)) {
-            $refresh_token = SessionHelper::get('px_user_refresh_token');
-            $refreshed = $this->pxUserClient->refreshToken($refresh_token);
-
-            // put new tokens into session
-            SessionHelper::saveTokenData($refreshed, $request);
+        if ($this->needsRefresh($request) && !$this->pxUserTokenRefreshAction->execute($request)) {
+            return null;
         }
 
         // fetch with session token

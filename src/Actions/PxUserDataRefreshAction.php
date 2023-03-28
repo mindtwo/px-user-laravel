@@ -4,6 +4,8 @@ namespace mindtwo\PxUserLaravel\Actions;
 
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use mindtwo\PxUserLaravel\Events\PxUserTokenRefreshEvent;
 use mindtwo\PxUserLaravel\Helper\SessionHelper;
 use mindtwo\PxUserLaravel\Services\PxUserClient;
 
@@ -11,6 +13,7 @@ class PxUserDataRefreshAction
 {
     public function __construct(
         protected PxUserClient $pxUserClient,
+        protected PxUserTokenRefreshAction $pxUserTokenRefreshAction,
     ) {
     }
 
@@ -30,12 +33,8 @@ class PxUserDataRefreshAction
         }
 
         // if auth token is expired try to get a new one
-        if ($this->needsRefresh($request)) {
-            $refresh_token = SessionHelper::get('px_user_refresh_token');
-            $refreshed = $this->pxUserClient->refreshToken($refresh_token);
-
-            // put new tokens into session
-            SessionHelper::saveTokenData($refreshed, $request);
+        if ($this->needsRefresh($request) && !$this->pxUserTokenRefreshAction->execute($request)) {
+            return null;
         }
 
         // fetch with session token
