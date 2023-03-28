@@ -17,7 +17,6 @@ class UserDataService
     ) {
     }
 
-    // Todo tenant/domain code
     /**
      * Try to get cached UserData.
      * If no data are in Cache, try to

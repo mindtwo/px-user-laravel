@@ -6,7 +6,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use mindtwo\PxUserLaravel\Events\PxUserLoginEvent;
 use mindtwo\PxUserLaravel\Helper\SessionHelper;
-use mindtwo\PxUserLaravel\Facades\UserDataCache;
 use mindtwo\PxUserLaravel\Services\PxUserClient;
 
 class PxUserLoginAction
