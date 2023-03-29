@@ -85,6 +85,21 @@ class PxUserClient
         return $this;
     }
 
+    public function scope($tenant, $domain, callable $callback)
+    {
+        $defaultTenant = $this->tenant;
+        $defaultDomain = $this->domain;
+
+        $this->setCredentials($tenant, $domain, $this->m2mCredentials);
+
+        $callback($this);
+
+        $this->tenant = $defaultTenant;
+        $this->domain = $defaultDomain;
+
+        return $this;
+    }
+
     /**
      * Get user data from PX-User API.
      *
