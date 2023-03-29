@@ -31,31 +31,27 @@ class UserDataService
             return [];
         }
 
-        // get data for other user
-        if ($px_user_id !== Auth::user()->{config('px-user.px_user_id')}) {
-            $auth_user_id = Auth::user()->{config('px-user.px_user_id')};
+        $currentUserId = Auth::user()->{config('px-user.px_user_id')};
 
-            $cachePrefix = "user:cached_{$auth_user_id}:user_{$px_user_id}";
+        if ($px_user_id === $currentUserId) {
+            // Data for current user are cached via request middleware
+            // Todo changeable domains/tenant in product
+            // cache prefix
+            $cachePrefix = ('user:cached_' . $px_user_id);
 
-            $data = $this->pxUserDataGetDetailsAction->execute($px_user_id);
+            // get user data from cache
+            $userData = Cache::get($cachePrefix);
 
-            return $data;
+            // if we have no cached data forget delete old ones from cache
+            if (empty($userData)) {
+                Cache::forget($cachePrefix);
+            }
+
+            return $userData;
         }
 
-        // Data for current user are cached via request middleware
-        // Todo changeable domains/tenant in product
-        // cache prefix
-        $cachePrefix = ('user:cached_' . $px_user_id);
-
-        // get user data from cache
-        $userData = Cache::get($cachePrefix);
-
-        // if we have no cached data forget delete old ones from cache
-        if (empty($userData)) {
-            Cache::forget($cachePrefix);
-        }
-
-        return $userData;
+        // cache data for other user
+        return $this->pxUserDataGetDetailsAction->execute($px_user_id);
     }
 
     /**
