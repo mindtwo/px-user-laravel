@@ -95,6 +95,9 @@ class PxUserGetDetailsAction
             );
         }
 
-        return Cache::getMultiple($tags);
+        return [
+            ...collect($cachedDetails)->filter()->toArray(),
+            ...$userDetails,
+        ];
     }
 }
