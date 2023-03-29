@@ -24,12 +24,12 @@ class PxUserTokenRefreshAction
      */
     public function execute(): bool
     {
-        if (!$this->needsRefresh()) {
-            return true;
-        }
-
         if ($this->tokensExpired()) {
             return false;
+        }
+
+        if (!$this->needsRefresh()) {
+            return true;
         }
 
         $refresh_token = SessionHelper::get('px_user_refresh_token');
