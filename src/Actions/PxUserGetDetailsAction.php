@@ -3,8 +3,9 @@
 namespace mindtwo\PxUserLaravel\Actions;
 
 use Carbon\Carbon;
-use Illuminate\Support\Facades\Auth;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Gate;
 use mindtwo\PxUserLaravel\Helper\SessionHelper;
 use mindtwo\PxUserLaravel\Services\PxUserClient;
 
@@ -19,64 +20,92 @@ class PxUserGetDetailsAction
      * Undocumented function.
      *
      * @param array $px_user_ids
+     * @param ?Request $request
      * @return ?array
      *
      * @throws Throwable
      */
-    public function execute(string|array $px_user_id): mixed
+    public function execute(string|array $px_user_id, ?Request $request = null): mixed
     {
+        // get data for other user
+        if (Gate::denies('user-detail')) {
+            return null;
+        }
+
         // if both token are expired return null
-        if ($this->tokensExpired()) {
+        if ($this->tokensExpired($request)) {
             return null;
         }
 
         // if auth token is expired try to get a new one
-        if ($this->needsRefresh() && !(new PxUserTokenRefreshAction($this->pxUserClient))->execute()) {
-            return null;
+        if ($this->needsRefresh($request)) {
+            $refresh_token = SessionHelper::get('px_user_refresh_token');
+            $refreshed = $this->pxUserClient->refreshToken($refresh_token);
+
+            // put new tokens into session
+            SessionHelper::saveTokenData($refreshed, $request);
         }
+
+        // cache get data for only one user
+        if (gettype($px_user_id) === 'string') {
+            return $this->cacheUserDetail($px_user_id);
+        }
+
+        return $this->cacheMultipleUserDetails($px_user_id);
+    }
+
+    /**
+     * Get user details for one user, load them via API if user is not in cache.
+     *
+     * @param string $px_user_id
+     * @return mixed
+     */
+    private function cacheUserDetail(string $px_user_id): mixed
+    {
+        $cachePrefix = "user_detail:cached_{$px_user_id}";
 
         // fetch with session token
         $accessToken = SessionHelper::get('access_token');
-        $auth_user_id = Auth::user()->{config('px-user.px_user_id')};
 
-        // cache get data for only one user
-        if (!is_array($px_user_id)) {
-            $cachePrefix = "user:cached_{$auth_user_id}:user_{$px_user_id}";
-
-            return Cache::remember(
-                $cachePrefix,
-                now()->addMinutes(config('px-user.px_user_cache_time')),
-                fn () => optional($this->pxUserClient->getUserDetails($accessToken, [$px_user_id]))[0] ?? [],
-            );
-        }
-
-        // get cached user data
-        $cachedUserData = $this->collectCachedUserData($auth_user_id, $px_user_id);
-
-        // get ids we need to refresh
-        $idsNeedingRefresh = collect($px_user_id)->diff($cachedUserData->pluck('id'))->values()->toArray();
-
-        // cache multiple users
-        $userData = collect($this->pxUserClient->getUserDetails($accessToken, $idsNeedingRefresh) ?? []);
-        foreach ($idsNeedingRefresh as $user_id) {
-            $cachePrefix = "user:cached_{$auth_user_id}:user_{$user_id}";
-            // set a value into cache if no user is found
-            $data = collect($userData)->filter(fn ($entry) => $entry['id'] === $user_id)->first() ?? ['no access'];
-
-            Cache::put(
-                $cachePrefix,
-                $data,
-                now()->addMinutes(config('px-user.px_user_cache_time')),
-            );
-        }
-
-        return $userData->merge($cachedUserData);
+        return Cache::remember(
+            $cachePrefix,
+            now()->addMinutes(config('px-user.px_user_cache_time')),
+            fn () => optional($this->pxUserClient->getUserDetails($accessToken, [$px_user_id]))[0] ?? [],
+        );
     }
 
-    private function collectCachedUserData(string $auth_user_id, array $px_user_ids)
+    /**
+     * Get user details for one user, load them via API if user is not in cache.
+     *
+     * @param string $px_user_id
+     * @return mixed
+     */
+    private function cacheMultipleUserDetails(array $px_user_ids): mixed
     {
-        $cachePrefix = "user:cached_{$auth_user_id}:user";
-        return collect($px_user_ids)->map(fn ($user_id) => Cache::get("{$cachePrefix}_{$user_id}"));
+        // get all cached users
+        $tags = collect($px_user_ids)->map(fn ($id) => "user_detail:cached_{$id}")->toArray();
+        $cachedDetails = Cache::getMultiple($tags);
+
+        // get only ids
+        $cachedIds = collect($cachedDetails)->pluck('id');
+
+        // fetch with session token
+        $accessToken = SessionHelper::get('access_token');
+
+        // refresh details for users not in cache
+        $userDetails = $this->pxUserClient->getUserDetails($accessToken, collect($px_user_ids)->diff($cachedIds)->toArray()) ?? [];
+        foreach ($userDetails as $user) {
+            $cachePrefix = "user_detail:cached_{$user['id']}";
+
+            // set a value into cache if no user is foun
+            Cache::put(
+                $cachePrefix,
+                $user,
+                now()->addMinutes(config('px-user.px_user_cache_time')),
+            );
+        }
+
+        return Cache::getMultiple($tags);
     }
 
     /**
@@ -84,16 +113,26 @@ class PxUserGetDetailsAction
      *
      * @return bool
      */
-    private function tokensExpired(): bool
+    private function tokensExpired(?Request $request): bool
     {
+        // TODO remove?
+        // if ($request->is('api/*')) {
+        //     return SessionHelper::get('refresh_token') === null;
+        // }
+
         $token_expired = Carbon::now()->gt(SessionHelper::get('access_token_expiration_utc'));
         $refresh_expired = Carbon::now()->gt(SessionHelper::get('refresh_token_expiration_utc'));
 
         return $token_expired && $refresh_expired;
     }
 
-    private function needsRefresh(): bool
+    private function needsRefresh(?Request $request): bool
     {
+        // TODO remove?
+        // if ($request->is('api/*')) {
+        //     return SessionHelper::get('access_token') === null;
+        // }
+
         SessionHelper::get('access_token_expiration_utc');
         $token_expired = Carbon::now()->gt(SessionHelper::get('access_token_expiration_utc'));
         $refresh_expired = Carbon::now()->gt(SessionHelper::get('refresh_token_expiration_utc'));

@@ -26,8 +26,6 @@ class CacheUserData
         if ($request->user()) {
             $px_user_id = $request->user()->{config('px-user.px_user_id')};
 
-            $cachePrefix = ('user:cached_'.$px_user_id);
-
             try {
                 // cache user data for specified time period
                 $userData = UserDataCache::refreshUserData($request);
