@@ -24,7 +24,7 @@ class PxUserGetDetailsAction
      *
      * @throws Throwable
      */
-    public function execute(string|array $px_user_id, ?Request $request = null): mixed
+    public function execute($px_user_id, ?Request $request = null): mixed
     {
         // get data for other user
         if (Gate::denies('user-detail')) {
