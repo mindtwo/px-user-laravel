@@ -88,11 +88,12 @@ class PxUserClient
     /**
      * Get user data from PX-User API.
      *
+     * @param string $access_token
      * @return array|null
      *
      * @throws Throwable
      */
-    public function getUserData($access_token): ?array
+    public function getUserData(string $access_token): ?array
     {
         // check token expiration
         try {
@@ -127,11 +128,13 @@ class PxUserClient
     /**
      * Get user data from PX-User API.
      *
+     * @param string $access_token
+     * @param array $px_user_ids
      * @return array|null
      *
      * @throws Throwable
      */
-    public function getUserDetails($access_token, array $px_user_ids): ?array
+    public function getUserDetails(string $access_token, array $px_user_ids): ?array
     {
         if (count($px_user_ids) < 0) {
             return null;

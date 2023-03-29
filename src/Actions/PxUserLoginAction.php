@@ -42,7 +42,7 @@ class PxUserLoginAction
 
             Auth::login($user);
 
-            SessionHelper::saveTokenData($tokenData, $request);
+            SessionHelper::saveTokenData($tokenData);
 
             PxUserLoginEvent::dispatch($user, $userRequest, $tokenData['access_token']);
 
