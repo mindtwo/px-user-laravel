@@ -37,7 +37,7 @@ class PxUserGetDetailsAction
         }
 
         // cache get data for only one user
-        if (gettype($px_user_id) === 'string') {
+        if (!is_array($px_user_id)) {
             return $this->cacheUserDetail($px_user_id);
         }
 
