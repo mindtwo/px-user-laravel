@@ -3,7 +3,6 @@
 namespace mindtwo\PxUserLaravel\Traits;
 
 use Illuminate\Database\Eloquent\Casts\Attribute;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use mindtwo\PxUserLaravel\Facades\UserDataCache;
 
@@ -22,6 +21,7 @@ trait UseUserDataCache
             'is_confirmed',
             'roles',
             'products',
+            'preferred_username',
         ];
     }
 
