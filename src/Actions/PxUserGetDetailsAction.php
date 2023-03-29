@@ -32,18 +32,9 @@ class PxUserGetDetailsAction
             return null;
         }
 
-        // if both token are expired return null
-        if ($this->tokensExpired($request)) {
-            return null;
-        }
-
         // if auth token is expired try to get a new one
-        if ($this->needsRefresh($request)) {
-            $refresh_token = SessionHelper::get('px_user_refresh_token');
-            $refreshed = $this->pxUserClient->refreshToken($refresh_token);
-
-            // put new tokens into session
-            SessionHelper::saveTokenData($refreshed, $request);
+        if (!(new PxUserTokenRefreshAction($this->pxUserClient))->execute()) {
+            return null;
         }
 
         // cache get data for only one user
@@ -106,37 +97,5 @@ class PxUserGetDetailsAction
         }
 
         return Cache::getMultiple($tags);
-    }
-
-    /**
-     * Check if both tokens are expired.
-     *
-     * @return bool
-     */
-    private function tokensExpired(?Request $request): bool
-    {
-        // TODO remove?
-        // if ($request->is('api/*')) {
-        //     return SessionHelper::get('refresh_token') === null;
-        // }
-
-        $token_expired = Carbon::now()->gt(SessionHelper::get('access_token_expiration_utc'));
-        $refresh_expired = Carbon::now()->gt(SessionHelper::get('refresh_token_expiration_utc'));
-
-        return $token_expired && $refresh_expired;
-    }
-
-    private function needsRefresh(?Request $request): bool
-    {
-        // TODO remove?
-        // if ($request->is('api/*')) {
-        //     return SessionHelper::get('access_token') === null;
-        // }
-
-        SessionHelper::get('access_token_expiration_utc');
-        $token_expired = Carbon::now()->gt(SessionHelper::get('access_token_expiration_utc'));
-        $refresh_expired = Carbon::now()->gt(SessionHelper::get('refresh_token_expiration_utc'));
-
-        return $token_expired && !$refresh_expired;
     }
 }

@@ -22,13 +22,8 @@ class PxUserDataRefreshAction
      */
     public function execute(): ?array
     {
-        // if both token are expired return null
-        if ($this->tokensExpired()) {
-            return null;
-        }
-
         // if auth token is expired try to get a new one
-        if ($this->needsRefresh() && !(new PxUserTokenRefreshAction($this->pxUserClient))->execute()) {
+        if (!(new PxUserTokenRefreshAction($this->pxUserClient))->execute()) {
             return null;
         }
 
@@ -36,27 +31,5 @@ class PxUserDataRefreshAction
         $accessToken = SessionHelper::get('access_token');
 
         return $this->pxUserClient->getUserData($accessToken);
-    }
-
-    /**
-     * Check if both tokens are expired
-     *
-     * @return bool
-     */
-    private function tokensExpired(): bool
-    {
-        $token_expired = Carbon::now()->gt(SessionHelper::get('access_token_expiration_utc'));
-        $refresh_expired = Carbon::now()->gt(SessionHelper::get('refresh_token_expiration_utc'));
-
-        return $token_expired && $refresh_expired;
-    }
-
-    private function needsRefresh(): bool
-    {
-        SessionHelper::get('access_token_expiration_utc');
-        $token_expired = Carbon::now()->gt(SessionHelper::get('access_token_expiration_utc'));
-        $refresh_expired = Carbon::now()->gt(SessionHelper::get('refresh_token_expiration_utc'));
-
-        return $token_expired && ! $refresh_expired;
     }
 }

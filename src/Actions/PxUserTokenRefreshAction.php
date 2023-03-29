@@ -2,6 +2,7 @@
 
 namespace mindtwo\PxUserLaravel\Actions;
 
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use mindtwo\PxUserLaravel\Events\PxUserTokenRefreshEvent;
 use mindtwo\PxUserLaravel\Helper\SessionHelper;
@@ -23,6 +24,14 @@ class PxUserTokenRefreshAction
      */
     public function execute(): bool
     {
+        if (!$this->needsRefresh()) {
+            return true;
+        }
+
+        if ($this->tokensExpired()) {
+            return false;
+        }
+
         $refresh_token = SessionHelper::get('px_user_refresh_token');
 
         try {
@@ -37,5 +46,27 @@ class PxUserTokenRefreshAction
         PxUserTokenRefreshEvent::dispatch(Auth::user(), $refreshed['access_token']);
 
         return true;
+    }
+
+    /**
+     * Check if both tokens are expired.
+     *
+     * @return bool
+     */
+    private function tokensExpired(): bool
+    {
+        $token_expired = Carbon::now()->gt(SessionHelper::get('access_token_expiration_utc'));
+        $refresh_expired = Carbon::now()->gt(SessionHelper::get('refresh_token_expiration_utc'));
+
+        return $token_expired && $refresh_expired;
+    }
+
+    private function needsRefresh(): bool
+    {
+        SessionHelper::get('access_token_expiration_utc');
+        $token_expired = Carbon::now()->gt(SessionHelper::get('access_token_expiration_utc'));
+        $refresh_expired = Carbon::now()->gt(SessionHelper::get('refresh_token_expiration_utc'));
+
+        return $token_expired && !$refresh_expired;
     }
 }
