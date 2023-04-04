@@ -31,7 +31,7 @@ class UserDataService
             return [];
         }
 
-        $currentUserId = Auth::user()->{config('px-user.px_user_id')};
+        $currentUserId = Auth::user()?->{config('px-user.px_user_id')};
 
         if ($px_user_id === $currentUserId) {
             // Data for current user are cached via request middleware
