@@ -181,6 +181,47 @@ class PxUserClient
     }
 
     /**
+     * Login user using username and password.
+     *
+     * @return array|null
+     */
+    public function login($username, $password)
+    {
+        try {
+            $response = $this->request([
+                'X-M2M-Authorization' => $this->m2mCredentials,
+                'X-M2M-User-Context' => $this->getContext(),
+            ])->post('login', [
+                'username' => $username,
+                'password' => $password,
+                'tenant_code' => $this->tenant,
+                'domain_code' => $this->domain,
+            ])->throw();
+        } catch (Throwable $e) {
+            Log::error('Failed refresh token for url: ');
+            Log::error($this->getUri());
+            Log::error($e->getMessage());
+
+            return null;
+        }
+
+        // Check if status is 200
+        if ($response->getStatusCode() === 200) {
+            $body = $response->getBody();
+            $responseData = optional(json_decode((string) $body))->response;
+
+            return [
+                'access_token' => $responseData->access_token,
+                'access_token_expiration_utc' => $responseData->access_token_expiration_utc,
+                'refresh_token' => $responseData->refresh_token,
+                'refresh_token_expiration_utc' => $responseData->refresh_token_expiration_utc,
+            ];
+        }
+
+        return null;
+    }
+
+    /**
      * @return array|null
      */
     public function refreshToken($refresh_token)
