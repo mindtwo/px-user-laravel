@@ -12,7 +12,6 @@ class PxUserGetDetailsAction
 {
     public function __construct(
         protected PxUserClient $pxUserClient,
-        protected CheckUserTokenService $checkUserTokenService,
     ) {
     }
 
@@ -31,8 +30,9 @@ class PxUserGetDetailsAction
             return null;
         }
 
+        $checkUserTokenService = app()->make(CheckUserTokenService::class);
         // if auth token is expired try to get a new one
-        if (!$this->checkUserTokenService->check()) {
+        if (!$checkUserTokenService->check()) {
             return null;
         }
 
