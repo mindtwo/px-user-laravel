@@ -2,16 +2,17 @@
 
 namespace mindtwo\PxUserLaravel\Actions;
 
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Gate;
-use mindtwo\PxUserLaravel\Helper\SessionHelper;
+use mindtwo\PxUserLaravel\Helper\AccessTokenHelper;
+use mindtwo\PxUserLaravel\Services\CheckUserTokenService;
 use mindtwo\PxUserLaravel\Services\PxUserClient;
 
 class PxUserGetDetailsAction
 {
     public function __construct(
         protected PxUserClient $pxUserClient,
+        protected CheckUserTokenService $checkUserTokenService,
     ) {
     }
 
@@ -19,12 +20,11 @@ class PxUserGetDetailsAction
      * Undocumented function.
      *
      * @param array $px_user_ids
-     * @param ?Request $request
      * @return ?array
      *
      * @throws Throwable
      */
-    public function execute($px_user_id, ?Request $request = null): mixed
+    public function execute($px_user_id): mixed
     {
         // get data for other user
         if (Gate::denies('user-detail')) {
@@ -32,7 +32,7 @@ class PxUserGetDetailsAction
         }
 
         // if auth token is expired try to get a new one
-        if (!(new PxUserTokenRefreshAction($this->pxUserClient))->execute()) {
+        if (!$this->checkUserTokenService->check()) {
             return null;
         }
 
@@ -55,7 +55,7 @@ class PxUserGetDetailsAction
         $cachePrefix = "user_detail:cached_{$px_user_id}";
 
         // fetch with session token
-        $accessToken = SessionHelper::get('access_token');
+        $accessToken = AccessTokenHelper::get('access_token');
 
         return Cache::remember(
             $cachePrefix,
@@ -80,10 +80,11 @@ class PxUserGetDetailsAction
         $cachedIds = collect($cachedDetails)->pluck('id');
 
         // fetch with session token
-        $accessToken = SessionHelper::get('access_token');
+        $accessToken = AccessTokenHelper::get('access_token');
 
         // refresh details for users not in cache
         $userDetails = $this->pxUserClient->getUserDetails($accessToken, collect($px_user_ids)->diff($cachedIds)->toArray()) ?? [];
+
         foreach ($userDetails as $user) {
             $cachePrefix = "user_detail:cached_{$user['id']}";
 

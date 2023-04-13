@@ -4,7 +4,7 @@ namespace mindtwo\PxUserLaravel\Actions;
 
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
-use mindtwo\PxUserLaravel\Helper\SessionHelper;
+use mindtwo\PxUserLaravel\Helper\AccessTokenHelper;
 
 class PxUserLogoutAction
 {
@@ -23,7 +23,7 @@ class PxUserLogoutAction
             // forget user data in cache
             Cache::forget($cachePrefix);
 
-            SessionHelper::flush();
+            AccessTokenHelper::flush();
 
             if (method_exists(app('auth'), 'logout')) {
                 optional((app('auth')))->logout();

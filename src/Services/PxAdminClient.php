@@ -6,7 +6,7 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Throwable;
 
-class PxUserClient
+class PxAdminClient
 {
     /**
      * The stage the app runs in.
@@ -30,6 +30,14 @@ class PxUserClient
     private $domain = null;
 
     /**
+     * Machine-to-machine credentials used for communication between backend
+     * and PX User API.
+     *
+     * @var ?string
+     */
+    private $m2mCredentials = null;
+
+    /**
      * Urls for available environments.
      *
      * @var string[]
@@ -49,6 +57,7 @@ class PxUserClient
         $this->setCredentials(
             ($config['tenant'] ?? 'plx'),
             ($config['domain'] ?? null),
+            ($config['m2m_credentials'] ?? null)
         );
     }
 
@@ -60,16 +69,19 @@ class PxUserClient
         $reqHeaders = array_merge([
             'Content-Type' => 'application/json',
             'Accept' => 'application/json',
+            'X-M2M-Authorization' => $this->m2mCredentials,
             'X-M2M-User-Context' => $context,
         ], $headers);
 
         return Http::withHeaders($reqHeaders)->baseUrl($uri);
     }
 
-    public function setCredentials($tenant, $domain)
+    public function setCredentials($tenant, $domain, $m2mCredentials)
     {
         $this->tenant = $tenant;
         $this->domain = $domain;
+        $this->m2mCredentials = $m2mCredentials;
+
         return $this;
     }
 
@@ -78,7 +90,7 @@ class PxUserClient
         $defaultTenant = $this->tenant;
         $defaultDomain = $this->domain;
 
-        $this->setCredentials($tenant, $domain);
+        $this->setCredentials($tenant, $domain, $this->m2mCredentials);
 
         $callback($this);
 
@@ -89,80 +101,71 @@ class PxUserClient
     }
 
     /**
-     * Get user data from PX-User API.
+     * Login user using username and password.
      *
-     * @param string $access_token
      * @return array|null
-     *
-     * @throws Throwable
      */
-    public function getUserData(string $access_token): ?array
+    public function login($username, $password)
     {
-        // check token expiration
         try {
-            $response = $this->request([
-                'Authorization' => "Bearer {$access_token}",
-
-            ])->get('user')->throw();
+            $response = $this->request()->post('login', [
+                'username' => $username,
+                'password' => $password,
+                'tenant_code' => $this->tenant,
+                'domain_code' => $this->domain,
+            ])->throw();
         } catch (Throwable $e) {
-            Log::error('Failed login for url: ');
+            Log::error('Failed refresh token for url: ');
             Log::error($this->getUri());
             Log::error($e->getMessage());
 
-            throw $e;
+            return null;
         }
 
         // Check if status is 200
-        if ($response->status() === 200) {
-            $body = $response->body();
-            $responseData = json_decode((string) $body, true);
+        if ($response->getStatusCode() === 200) {
+            $body = $response->getBody();
+            $responseData = optional(json_decode((string) $body))->response;
 
-            // parse response body and return stdClass Object
-            $userData = optional($responseData['response'])['user'];
-
-            if ($userData) {
-                return $userData;
-            }
+            return [
+                'access_token' => $responseData->access_token,
+                'access_token_expiration_utc' => $responseData->access_token_expiration_utc,
+                'refresh_token' => $responseData->refresh_token,
+                'refresh_token_expiration_utc' => $responseData->refresh_token_expiration_utc,
+            ];
         }
 
         return null;
     }
 
     /**
-     * Get user data from PX-User API.
-     *
-     * @param string $access_token
-     * @param array $px_user_ids
      * @return array|null
-     *
-     * @throws Throwable
      */
-    public function getUserDetails(string $access_token, array $px_user_ids): ?array
+    public function refreshToken($refresh_token)
     {
-        if (count($px_user_ids) < 0) {
+        try {
+            $response = $this->request([
+                'Authorization' => "Bearer {$refresh_token}",
+            ])->get('refresh-tokens')->throw();
+        } catch (Throwable $e) {
+            Log::error('Failed refresh token for url: ');
+            Log::error($this->getUri());
+            Log::error($e->getMessage());
+
             return null;
         }
 
-        // check token expiration
-        /** @var \Illuminate\Http\Client\Response $response */
-        $response = $this->request([
-            'Authorization' => "Bearer {$access_token}",
-            'X-Context-Tenant-Code' => $this->tenant,
-            'X-Context-Domain-Code' => $this->domain,
-        ])->post('users/details', [
-            'user_ids' => $px_user_ids,
-        ]);
-
         // Check if status is 200
-        if ($response->status() === 200) {
-            $body = $response->body();
+        if ($response->getStatusCode() === 200) {
+            $body = $response->getBody();
+            $responseData = optional(json_decode((string) $body))->response;
 
-            $responseData = json_decode((string) $body, true);
-
-            $data = $responseData['response'];
-            if ($data) {
-                return $data;
-            }
+            return [
+                'access_token' => $responseData->access_token,
+                'access_token_expiration_utc' => $responseData->access_token_expiration_utc,
+                'refresh_token' => $responseData->refresh_token,
+                'refresh_token_expiration_utc' => $responseData->refresh_token_expiration_utc,
+            ];
         }
 
         return null;

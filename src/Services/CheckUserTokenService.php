@@ -1,17 +1,17 @@
 <?php
 
-namespace mindtwo\PxUserLaravel\Actions;
+namespace mindtwo\PxUserLaravel\Services;
 
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use mindtwo\PxUserLaravel\Events\PxUserTokenRefreshEvent;
-use mindtwo\PxUserLaravel\Helper\SessionHelper;
-use mindtwo\PxUserLaravel\Services\PxUserClient;
+use mindtwo\PxUserLaravel\Helper\AccessTokenHelper;
+use mindtwo\PxUserLaravel\Services\PxAdminClient;
 
-class PxUserTokenRefreshAction
+class CheckUserTokenService
 {
     public function __construct(
-        protected PxUserClient $pxUserClient,
+        protected PxAdminClient $pxAdminClient,
     ) {
     }
 
@@ -22,7 +22,7 @@ class PxUserTokenRefreshAction
      *
      * @throws Throwable
      */
-    public function execute(): bool
+    public function check(): bool
     {
         if ($this->tokensExpired()) {
             return false;
@@ -32,16 +32,16 @@ class PxUserTokenRefreshAction
             return true;
         }
 
-        $refresh_token = SessionHelper::get('px_user_refresh_token');
+        $refresh_token = AccessTokenHelper::get('px_user_refresh_token');
 
         try {
-            $refreshed = $this->pxUserClient->refreshToken($refresh_token);
+            $refreshed = $this->pxAdminClient->refreshToken($refresh_token);
         } catch (\Throwable $th) {
             return false;
         }
 
         // put new tokens into session
-        SessionHelper::saveTokenData($refreshed);
+        AccessTokenHelper::saveTokenData($refreshed);
 
         PxUserTokenRefreshEvent::dispatch(Auth::user(), $refreshed['access_token']);
 
@@ -55,17 +55,17 @@ class PxUserTokenRefreshAction
      */
     private function tokensExpired(): bool
     {
-        $token_expired = Carbon::now()->gt(SessionHelper::get('access_token_expiration_utc'));
-        $refresh_expired = Carbon::now()->gt(SessionHelper::get('refresh_token_expiration_utc'));
+        $token_expired = Carbon::now()->gt(AccessTokenHelper::get('access_token_expiration_utc'));
+        $refresh_expired = Carbon::now()->gt(AccessTokenHelper::get('refresh_token_expiration_utc'));
 
         return $token_expired && $refresh_expired;
     }
 
     private function needsRefresh(): bool
     {
-        SessionHelper::get('access_token_expiration_utc');
-        $token_expired = Carbon::now()->gt(SessionHelper::get('access_token_expiration_utc'));
-        $refresh_expired = Carbon::now()->gt(SessionHelper::get('refresh_token_expiration_utc'));
+        AccessTokenHelper::get('access_token_expiration_utc');
+        $token_expired = Carbon::now()->gt(AccessTokenHelper::get('access_token_expiration_utc'));
+        $refresh_expired = Carbon::now()->gt(AccessTokenHelper::get('refresh_token_expiration_utc'));
 
         return $token_expired && !$refresh_expired;
     }

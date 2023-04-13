@@ -9,6 +9,8 @@ use mindtwo\PxUserLaravel\Actions\PxUserGetDetailsAction;
 use mindtwo\PxUserLaravel\Actions\PxUserDataRefreshAction;
 use mindtwo\PxUserLaravel\Events\PxUserLoginEvent;
 use mindtwo\PxUserLaravel\Listeners\UserLoginListener;
+use mindtwo\PxUserLaravel\Services\CheckUserTokenService;
+use mindtwo\PxUserLaravel\Services\PxAdminClient;
 use mindtwo\PxUserLaravel\Services\PxUserClient;
 use mindtwo\PxUserLaravel\Services\UserDataService;
 
@@ -38,15 +40,30 @@ class PxUserProvider extends ServiceProvider
      */
     public function register()
     {
+        $this->app->singleton(PxAdminClient::class, function (Application $app) {
+            return new PxAdminClient(config('px-user'));
+        });
+
         $this->app->singleton(PxUserClient::class, function (Application $app) {
             return new PxUserClient(config('px-user'));
         });
 
+        $this->app->singleton(CheckUserTokenService::class, function (Application $app) {
+            $pxAdminClient = $app->make(PxAdminClient::class);
+
+            return new CheckUserTokenService(
+                $pxAdminClient,
+            );
+        });
+
+
         $this->app->singleton('UserDataCache', function (Application $app) {
             $pxUserClient = $app->make(PxUserClient::class);
+            $checkUserTokenService = $app->make(CheckUserTokenService::class);
+
             return new UserDataService(
-                new PxUserDataRefreshAction($pxUserClient),
-                new PxUserGetDetailsAction($pxUserClient),
+                new PxUserDataRefreshAction($pxUserClient, $checkUserTokenService),
+                new PxUserGetDetailsAction($pxUserClient, $checkUserTokenService),
             );
         });
     }

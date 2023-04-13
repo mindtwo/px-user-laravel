@@ -2,15 +2,14 @@
 
 namespace mindtwo\PxUserLaravel\Actions;
 
-use Illuminate\Http\Request;
 use mindtwo\PxUserLaravel\Actions\PxUserLoginAction;
+use mindtwo\PxUserLaravel\Services\PxAdminClient;
 use mindtwo\PxUserLaravel\Services\PxUserClient;
 
 class PxUserDirectLoginAction
 {
     public function __construct(
-        protected PxUserClient $pxUserClient,
-        protected PxUserLoginAction $pxUserLoginAction,
+        protected PxAdminClient $pxAdminClient,
     ) {
     }
 
@@ -22,14 +21,24 @@ class PxUserDirectLoginAction
      *
      * @throws Exception
      */
-    public function execute(Request $request, string $username, string $password): bool
+    public function execute(?string $username, ?string $password): bool
     {
+        if ($username === null) {
+            throw new \Exception('Please provide a valid username', 1);
+        }
+
+        if ($password === null) {
+            throw new \Exception('Please provide a valid password', 1);
+        }
+
         try {
-            $tokenData = $this->pxUserClient->login($username, $password);
+            $tokenData = $this->pxAdminClient->login($username, $password);
         } catch (\Throwable $e) {
             throw new \Exception('No user found.', 0, $e);
         }
 
-        return $this->pxUserLoginAction->execute($request, $tokenData);
+        $pxUserLoginAction = new PxUserLoginAction(app()->make(PxUserClient::class));
+
+        return $pxUserLoginAction->execute($tokenData);
     }
 }

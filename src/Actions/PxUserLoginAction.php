@@ -2,10 +2,9 @@
 
 namespace mindtwo\PxUserLaravel\Actions;
 
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use mindtwo\PxUserLaravel\Events\PxUserLoginEvent;
-use mindtwo\PxUserLaravel\Helper\SessionHelper;
+use mindtwo\PxUserLaravel\Helper\AccessTokenHelper;
 use mindtwo\PxUserLaravel\Services\PxUserClient;
 
 class PxUserLoginAction
@@ -23,7 +22,7 @@ class PxUserLoginAction
      *
      * @throws Exception
      */
-    public function execute(Request $request, ?array $tokenData): bool
+    public function execute(?array $tokenData): bool
     {
         if (! $this->validateTokenData($tokenData)) {
             return false;
@@ -42,7 +41,8 @@ class PxUserLoginAction
 
             Auth::login($user);
 
-            SessionHelper::saveTokenData($tokenData);
+            // save token data to session or cache
+            AccessTokenHelper::saveTokenData($tokenData);
 
             PxUserLoginEvent::dispatch($user, $userRequest, $tokenData['access_token']);
 
