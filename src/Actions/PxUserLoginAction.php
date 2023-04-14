@@ -17,19 +17,20 @@ class PxUserLoginAction
     /**
      * Use token data received from login widget to login user in backend
      *
-     * @param  array  $tokenData
+     * @param  ?array  $tokenData
+     * @param  bool  $withPermissions
      * @return bool
      *
      * @throws Exception
      */
-    public function execute(?array $tokenData): bool
+    public function execute(?array $tokenData, bool $withPermissions=true): bool
     {
         if (! $this->validateTokenData($tokenData)) {
             return false;
         }
 
         try {
-            $userRequest = $this->pxUserClient->getUserData($tokenData['access_token']);
+            $userRequest = $this->pxUserClient->getUserData($tokenData['access_token'], $withPermissions);
 
             if (null === config('px-user.user_model')) {
                 return false;

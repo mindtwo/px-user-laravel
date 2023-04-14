@@ -92,18 +92,19 @@ class PxUserClient
      * Get user data from PX-User API.
      *
      * @param string $access_token
+     * @param bool $withPermissions
      * @return array|null
      *
      * @throws Throwable
      */
-    public function getUserData(string $access_token): ?array
+    public function getUserData(string $access_token, bool $withPermissions=false): ?array
     {
         // check token expiration
         try {
             $response = $this->request([
                 'Authorization' => "Bearer {$access_token}",
 
-            ])->get('user')->throw();
+            ])->get($withPermissions ? 'user-with-permissions' : 'user')->throw();
         } catch (Throwable $e) {
             Log::error('Failed login for url: ');
             Log::error($this->getUri());
