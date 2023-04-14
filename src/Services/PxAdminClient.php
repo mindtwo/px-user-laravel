@@ -115,7 +115,7 @@ class PxAdminClient
                 'domain_code' => $this->domain,
             ])->throw();
         } catch (Throwable $e) {
-            Log::error('Failed refresh token for url: ');
+            Log::error('Failed to login user for url: ');
             Log::error($this->getUri());
             Log::error($e->getMessage());
 
