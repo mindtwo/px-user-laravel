@@ -23,9 +23,7 @@ class PxUserProvider extends ServiceProvider
      */
     public function boot()
     {
-        $this->publishes([
-            __DIR__.'/../config/px-user.php' => config_path('px-user.php'),
-        ], 'px-user');
+        $this->publishConfig();
 
         Event::listen(
             PxUserLoginEvent::class,
@@ -40,6 +38,8 @@ class PxUserProvider extends ServiceProvider
      */
     public function register()
     {
+        $this->mergeConfigFrom(__DIR__.'/../../config/px-user.php', 'px-user');
+
         $this->app->singleton(PxAdminClient::class, function (Application $app) {
             return new PxAdminClient(config('px-user'));
         });
@@ -66,5 +66,19 @@ class PxUserProvider extends ServiceProvider
                 new PxUserGetDetailsAction($pxUserClient, $checkUserTokenService),
             );
         });
+    }
+
+    /**
+     * Publish the config file.
+     *
+     * @return void
+     */
+    protected function publishConfig()
+    {
+        $configPath = __DIR__.'/../../config/px-user.php';
+
+        $this->publishes([
+            $configPath => config_path('px-user.php'),
+        ], 'px-user');
     }
 }
