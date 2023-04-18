@@ -52,7 +52,7 @@ return [
 
     /**
      * Invokeable action class used to retrieve user model.
-     * The returned model must implement Authorizeable contract.
+     * The returned model must implement Authenticatable contract.
      * The action may return false if no model can be found for
      * given user data.
      */
