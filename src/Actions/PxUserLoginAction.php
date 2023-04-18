@@ -32,13 +32,13 @@ class PxUserLoginAction
         try {
             $userRequest = $this->pxUserClient->getUserData($tokenData['access_token'], $withPermissions);
 
-            if (null === config('px-user.user_model')) {
+            $retrieveUserAction = config('px-user.retrieve_user_action');
+
+            $user = (new $retrieveUserAction)($userRequest);
+
+            if (!$user) {
                 return false;
             }
-
-            $user = config('px-user.user_model')::firstOrCreate([
-                config('px-user.px_user_id') => $userRequest['id'],
-            ]);
 
             Auth::login($user);
 

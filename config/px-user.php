@@ -51,6 +51,14 @@ return [
     'px_user_cache_time' => 120,
 
     /**
+     * Invokeable action class used to retrieve user model.
+     * The returned model must implement Authorizeable contract.
+     * The action may return false if no model can be found for
+     * given user data.
+     */
+    'retrieve_user_action' => \mindtwo\PxUserLaravel\Actions\RetrieveUserOnLoginAction::class,
+
+    /**
      * Permissions
      *
      * TODO: clean up later
