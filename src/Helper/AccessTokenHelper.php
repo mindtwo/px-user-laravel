@@ -26,6 +26,18 @@ class AccessTokenHelper
     }
 
     /**
+     * Get px user token data for current user
+     *
+     * @return array
+     */
+    public static function values()
+    {
+        return collect(self::$accessTokenKeys)
+            ->mapWithKeys(fn ($key) => [$key => self::get($key)])
+            ->toArray();
+    }
+
+    /**
      * Remove session data for request
      *
      * @return void
