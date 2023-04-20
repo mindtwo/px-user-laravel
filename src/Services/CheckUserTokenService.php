@@ -40,6 +40,10 @@ class CheckUserTokenService
             return false;
         }
 
+        if ($refreshed === null) {
+            return false;
+        }
+
         // put new tokens into session
         AccessTokenHelper::saveTokenData($refreshed);
 
