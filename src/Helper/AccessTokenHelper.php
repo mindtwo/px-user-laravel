@@ -21,7 +21,9 @@ class AccessTokenHelper
         foreach (self::$accessTokenKeys as $key) {
             $sessionKey = self::prefix() . "_$key";
 
-            self::put($sessionKey, $tokenData[$key]);
+            if (isset($tokenData[$key])) {
+                self::put($sessionKey, $tokenData[$key]);
+            }
         }
     }
 
@@ -67,6 +69,10 @@ class AccessTokenHelper
      */
     public static function put(string $key, string $value)
     {
+        if (!self::check($key)) {
+            throw new \Exception("Error Processing Request", 1);
+        }
+
         $sessionKey = $key;
         if (!str_starts_with($sessionKey, self::prefix())) {
             $sessionKey = self::prefix() . "_$sessionKey";
@@ -88,6 +94,10 @@ class AccessTokenHelper
      */
     public static function get(string $key): mixed
     {
+        if (!self::check($key)) {
+            throw new \Exception("Error Processing Request", 1);
+        }
+
         $sessionKey = $key;
         if (!str_starts_with($sessionKey, self::prefix())) {
             $sessionKey = self::prefix() . "_$sessionKey";
@@ -111,5 +121,22 @@ class AccessTokenHelper
         }
 
         return $prefix;
+    }
+
+    /**
+     * Check if key is in array of
+     * keys which are allowed to be handled
+     * by this helper.
+     *
+     * @param string $key
+     * @return boolean
+     */
+    private static function check(string $key): bool
+    {
+        if (str_starts_with($key, self::prefix())) {
+            $key = str_replace(self::prefix() . "_", "", $key);
+        }
+
+        return in_array($key, self::$accessTokenKeys);
     }
 }
