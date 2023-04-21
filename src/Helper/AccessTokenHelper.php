@@ -69,14 +69,11 @@ class AccessTokenHelper
      */
     public static function put(string $key, string $value)
     {
-        if (!self::check($key)) {
+        if (!self::allowed($key)) {
             throw new \Exception("Error Processing Request", 1);
         }
 
-        $sessionKey = $key;
-        if (!str_starts_with($sessionKey, self::prefix())) {
-            $sessionKey = self::prefix() . "_$sessionKey";
-        }
+        $sessionKey = self::prefix() . "_$key";
 
         if (auth('sanctum')->check()) {
             Cache::put($sessionKey, $value);
@@ -94,14 +91,11 @@ class AccessTokenHelper
      */
     public static function get(string $key): mixed
     {
-        if (!self::check($key)) {
+        if (!self::allowed($key)) {
             throw new \Exception("Error Processing Request", 1);
         }
 
-        $sessionKey = $key;
-        if (!str_starts_with($sessionKey, self::prefix())) {
-            $sessionKey = self::prefix() . "_$sessionKey";
-        }
+        $sessionKey = self::prefix() . "_$key";
 
         if (auth('sanctum')->check()) {
             return Cache::get($sessionKey);
@@ -131,12 +125,8 @@ class AccessTokenHelper
      * @param string $key
      * @return boolean
      */
-    private static function check(string $key): bool
+    private static function allowed(string $key): bool
     {
-        if (str_starts_with($key, self::prefix())) {
-            $key = str_replace(self::prefix() . "_", "", $key);
-        }
-
         return in_array($key, self::$accessTokenKeys);
     }
 }

@@ -3,6 +3,7 @@
 namespace mindtwo\PxUserLaravel\Actions;
 
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Validator;
 use mindtwo\PxUserLaravel\Events\PxUserLoginEvent;
 use mindtwo\PxUserLaravel\Helper\AccessTokenHelper;
 use mindtwo\PxUserLaravel\Services\PxUserClient;
@@ -59,8 +60,13 @@ class PxUserLoginAction
             return false;
         }
 
-        $requiredKeys = ['access_token', 'access_token_expiration_utc', 'refresh_token', 'refresh_token_expiration_utc'];
+        $validator = Validator::make($tokenData, [
+            'access_token' => 'required|string',
+            'access_token_expiration_utc' => 'required|string',
+            'refresh_token' => 'sometimes|string',
+            'refresh_token_expiration_utc' => 'sometimes|string',
+        ]);
 
-        return ! array_diff_key(array_flip($requiredKeys), $tokenData);
+        return !$validator->fails();
     }
 }
