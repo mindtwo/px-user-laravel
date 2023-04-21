@@ -35,7 +35,7 @@ class CacheUserData
 
             // log the user out if we can not refresh
             if (empty($userData)) {
-                $this->pxUserLogoutAction->execute($request);
+                $this->pxUserLogoutAction->execute();
             }
         }
 
