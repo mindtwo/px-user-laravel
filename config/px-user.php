@@ -59,6 +59,20 @@ return [
     'retrieve_user_action' => \mindtwo\PxUserLaravel\Actions\RetrieveUserOnLoginAction::class,
 
     /**
+     * Configuration regarding the sanctum integration.
+     */
+    'sanctum' => [
+
+        /**
+         * Enable or disable integration for laravel sanctum.
+         * If the integration is enabled you should set
+         * config('sanctum.expiration') to 'null'.
+         */
+        'enabled' => true,
+
+    ],
+
+    /**
      * Permissions
      *
      * TODO: clean up later

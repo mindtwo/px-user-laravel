@@ -9,6 +9,7 @@ use mindtwo\PxUserLaravel\Actions\PxUserGetDetailsAction;
 use mindtwo\PxUserLaravel\Actions\PxUserDataRefreshAction;
 use mindtwo\PxUserLaravel\Events\PxUserLoginEvent;
 use mindtwo\PxUserLaravel\Listeners\UserLoginListener;
+use mindtwo\PxUserLaravel\Sanctum\PersonalAccessToken;
 use mindtwo\PxUserLaravel\Services\CheckUserTokenService;
 use mindtwo\PxUserLaravel\Services\PxAdminClient;
 use mindtwo\PxUserLaravel\Services\PxUserClient;
@@ -29,6 +30,10 @@ class PxUserProvider extends ServiceProvider
             PxUserLoginEvent::class,
             UserLoginListener::class,
         );
+
+        if (config('px-user.sanctum.enabled') === true && class_exists(\Laravel\Sanctum\Sanctum::class)) {
+            \Laravel\Sanctum\Sanctum::usePersonalAccessTokenModel(PersonalAccessToken::class);
+        }
     }
 
     /**
@@ -59,11 +64,10 @@ class PxUserProvider extends ServiceProvider
 
         $this->app->singleton('UserDataCache', function (Application $app) {
             $pxUserClient = $app->make(PxUserClient::class);
-            $checkUserTokenService = $app->make(CheckUserTokenService::class);
 
             return new UserDataService(
-                new PxUserDataRefreshAction($pxUserClient, $checkUserTokenService),
-                new PxUserGetDetailsAction($pxUserClient, $checkUserTokenService),
+                new PxUserDataRefreshAction($pxUserClient),
+                new PxUserGetDetailsAction($pxUserClient),
             );
         });
     }

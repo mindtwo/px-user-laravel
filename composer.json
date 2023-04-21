@@ -22,7 +22,11 @@
         "laravel/framework": "^9.0"
     },
     "require-dev": {
-        "laravel/pint": "^1.2"
+        "laravel/pint": "^1.2",
+        "laravel/sanctum": "^3.2"
+    },
+    "suggest": {
+        "laravel/sanctum": "The package provides a custom AuthToken Model which may be used by your application"
     },
     "minimum-stability": "dev",
     "prefer-stable": true,
@@ -36,8 +40,7 @@
             "providers": [
                 "mindtwo\\PxUserLaravel\\Providers\\PxUserProvider"
             ],
-            "aliases": {
-            }
+            "aliases": {}
         }
     }
 }
