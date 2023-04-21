@@ -4,7 +4,7 @@ namespace mindtwo\PxUserLaravel\Actions;
 
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Gate;
-use mindtwo\PxUserLaravel\Helper\AccessTokenHelper;
+use mindtwo\PxUserLaravel\Facades\AccessTokenHelper;
 use mindtwo\PxUserLaravel\Services\CheckUserTokenService;
 use mindtwo\PxUserLaravel\Services\PxUserClient;
 

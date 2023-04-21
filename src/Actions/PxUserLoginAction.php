@@ -5,7 +5,7 @@ namespace mindtwo\PxUserLaravel\Actions;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 use mindtwo\PxUserLaravel\Events\PxUserLoginEvent;
-use mindtwo\PxUserLaravel\Helper\AccessTokenHelper;
+use mindtwo\PxUserLaravel\Facades\AccessTokenHelper;
 use mindtwo\PxUserLaravel\Services\PxUserClient;
 
 class PxUserLoginAction

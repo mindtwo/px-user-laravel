@@ -2,7 +2,7 @@
 
 namespace mindtwo\PxUserLaravel\Actions;
 
-use mindtwo\PxUserLaravel\Helper\AccessTokenHelper;
+use mindtwo\PxUserLaravel\Facades\AccessTokenHelper;
 use mindtwo\PxUserLaravel\Services\CheckUserTokenService;
 use mindtwo\PxUserLaravel\Services\PxUserClient;
 

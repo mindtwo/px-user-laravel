@@ -4,7 +4,7 @@ namespace mindtwo\PxUserLaravel\Actions;
 
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
-use mindtwo\PxUserLaravel\Helper\AccessTokenHelper;
+use mindtwo\PxUserLaravel\Facades\AccessTokenHelper;
 
 class PxUserLogoutAction
 {

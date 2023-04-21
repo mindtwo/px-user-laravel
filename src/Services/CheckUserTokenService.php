@@ -3,16 +3,16 @@
 namespace mindtwo\PxUserLaravel\Services;
 
 use Carbon\Carbon;
+use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use mindtwo\PxUserLaravel\Events\PxUserTokenRefreshEvent;
-use mindtwo\PxUserLaravel\Helper\AccessTokenHelper;
+use mindtwo\PxUserLaravel\Facades\AccessTokenHelper;
 use mindtwo\PxUserLaravel\Services\PxAdminClient;
 
 class CheckUserTokenService
 {
     public function __construct(
-        protected PxAdminClient $pxAdminClient,
     ) {
     }
 
@@ -25,18 +25,22 @@ class CheckUserTokenService
      */
     public function check(): bool
     {
-        if ($this->tokensExpired()) {
-            return false;
+        // $token_expired && $refresh_expired
+        $accessTokenExpired = AccessTokenHelper::accessTokenExpired();
+        if (!$accessTokenExpired) {
+            return true;
         }
 
-        if (!$this->needsRefresh()) {
-            return true;
+        $canRefresh = AccessTokenHelper::canRefresh();
+        if (!$canRefresh) {
+            return false;
         }
 
         $refresh_token = AccessTokenHelper::get('px_user_refresh_token');
 
         try {
-            $refreshed = $this->pxAdminClient->refreshToken($refresh_token);
+            $pxAdminClient = App::make(PxAdminClient::class);
+            $refreshed = $pxAdminClient->refreshToken($refresh_token);
         } catch (\Throwable $th) {
             return false;
         }
@@ -51,26 +55,6 @@ class CheckUserTokenService
         PxUserTokenRefreshEvent::dispatch(Auth::user(), $refreshed['access_token']);
 
         return true;
-    }
-
-    /**
-     * Check if access token is expired.
-     *
-     * @return boolean
-     */
-    public function accessTokenExpired(): bool
-    {
-        return null !== ($time = AccessTokenHelper::get('access_token_expiration_utc')) && Carbon::now()->gt($time);
-    }
-
-    /**
-     * Check if tokens can be refreshed.
-     *
-     * @return boolean
-     */
-    public function canRefresh(): bool
-    {
-        return AccessTokenHelper::get('refresh_token') !== null && null !== ($time = AccessTokenHelper::get('refresh_token_expiration_utc')) && Carbon::now()->gt($time);
     }
 
     /**
