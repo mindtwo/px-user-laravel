@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Session;
 use mindtwo\PxUserLaravel\Actions\PxUserDataRefreshAction;
 use mindtwo\PxUserLaravel\Actions\PxUserLoginAction;
-use mindtwo\PxUserLaravel\Services\PxUserClient;
+use mindtwo\PxUserLaravel\Http\PxUserClient;
 use mindtwo\PxUserLaravel\Tests\Fake\User as FakeUser;
 
 use function Pest\Laravel\withSession;

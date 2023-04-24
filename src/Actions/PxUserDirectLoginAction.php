@@ -3,8 +3,8 @@
 namespace mindtwo\PxUserLaravel\Actions;
 
 use mindtwo\PxUserLaravel\Actions\PxUserLoginAction;
-use mindtwo\PxUserLaravel\Services\PxAdminClient;
-use mindtwo\PxUserLaravel\Services\PxUserClient;
+use mindtwo\PxUserLaravel\Http\PxAdminClient;
+use mindtwo\PxUserLaravel\Http\PxUserClient;
 
 class PxUserDirectLoginAction
 {

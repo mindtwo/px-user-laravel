@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Auth;
 use mindtwo\PxUserLaravel\Events\PxUserTokenRefreshEvent;
 use mindtwo\PxUserLaravel\Facades\AccessTokenHelper;
-use mindtwo\PxUserLaravel\Services\PxAdminClient;
+use mindtwo\PxUserLaravel\Http\PxAdminClient;
 
 class CheckUserTokenService
 {

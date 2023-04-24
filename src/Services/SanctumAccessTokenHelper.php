@@ -4,6 +4,7 @@ namespace mindtwo\PxUserLaravel\Services;
 
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Log;
 use mindtwo\PxUserLaravel\Contracts\AccessTokenHelper as ContractsAccessTokenHelper;
 
 class SanctumAccessTokenHelper extends ContractsAccessTokenHelper

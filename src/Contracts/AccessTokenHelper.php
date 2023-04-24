@@ -3,6 +3,7 @@
 namespace mindtwo\PxUserLaravel\Contracts;
 
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Log;
 
 abstract class AccessTokenHelper
 {
@@ -37,9 +38,8 @@ abstract class AccessTokenHelper
      */
     public function saveTokenData(array $tokenData): void
     {
+        Log::debug($this::class);
         foreach ($this->accessTokenKeys as $key) {
-            // $sessionKey = $this->prefix() . "_$key";
-
             if (isset($tokenData[$key])) {
                 $this->put($key, $tokenData[$key]);
             }

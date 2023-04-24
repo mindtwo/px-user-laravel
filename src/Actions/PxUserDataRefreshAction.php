@@ -4,7 +4,7 @@ namespace mindtwo\PxUserLaravel\Actions;
 
 use mindtwo\PxUserLaravel\Facades\AccessTokenHelper;
 use mindtwo\PxUserLaravel\Services\CheckUserTokenService;
-use mindtwo\PxUserLaravel\Services\PxUserClient;
+use mindtwo\PxUserLaravel\Http\PxUserClient;
 
 class PxUserDataRefreshAction
 {
