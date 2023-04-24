@@ -23,7 +23,7 @@ class PxUserDirectLoginAction
      *
      * @throws Exception
      */
-    public function execute(?string $username, ?string $password, ?string $guard): bool
+    public function execute(?string $username, ?string $password, ?string $guard = null): bool
     {
         if ($username === null) {
             throw new \Exception('Please provide a valid username', 1);
