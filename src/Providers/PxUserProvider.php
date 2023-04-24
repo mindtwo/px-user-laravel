@@ -10,7 +10,9 @@ use mindtwo\PxUserLaravel\Actions\PxUserGetDetailsAction;
 use mindtwo\PxUserLaravel\Actions\PxUserDataRefreshAction;
 use mindtwo\PxUserLaravel\Contracts\AccessTokenHelper as ContractsAccessTokenHelper;
 use mindtwo\PxUserLaravel\Events\PxUserLoginEvent;
+use mindtwo\PxUserLaravel\Events\PxUserTokenRefreshEvent;
 use mindtwo\PxUserLaravel\Listeners\UserLoginListener;
+use mindtwo\PxUserLaravel\Listeners\UserTokenRefreshListener;
 use mindtwo\PxUserLaravel\Sanctum\PersonalAccessToken;
 use mindtwo\PxUserLaravel\Services\AccessTokenHelper;
 use mindtwo\PxUserLaravel\Services\CheckUserTokenService;
@@ -33,10 +35,16 @@ class PxUserProvider extends ServiceProvider
     public function boot()
     {
         $this->publishConfig();
+        $this->publishMigrations();
 
         Event::listen(
             PxUserLoginEvent::class,
             UserLoginListener::class,
+        );
+
+        Event::listen(
+            PxUserTokenRefreshEvent::class,
+            UserTokenRefreshListener::class,
         );
 
         $this->sanctumIntegration = config('px-user.sanctum.enabled') === true && class_exists(\Laravel\Sanctum\Sanctum::class);
@@ -112,6 +120,18 @@ class PxUserProvider extends ServiceProvider
                 new PxUserGetDetailsAction($pxUserClient),
             );
         });
+    }
+
+    /**
+     * Publish the config file.
+     *
+     * @return void
+     */
+    protected function publishMigrations()
+    {
+        $this->publishes([
+            __DIR__.'/../../database/migrations/update_personal_access_tokens_table.php.stub' => database_path('migrations/'.date('Y_m_d_His', time()).'_update_personal_access_tokens_table.php'),
+        ], 'px-user');
     }
 
     /**
