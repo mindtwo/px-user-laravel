@@ -2,20 +2,11 @@
 
 namespace mindtwo\PxUserLaravel\Services;
 
-use Illuminate\Contracts\Auth\Authenticatable;
-use Illuminate\Contracts\Auth\Guard;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Session;
 use mindtwo\PxUserLaravel\Contracts\AccessTokenHelper as ContractsAccessTokenHelper;
 
 class WebAccessTokenHelper extends ContractsAccessTokenHelper
 {
-    public function __construct(
-        // protected Guard $guard,
-        // protected ?Authenticatable $user = null,
-    ) {
-    }
-
     /**
      * Remove session data for request
      *
