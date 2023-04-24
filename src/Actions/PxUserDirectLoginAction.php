@@ -16,12 +16,14 @@ class PxUserDirectLoginAction
     /**
      * Use token data received from login widget to login user in backend
      *
-     * @param  array  $tokenData
+     * @param  null|string  $username
+     * @param  null|string  $password
+     * @param  null|string  $guard
      * @return bool
      *
      * @throws Exception
      */
-    public function execute(?string $username, ?string $password): bool
+    public function execute(?string $username, ?string $password, ?string $guard): bool
     {
         if ($username === null) {
             throw new \Exception('Please provide a valid username', 1);
@@ -32,7 +34,7 @@ class PxUserDirectLoginAction
         }
 
         try {
-            $tokenData = $this->pxAdminClient->login($username, $password);
+            $tokenData = $this->pxAdminClient->login($username, $password, $guard);
         } catch (\Throwable $e) {
             throw new \Exception('No user found.', 0, $e);
         }

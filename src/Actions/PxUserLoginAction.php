@@ -3,11 +3,11 @@
 namespace mindtwo\PxUserLaravel\Actions;
 
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
+use mindtwo\PxUserLaravel\Contracts\AccessTokenHelper as ContractsAccessTokenHelper;
 use mindtwo\PxUserLaravel\Events\PxUserLoginEvent;
-use mindtwo\PxUserLaravel\Facades\AccessTokenHelper;
 use mindtwo\PxUserLaravel\Http\PxUserClient;
+use mindtwo\PxUserLaravel\Services\SanctumAccessTokenHelper;
 
 class PxUserLoginAction
 {
@@ -17,17 +17,18 @@ class PxUserLoginAction
     }
 
     /**
-     * Use token data received from login widget to login user in backend
+     * Use token data received from login widget to login user in backend.
      *
      * @param  ?array  $tokenData
      * @param  bool  $withPermissions
+     * @param  ?string  $guard
      * @return bool
      *
      * @throws Exception
      */
-    public function execute(?array $tokenData, bool $withPermissions=true): bool
+    public function execute(?array $tokenData, bool $withPermissions = true, ?string $guard = null): bool
     {
-        if (! $this->validateTokenData($tokenData)) {
+        if (!$this->validateTokenData($tokenData)) {
             return false;
         }
 
@@ -47,7 +48,11 @@ class PxUserLoginAction
         Auth::login($user);
 
         // save token data to session or cache
-        AccessTokenHelper::saveTokenData($tokenData);
+        $accessTokenHelper = $guard === 'sanctum' ? app()->makeWith(SanctumAccessTokenHelper::class, [
+            'user' => $user,
+        ]) : app()->make(ContractsAccessTokenHelper::class);
+
+        $accessTokenHelper->saveTokenData($tokenData);
 
         PxUserLoginEvent::dispatch($user, $userRequest, $tokenData['access_token']);
 
