@@ -38,10 +38,10 @@ abstract class AccessTokenHelper
     public function saveTokenData(array $tokenData): void
     {
         foreach ($this->accessTokenKeys as $key) {
-            $sessionKey = $this->prefix() . "_$key";
+            // $sessionKey = $this->prefix() . "_$key";
 
             if (isset($tokenData[$key])) {
-                $this->put($sessionKey, $tokenData[$key]);
+                $this->put($key, $tokenData[$key]);
             }
         }
     }

@@ -36,7 +36,7 @@ class CheckUserTokenService
             return false;
         }
 
-        $refresh_token = AccessTokenHelper::get('px_user_refresh_token');
+        $refresh_token = AccessTokenHelper::get('refresh_token');
 
         try {
             $pxAdminClient = App::make(PxAdminClient::class);
