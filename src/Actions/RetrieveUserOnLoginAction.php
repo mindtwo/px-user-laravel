@@ -6,7 +6,6 @@ use Illuminate\Contracts\Auth\Authenticatable;
 
 class RetrieveUserOnLoginAction
 {
-
     /**
      * Ivokeable which returns a model implementing Authenticatable Contract.
      *
@@ -22,5 +21,4 @@ class RetrieveUserOnLoginAction
             config('px-user.px_user_id') => $requestData['id'],
         ]);
     }
-
 }

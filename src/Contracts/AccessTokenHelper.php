@@ -26,7 +26,7 @@ abstract class AccessTokenHelper
      */
     public function canRefresh(): bool
     {
-        return $this->get('refresh_token') !== null && null !== ($time = $this->get('refresh_token_expiration_utc')) && Carbon::now()->gt($time);
+        return $this->get('refresh_token') !== null && null !== ($time = $this->get('refresh_token_expiration_utc')) && Carbon::now()->lt($time);
     }
 
     /**

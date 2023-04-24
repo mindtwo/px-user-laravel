@@ -22,6 +22,9 @@ use mindtwo\PxUserLaravel\Services\WebAccessTokenHelper;
 
 class PxUserProvider extends ServiceProvider
 {
+
+    private bool $sanctumIntegration;
+
     /**
      * Bootstrap any package services.
      *
@@ -36,7 +39,8 @@ class PxUserProvider extends ServiceProvider
             UserLoginListener::class,
         );
 
-        if (config('px-user.sanctum.enabled') === true && class_exists(\Laravel\Sanctum\Sanctum::class)) {
+        $this->sanctumIntegration = config('px-user.sanctum.enabled') === true && class_exists(\Laravel\Sanctum\Sanctum::class);
+        if ($this->sanctumIntegration) {
             \Laravel\Sanctum\Sanctum::usePersonalAccessTokenModel(PersonalAccessToken::class);
 
             \Laravel\Sanctum\Sanctum::authenticateAccessTokensUsing(function (PersonalAccessToken $accessToken, bool $isValid) {
@@ -87,7 +91,7 @@ class PxUserProvider extends ServiceProvider
                 return new WebAccessTokenHelper();
             }
 
-            if (auth('sanctum')->check()) {
+            if ($this->sanctumIntegration && auth('sanctum')->check()) {
                 return new SanctumAccessTokenHelper(
                     auth('sanctum')->user(),
                 );

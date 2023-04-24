@@ -5,7 +5,6 @@ namespace mindtwo\PxUserLaravel\Services;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Log;
 use mindtwo\PxUserLaravel\Events\PxUserTokenRefreshEvent;
 use mindtwo\PxUserLaravel\Facades\AccessTokenHelper;
 use mindtwo\PxUserLaravel\Services\PxAdminClient;
@@ -27,6 +26,7 @@ class CheckUserTokenService
     {
         // $token_expired && $refresh_expired
         $accessTokenExpired = AccessTokenHelper::accessTokenExpired();
+
         if (!$accessTokenExpired) {
             return true;
         }
@@ -40,6 +40,7 @@ class CheckUserTokenService
 
         try {
             $pxAdminClient = App::make(PxAdminClient::class);
+
             $refreshed = $pxAdminClient->refreshToken($refresh_token);
         } catch (\Throwable $th) {
             return false;

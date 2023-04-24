@@ -68,7 +68,7 @@ return [
          * If the integration is enabled you should set
          * config('sanctum.expiration') to 'null'.
          */
-        'enabled' => true,
+        'enabled' => false,
 
     ],
 

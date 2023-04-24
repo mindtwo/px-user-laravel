@@ -32,26 +32,25 @@ class PxUserLoginAction
 
         try {
             $userRequest = $this->pxUserClient->getUserData($tokenData['access_token'], $withPermissions);
-
-            $retrieveUserAction = config('px-user.retrieve_user_action');
-
-            $user = (new $retrieveUserAction)($userRequest);
-
-            if (!$user) {
-                return false;
-            }
-
-            Auth::login($user);
-
-            // save token data to session or cache
-            AccessTokenHelper::saveTokenData($tokenData);
-
-            PxUserLoginEvent::dispatch($user, $userRequest, $tokenData['access_token']);
-
-            return true;
         } catch (\Throwable $e) {
             throw new \Exception('No user found.', 0, $e);
         }
+
+        $retrieveUserAction = config('px-user.retrieve_user_action');
+        $user = (new $retrieveUserAction)($userRequest);
+
+        if (!$user) {
+            return false;
+        }
+
+        Auth::login($user);
+
+        // save token data to session or cache
+        AccessTokenHelper::saveTokenData($tokenData);
+
+        PxUserLoginEvent::dispatch($user, $userRequest, $tokenData['access_token']);
+
+        return true;
     }
 
     private function validateTokenData(?array $tokenData): bool
