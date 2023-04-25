@@ -6,7 +6,6 @@ use Laravel\Sanctum\PersonalAccessToken as SanctumPersonalAccessToken;
 
 class PersonalAccessToken extends SanctumPersonalAccessToken
 {
-
     /**
      * The attributes that are mass assignable.
      *
@@ -19,5 +18,4 @@ class PersonalAccessToken extends SanctumPersonalAccessToken
         'expires_at',
         'linked_px_user_token',
     ];
-
 }

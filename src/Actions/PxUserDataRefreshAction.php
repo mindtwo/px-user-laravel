@@ -3,8 +3,8 @@
 namespace mindtwo\PxUserLaravel\Actions;
 
 use mindtwo\PxUserLaravel\Facades\AccessTokenHelper;
-use mindtwo\PxUserLaravel\Services\CheckUserTokenService;
 use mindtwo\PxUserLaravel\Http\PxUserClient;
+use mindtwo\PxUserLaravel\Services\CheckUserTokenService;
 
 class PxUserDataRefreshAction
 {
@@ -23,8 +23,9 @@ class PxUserDataRefreshAction
     public function execute(): ?array
     {
         $checkUserTokenService = app()->make(CheckUserTokenService::class);
+
         // if auth token is expired try to get a new one
-        if (!$checkUserTokenService->check()) {
+        if (! $checkUserTokenService->check()) {
             return null;
         }
 

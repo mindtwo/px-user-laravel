@@ -18,7 +18,7 @@ class UserLoginListener
         $adminEmails = config('px-user.admin_emails');
         $adminRoleValue = config('px-user.admin_role_value');
 
-        if (!empty($adminEmails) && isset($adminRoleValue) && in_array($event->userData['email'], $adminEmails)) {
+        if (! empty($adminEmails) && isset($adminRoleValue) && in_array($event->userData['email'], $adminEmails)) {
             $user->role = $adminRoleValue;
             $user->save();
         }

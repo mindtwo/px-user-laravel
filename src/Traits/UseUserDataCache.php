@@ -33,7 +33,7 @@ trait UseUserDataCache
      */
     public function getAttribute($name)
     {
-        if (in_array($name, $this->getCacheAccessibleValues()) && !method_exists($this, Str::camel($name))) {
+        if (in_array($name, $this->getCacheAccessibleValues()) && ! method_exists($this, Str::camel($name))) {
             $value = $this->dataCache;
 
             if ($value && array_key_exists($name, $value)) {

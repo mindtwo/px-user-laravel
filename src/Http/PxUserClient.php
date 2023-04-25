@@ -70,6 +70,7 @@ class PxUserClient
     {
         $this->tenant = $tenant;
         $this->domain = $domain;
+
         return $this;
     }
 
@@ -91,13 +92,13 @@ class PxUserClient
     /**
      * Get user data from PX-User API.
      *
-     * @param string $access_token
-     * @param bool $withPermissions
+     * @param  string  $access_token
+     * @param  bool  $withPermissions
      * @return array|null
      *
      * @throws Throwable
      */
-    public function getUserData(string $access_token, bool $withPermissions=false): ?array
+    public function getUserData(string $access_token, bool $withPermissions = false): ?array
     {
         // check token expiration
         try {
@@ -132,8 +133,8 @@ class PxUserClient
     /**
      * Get user data from PX-User API.
      *
-     * @param string $access_token
-     * @param array $px_user_ids
+     * @param  string  $access_token
+     * @param  array  $px_user_ids
      * @return array|null
      *
      * @throws Throwable

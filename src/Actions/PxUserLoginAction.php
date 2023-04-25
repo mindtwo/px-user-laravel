@@ -4,10 +4,9 @@ namespace mindtwo\PxUserLaravel\Actions;
 
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
-use mindtwo\PxUserLaravel\Contracts\AccessTokenHelper as ContractsAccessTokenHelper;
 use mindtwo\PxUserLaravel\Events\PxUserLoginEvent;
+use mindtwo\PxUserLaravel\Facades\AccessTokenHelper;
 use mindtwo\PxUserLaravel\Http\PxUserClient;
-use mindtwo\PxUserLaravel\Services\SanctumAccessTokenHelper;
 
 class PxUserLoginAction
 {
@@ -21,14 +20,13 @@ class PxUserLoginAction
      *
      * @param  ?array  $tokenData
      * @param  bool  $withPermissions
-     * @param  ?string  $guard
      * @return bool
      *
      * @throws Exception
      */
-    public function execute(?array $tokenData, bool $withPermissions = true, ?string $guard = null): bool
+    public function execute(?array $tokenData, bool $withPermissions = true): bool
     {
-        if (!$this->validateTokenData($tokenData)) {
+        if (! $this->validateTokenData($tokenData)) {
             return false;
         }
 
@@ -41,18 +39,14 @@ class PxUserLoginAction
         $retrieveUserAction = config('px-user.retrieve_user_action');
         $user = (new $retrieveUserAction)($userRequest);
 
-        if (!$user) {
+        if (! $user) {
             return false;
         }
 
         Auth::login($user);
 
-        // save token data to session or cache
-        $accessTokenHelper = $guard === 'sanctum' ? app()->makeWith(SanctumAccessTokenHelper::class, [
-            'user' => $user,
-        ]) : app()->make(ContractsAccessTokenHelper::class);
-
-        $accessTokenHelper->saveTokenData($tokenData);
+        // save token data to cache
+        AccessTokenHelper::saveTokenData($tokenData);
 
         PxUserLoginEvent::dispatch($user, $userRequest, $tokenData['access_token']);
 
@@ -72,6 +66,6 @@ class PxUserLoginAction
             'refresh_token_expiration_utc' => 'sometimes|string',
         ]);
 
-        return !$validator->fails();
+        return ! $validator->fails();
     }
 }

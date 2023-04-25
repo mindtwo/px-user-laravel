@@ -13,7 +13,6 @@ class TestCase extends Orchestra
      * Get package providers.
      *
      * @param  \Illuminate\Foundation\Application  $app
-     *
      * @return array<int, class-string<\Illuminate\Support\ServiceProvider>>
      */
     protected function getPackageProviders($app)
@@ -27,7 +26,6 @@ class TestCase extends Orchestra
      * Override application aliases.
      *
      * @param  \Illuminate\Foundation\Application  $app
-     *
      * @return array<string, class-string<\Illuminate\Support\Facades\Facade>>
      */
     protected function getPackageAliases($app)
@@ -46,7 +44,7 @@ class TestCase extends Orchestra
     protected function defineDatabaseMigrations()
     {
         // dd(__DIR__ . '/../database/migrations');
-        $this->loadMigrationsFrom(__DIR__ . '/../database/migrations');
+        $this->loadMigrationsFrom(__DIR__.'/../database/migrations');
         // $this->loadLaravelMigrations();
     }
 }

@@ -4,27 +4,25 @@ namespace mindtwo\PxUserLaravel\Providers;
 
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\ServiceProvider;
-use mindtwo\PxUserLaravel\Actions\PxUserGetDetailsAction;
 use mindtwo\PxUserLaravel\Actions\PxUserDataRefreshAction;
+use mindtwo\PxUserLaravel\Actions\PxUserGetDetailsAction;
 use mindtwo\PxUserLaravel\Contracts\AccessTokenHelper as ContractsAccessTokenHelper;
 use mindtwo\PxUserLaravel\Events\PxUserLoginEvent;
 use mindtwo\PxUserLaravel\Events\PxUserTokenRefreshEvent;
+use mindtwo\PxUserLaravel\Http\PxAdminClient;
+use mindtwo\PxUserLaravel\Http\PxUserClient;
 use mindtwo\PxUserLaravel\Listeners\UserLoginListener;
 use mindtwo\PxUserLaravel\Listeners\UserTokenRefreshListener;
 use mindtwo\PxUserLaravel\Sanctum\PersonalAccessToken;
 use mindtwo\PxUserLaravel\Services\AccessTokenHelper;
 use mindtwo\PxUserLaravel\Services\CheckUserTokenService;
-use mindtwo\PxUserLaravel\Http\PxAdminClient;
-use mindtwo\PxUserLaravel\Http\PxUserClient;
-use mindtwo\PxUserLaravel\Services\SanctumAccessTokenHelper;
 use mindtwo\PxUserLaravel\Services\UserDataService;
-use mindtwo\PxUserLaravel\Services\WebAccessTokenHelper;
 
 class PxUserProvider extends ServiceProvider
 {
-
     private bool $sanctumIntegration;
 
     /**
@@ -52,11 +50,11 @@ class PxUserProvider extends ServiceProvider
             \Laravel\Sanctum\Sanctum::usePersonalAccessTokenModel(PersonalAccessToken::class);
 
             \Laravel\Sanctum\Sanctum::authenticateAccessTokensUsing(function (PersonalAccessToken $accessToken, bool $isValid) {
-                if (!$isValid) {
+                if (! $isValid) {
                     return false;
                 }
 
-                $accessTokenHelper = app()->makeWith(SanctumAccessTokenHelper::class, [
+                $accessTokenHelper = app()->makeWith(AccessTokenHelper::class, [
                     'user' => $accessToken->tokenable,
                 ]);
 
@@ -95,17 +93,7 @@ class PxUserProvider extends ServiceProvider
         });
 
         $this->app->bind(ContractsAccessTokenHelper::class, function (Application $app) {
-            if (auth()->check()) {
-                return new WebAccessTokenHelper();
-            }
-
-            if ($this->sanctumIntegration && auth('sanctum')->check()) {
-                return new SanctumAccessTokenHelper(
-                    auth('sanctum')->user(),
-                );
-            }
-
-            return new AccessTokenHelper();
+            return new AccessTokenHelper(Auth::user());
         });
 
         $this->app->bind('AccessTokenHelper', function (Application $app) {

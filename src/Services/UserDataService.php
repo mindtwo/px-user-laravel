@@ -37,7 +37,7 @@ class UserDataService
             // Data for current user are cached via request middleware
             // Todo changeable domains/tenant in product
             // cache prefix
-            $cachePrefix = ('user:cached_' . $px_user_id);
+            $cachePrefix = ('user:cached_'.$px_user_id);
 
             // get user data from cache
             $userData = Cache::get($cachePrefix);
@@ -63,7 +63,7 @@ class UserDataService
     {
         $px_user_id = $request->user()->{config('px-user.px_user_id')};
 
-        $cachePrefix = ('user:cached_' . $px_user_id);
+        $cachePrefix = ('user:cached_'.$px_user_id);
 
         return Cache::remember(
             $cachePrefix,

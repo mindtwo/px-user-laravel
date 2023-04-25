@@ -5,8 +5,8 @@ namespace mindtwo\PxUserLaravel\Actions;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Gate;
 use mindtwo\PxUserLaravel\Facades\AccessTokenHelper;
-use mindtwo\PxUserLaravel\Services\CheckUserTokenService;
 use mindtwo\PxUserLaravel\Http\PxUserClient;
+use mindtwo\PxUserLaravel\Services\CheckUserTokenService;
 
 class PxUserGetDetailsAction
 {
@@ -18,7 +18,7 @@ class PxUserGetDetailsAction
     /**
      * Undocumented function.
      *
-     * @param array $px_user_ids
+     * @param  array  $px_user_ids
      * @return ?array
      *
      * @throws Throwable
@@ -32,12 +32,12 @@ class PxUserGetDetailsAction
 
         $checkUserTokenService = app()->make(CheckUserTokenService::class);
         // if auth token is expired try to get a new one
-        if (!$checkUserTokenService->check()) {
+        if (! $checkUserTokenService->check()) {
             return null;
         }
 
         // cache get data for only one user
-        if (!is_array($px_user_id)) {
+        if (! is_array($px_user_id)) {
             return $this->cacheUserDetail($px_user_id);
         }
 
@@ -47,7 +47,7 @@ class PxUserGetDetailsAction
     /**
      * Get user details for one user, load them via API if user is not in cache.
      *
-     * @param string $px_user_id
+     * @param  string  $px_user_id
      * @return mixed
      */
     private function cacheUserDetail(string $px_user_id): mixed
@@ -67,7 +67,7 @@ class PxUserGetDetailsAction
     /**
      * Get user details for one user, load them via API if user is not in cache.
      *
-     * @param string $px_user_id
+     * @param  string  $px_user_id
      * @return mixed
      */
     private function cacheMultipleUserDetails(array $px_user_ids): mixed

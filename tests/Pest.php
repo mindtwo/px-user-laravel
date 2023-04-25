@@ -12,7 +12,6 @@ uses(TestCase::class)->in(__DIR__);
  */
 function fakePxUserApi()
 {
-
     $fakeUserData = [
         'id' => '94549d0a-4386-4ba7-ae48-f9247429e5c6',
         'email' => 'as@domain.tld',
@@ -89,7 +88,7 @@ function fakePxUserApi()
             'http_code' => 200,
             'message' => 'OK',
             'response' => [
-                'user' => $fakeUserData
+                'user' => $fakeUserData,
             ],
             'metadata' => [],
         ], 200),

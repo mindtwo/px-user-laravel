@@ -31,7 +31,6 @@ class PxUserLogoutAction
         } catch (\Throwable $th) {
             throw $th;
 
-
             return false;
         }
 
