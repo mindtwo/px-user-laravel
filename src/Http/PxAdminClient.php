@@ -2,52 +2,18 @@
 
 namespace mindtwo\PxUserLaravel\Http;
 
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Throwable;
 
-class PxAdminClient
+class PxAdminClient extends PxClient
 {
-    /**
-     * The stage the app runs in.
-     *
-     * @var ?string
-     */
-    private $stage = null;
-
-    /**
-     * PX User tenant setting.
-     *
-     * @var ?string
-     */
-    private $tenant = null;
-
-    /**
-     * PX User domain setting.
-     *
-     * @var ?string
-     */
-    private $domain = null;
-
     /**
      * Machine-to-machine credentials used for communication between backend
      * and PX User API.
      *
      * @var ?string
      */
-    private $m2mCredentials = null;
-
-    /**
-     * Urls for available environments.
-     *
-     * @var string[]
-     */
-    protected $uris = [
-        'testing' => 'https://user.api.pl-x.cloud/v1/',
-        'prod' => 'https://user.api.pl-x.cloud/v1/',
-        'dev' => 'https://user.api.dev.pl-x.cloud/v1/',
-        'preprod' => 'https://user.api.preprod.pl-x.cloud/v1/',
-    ];
+    protected $m2mCredentials = null;
 
     public function __construct(
         private array $config = [],
@@ -61,25 +27,14 @@ class PxAdminClient
         );
     }
 
-    public function request(array $headers = [])
+    /**
+     * Update M2M Credentials for a request.
+     *
+     * @param string $m2mCredentials
+     * @return self
+     */
+    public function setM2M(string $m2mCredentials): self
     {
-        $context = $this->getContext();
-        $uri = $this->getUri();
-
-        $reqHeaders = array_merge([
-            'Content-Type' => 'application/json',
-            'Accept' => 'application/json',
-            'X-M2M-Authorization' => $this->m2mCredentials,
-            'X-M2M-User-Context' => $context,
-        ], $headers);
-
-        return Http::withHeaders($reqHeaders)->baseUrl($uri);
-    }
-
-    public function setCredentials($tenant, $domain, $m2mCredentials)
-    {
-        $this->tenant = $tenant;
-        $this->domain = $domain;
         $this->m2mCredentials = $m2mCredentials;
 
         return $this;
@@ -90,7 +45,7 @@ class PxAdminClient
         $defaultTenant = $this->tenant;
         $defaultDomain = $this->domain;
 
-        $this->setCredentials($tenant, $domain, $this->m2mCredentials);
+        $this->setCredentials($tenant, $domain);
 
         $callback($this);
 
@@ -172,22 +127,18 @@ class PxAdminClient
     }
 
     /**
-     * Get px-user uri.
+     * Get request headers.
      *
-     * @return string
+     * @param array $headers
+     * @return array
      */
-    public function getUri(): string
+    public function headers(array $headers = []): array
     {
-        return isset($this->stage) ? $this->uris[$this->stage] : $this->uris['prod'];
+        if (!isset($headers['X-M2M-Authorization'])) {
+            $headers['X-M2M-Authorization'] = $this->m2mCredentials;
+        }
+
+        return parent::headers($headers);
     }
 
-    /**
-     * Get px-user context.
-     *
-     * @return string
-     */
-    public function getContext(): string
-    {
-        return "{$this->tenant}:{$this->domain}";
-    }
 }

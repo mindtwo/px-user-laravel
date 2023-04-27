@@ -22,7 +22,11 @@ class AccessTokenHelper
      */
     public function accessTokenExpired(): bool
     {
-        return null === ($time = $this->get('access_token_expiration_utc')) || Carbon::now()->gt($time);
+        if (null === ($time = $this->get('access_token_expiration_utc'))) {
+            return false;
+        }
+
+        return Carbon::now()->gt($time);
     }
 
     /**
@@ -32,7 +36,11 @@ class AccessTokenHelper
      */
     public function canRefresh(): bool
     {
-        return $this->get('refresh_token') !== null && null !== ($time = $this->get('refresh_token_expiration_utc')) && Carbon::now()->lt($time);
+        if ($this->get('refresh_token') === null || ($time = $this->get('refresh_token_expiration_utc')) === null) {
+            return false;
+        }
+
+        return Carbon::now()->lt($time);
     }
 
     /**

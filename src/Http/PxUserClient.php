@@ -2,44 +2,11 @@
 
 namespace mindtwo\PxUserLaravel\Http;
 
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Throwable;
 
-class PxUserClient
+class PxUserClient extends PxClient
 {
-    /**
-     * The stage the app runs in.
-     *
-     * @var ?string
-     */
-    private $stage = null;
-
-    /**
-     * PX User tenant setting.
-     *
-     * @var ?string
-     */
-    private $tenant = null;
-
-    /**
-     * PX User domain setting.
-     *
-     * @var ?string
-     */
-    private $domain = null;
-
-    /**
-     * Urls for available environments.
-     *
-     * @var string[]
-     */
-    protected $uris = [
-        'testing' => 'https://user.api.pl-x.cloud/v1/',
-        'prod' => 'https://user.api.pl-x.cloud/v1/',
-        'dev' => 'https://user.api.dev.pl-x.cloud/v1/',
-        'preprod' => 'https://user.api.preprod.pl-x.cloud/v1/',
-    ];
 
     public function __construct(
         private array $config = [],
@@ -50,43 +17,6 @@ class PxUserClient
             ($config['tenant'] ?? 'plx'),
             ($config['domain'] ?? null),
         );
-    }
-
-    public function request(array $headers = [])
-    {
-        $context = $this->getContext();
-        $uri = $this->getUri();
-
-        $reqHeaders = array_merge([
-            'Content-Type' => 'application/json',
-            'Accept' => 'application/json',
-            'X-M2M-User-Context' => $context,
-        ], $headers);
-
-        return Http::withHeaders($reqHeaders)->baseUrl($uri);
-    }
-
-    public function setCredentials($tenant, $domain)
-    {
-        $this->tenant = $tenant;
-        $this->domain = $domain;
-
-        return $this;
-    }
-
-    public function scope($tenant, $domain, callable $callback)
-    {
-        $defaultTenant = $this->tenant;
-        $defaultDomain = $this->domain;
-
-        $this->setCredentials($tenant, $domain);
-
-        $callback($this);
-
-        $this->tenant = $defaultTenant;
-        $this->domain = $defaultDomain;
-
-        return $this;
     }
 
     /**
@@ -104,7 +34,6 @@ class PxUserClient
         try {
             $response = $this->request([
                 'Authorization' => "Bearer {$access_token}",
-
             ])->get($withPermissions ? 'user-with-permissions' : 'user')->throw();
         } catch (Throwable $e) {
             Log::error('Failed login for url: ');
@@ -168,25 +97,5 @@ class PxUserClient
         }
 
         return null;
-    }
-
-    /**
-     * Get px-user uri.
-     *
-     * @return string
-     */
-    public function getUri(): string
-    {
-        return isset($this->stage) ? $this->uris[$this->stage] : $this->uris['prod'];
-    }
-
-    /**
-     * Get px-user context.
-     *
-     * @return string
-     */
-    public function getContext(): string
-    {
-        return "{$this->tenant}:{$this->domain}";
     }
 }
