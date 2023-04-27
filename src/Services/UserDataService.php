@@ -57,7 +57,7 @@ class UserDataService
     /**
      * Refresh data for current request.
      *
-     * @return void
+     * @return mixed
      */
     public function refreshUserData(Request $request)
     {
