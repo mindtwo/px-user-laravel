@@ -14,7 +14,7 @@ class PxUserClient extends PxClient
         $this->stage = $config['stage'] ?? 'prod';
 
         $this->setCredentials(
-            ($config['tenant'] ?? 'plx'),
+            ($config['tenant'] ?? null),
             ($config['domain'] ?? null),
         );
     }

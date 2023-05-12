@@ -6,9 +6,26 @@ use mindtwo\PxUserLaravel\Facades\AccessTokenHelper;
 use mindtwo\PxUserLaravel\Facades\UserDataCache;
 use mindtwo\PxUserLaravel\Providers\PxUserProvider;
 use Orchestra\Testbench\TestCase as Orchestra;
+use Illuminate\Contracts\Config\Repository;
 
 class TestCase extends Orchestra
 {
+    /**
+     * Define environment setup.
+     *
+     * @param  \Illuminate\Foundation\Application  $app
+     * @return void
+     */
+    protected function defineEnvironment($app)
+    {
+        // Setup default database to use sqlite :memory:
+        tap($app->make('config'), function (Repository $config) {
+            $config->set('px-user.domain', 'testbench');
+            $config->set('px-user.tenant', 'testbench');
+            $config->set('px-user.m2m_credentials', 'test:secret');
+        });
+    }
+
     /**
      * Get package providers.
      *
@@ -43,8 +60,6 @@ class TestCase extends Orchestra
      */
     protected function defineDatabaseMigrations()
     {
-        // dd(__DIR__ . '/../database/migrations');
         $this->loadMigrationsFrom(__DIR__.'/../database/migrations');
-        // $this->loadLaravelMigrations();
     }
 }
