@@ -4,7 +4,6 @@ namespace mindtwo\PxUserLaravel\Http;
 
 use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Log;
 
 abstract class PxClient
 {
@@ -98,11 +97,7 @@ abstract class PxClient
     public function headers(array $headers = []): array
     {
         $context = $this->getContext();
-        Log::debug(array_merge([
-            'Content-Type' => 'application/json',
-            'Accept' => 'application/json',
-            'X-M2M-User-Context' => $context,
-        ], $headers));
+
         return array_merge([
             'Content-Type' => 'application/json',
             'Accept' => 'application/json',
