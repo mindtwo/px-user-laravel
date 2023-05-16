@@ -23,8 +23,9 @@ class PxAdminClient extends PxClient
         $this->setCredentials(
             ($config['tenant'] ?? null),
             ($config['domain'] ?? null),
-            ($config['m2m_credentials'] ?? null)
         );
+
+        $this->setM2M(($config['m2m_credentials'] ?? null));
     }
 
     /**
@@ -94,6 +95,44 @@ class PxAdminClient extends PxClient
     }
 
     /**
+     * Get user data by id.
+     *
+     * @return array|null
+     */
+    public function user(string $userId): ?array
+    {
+        try {
+            $response = $this->request([
+                'X-Context-Tenant-Code' => $this->tenant,
+                'X-Context-Domain-Code' => $this->domain,
+            ])->get("user/$userId")->throw();
+        } catch (Throwable $e) {
+            Log::error('Failed to get user data via admin for url: ');
+            Log::error($this->getUri());
+            Log::error($e->getMessage());
+
+            return null;
+        }
+
+        // Check if status is 200
+        if ($response->status() === 200) {
+            $body = $response->body();
+            $responseData = json_decode((string) $body, true);
+
+            // parse response body and return stdClass Object
+            $userData = optional($responseData['response'])['user'];
+
+            if ($userData) {
+                return $userData;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Refresh user tokens based on given refresh token.
+     *
      * @return array|null
      */
     public function refreshToken($refresh_token)
@@ -140,5 +179,4 @@ class PxAdminClient extends PxClient
 
         return parent::headers($headers);
     }
-
 }
