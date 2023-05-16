@@ -23,19 +23,11 @@ jobs:
           tools: "composer:v2"
           coverage: "none"
 
-      # - name: cd into root path
-      #   run: cd ${{ inputs.root-path }}
-
-      # - name: Add HTTP basic auth credentials
-      #   run: echo '${{ secrets.COMPOSER_AUTH_JSON }}' > $GITHUB_WORKSPACE/auth.json
-
       - name: "Install laravel/pint"
         run: "composer global require laravel/pint --no-progress --dev"
 
       - name: "Apply pint styles"
         run: "pint"
-
-      # - uses: actions/checkout@v3
 
       - name: "Commit changes"
         run: |
