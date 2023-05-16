@@ -48,7 +48,7 @@ abstract class PxClient
     ];
 
     /**
-     * Base request for px user API
+     * Base request for px user API.
      *
      * @param array $headers
      * @return PendingRequest
