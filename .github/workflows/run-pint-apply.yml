@@ -35,9 +35,9 @@ jobs:
       - name: "Apply pint styles"
         run: "pint"
 
-      - name: "Push applied changes to the repository"
-        uses: actions/checkout@v3
-        run: |
+
+      - uses: actions/checkout@v3
+      - run: |
           git config user.name github-actions
           git config user.email github-actions@github.com
           git add .
