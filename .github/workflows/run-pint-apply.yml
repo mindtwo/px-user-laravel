@@ -33,7 +33,7 @@ jobs:
         run: "composer global require laravel/pint --no-progress --dev"
 
       - name: "Apply pint styles"
-        run: "./vendor/bin/pint"
+        run: "pint"
 
       - name: "Push applied changes to the repository"
         uses: actions/checkout@v3
