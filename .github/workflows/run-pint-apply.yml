@@ -29,8 +29,11 @@ jobs:
       # - name: Add HTTP basic auth credentials
       #   run: echo '${{ secrets.COMPOSER_AUTH_JSON }}' > $GITHUB_WORKSPACE/auth.json
 
-      - name: "Install dependencies from composer.json"
+      - name: "Install laravel/pint"
         run: "composer global require laravel/pint --no-progress --dev"
+
+      - name: "Apply pint styles"
+        run: "./vendor/bin/pint"
 
       - name: "Push applied changes to the repository"
         uses: actions/checkout@v3
