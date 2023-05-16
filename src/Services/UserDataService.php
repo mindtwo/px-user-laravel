@@ -22,7 +22,6 @@ class UserDataService
      * If no data are in Cache, try to
      * refresh them.
      *
-     * @param $px_user_id
      * @return mixed|void
      */
     public function getUserData(string $px_user_id)

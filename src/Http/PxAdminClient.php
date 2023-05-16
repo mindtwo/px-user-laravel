@@ -30,9 +30,6 @@ class PxAdminClient extends PxClient
 
     /**
      * Update M2M Credentials for a request.
-     *
-     * @param string $m2mCredentials
-     * @return self
      */
     public function setM2M(string $m2mCredentials): self
     {
@@ -96,8 +93,6 @@ class PxAdminClient extends PxClient
 
     /**
      * Get user data by id.
-     *
-     * @return array|null
      */
     public function user(string $userId): ?array
     {
@@ -167,13 +162,10 @@ class PxAdminClient extends PxClient
 
     /**
      * Get request headers.
-     *
-     * @param array $headers
-     * @return array
      */
     public function headers(array $headers = []): array
     {
-        if (!isset($headers['X-M2M-Authorization'])) {
+        if (! isset($headers['X-M2M-Authorization'])) {
             $headers['X-M2M-Authorization'] = $this->m2mCredentials;
         }
 

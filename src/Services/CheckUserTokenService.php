@@ -17,7 +17,6 @@ class CheckUserTokenService
     /**
      * Undocumented function
      *
-     * @return bool
      *
      * @throws Throwable
      */

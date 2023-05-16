@@ -11,7 +11,6 @@ class PxUserLogoutAction
     /**
      * Logout user
      *
-     * @return bool
      *
      * @throws Exception
      */

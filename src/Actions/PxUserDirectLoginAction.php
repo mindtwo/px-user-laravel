@@ -15,9 +15,6 @@ class PxUserDirectLoginAction
     /**
      * Use token data received from login widget to login user in backend
      *
-     * @param  null|string  $username
-     * @param  null|string  $password
-     * @return bool
      *
      * @throws Exception
      */
