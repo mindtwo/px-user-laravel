@@ -46,9 +46,6 @@ class PxUserGetDetailsAction
 
     /**
      * Get user details for one user, load them via API if user is not in cache.
-     *
-     * @param  string  $px_user_id
-     * @return mixed
      */
     private function cacheUserDetail(string $px_user_id): mixed
     {
@@ -68,7 +65,6 @@ class PxUserGetDetailsAction
      * Get user details for one user, load them via API if user is not in cache.
      *
      * @param  string  $px_user_id
-     * @return mixed
      */
     private function cacheMultipleUserDetails(array $px_user_ids): mixed
     {

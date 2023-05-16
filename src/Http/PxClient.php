@@ -49,9 +49,6 @@ abstract class PxClient
 
     /**
      * Base request for px user API.
-     *
-     * @param array $headers
-     * @return PendingRequest
      */
     public function request(array $headers = []): PendingRequest
     {
@@ -60,10 +57,6 @@ abstract class PxClient
 
     /**
      * Update credentials.
-     *
-     * @param string $tenant
-     * @param string $domain
-     * @return self
      */
     public function setCredentials(string $tenant, string $domain): self
     {
@@ -90,9 +83,6 @@ abstract class PxClient
 
     /**
      * Get request headers.
-     *
-     * @param array $headers
-     * @return array
      */
     public function headers(array $headers = []): array
     {
@@ -107,8 +97,6 @@ abstract class PxClient
 
     /**
      * Get px-user uri.
-     *
-     * @return string
      */
     public function getUri(): string
     {
@@ -119,8 +107,6 @@ abstract class PxClient
 
     /**
      * Get px-user context.
-     *
-     * @return string
      */
     public function getContext(): string
     {

@@ -17,8 +17,6 @@ class AccessTokenHelper
 
     /**
      * Check if access token is expired.
-     *
-     * @return bool
      */
     public function accessTokenExpired(): bool
     {
@@ -31,8 +29,6 @@ class AccessTokenHelper
 
     /**
      * Check if tokens can be refreshed.
-     *
-     * @return bool
      */
     public function canRefresh(): bool
     {
@@ -45,9 +41,6 @@ class AccessTokenHelper
 
     /**
      * Save token data either to cache or session
-     *
-     * @param  array  $tokenData
-     * @return void
      */
     public function saveTokenData(array $tokenData): void
     {
@@ -87,8 +80,6 @@ class AccessTokenHelper
     /**
      * Put value for passed key
      *
-     * @param  string  $key
-     * @param  string  $value
      * @return void
      */
     public function put(string $key, string $value)
@@ -104,9 +95,6 @@ class AccessTokenHelper
 
     /**
      * Get value for passed key
-     *
-     * @param  string  $key
-     * @return mixed
      */
     public function get(string $key): mixed
     {
@@ -131,9 +119,6 @@ class AccessTokenHelper
      * Check if key is in array of
      * keys which are allowed to be handled
      * by this helper.
-     *
-     * @param  string  $key
-     * @return bool
      */
     public function allowed(string $key): bool
     {
@@ -142,8 +127,6 @@ class AccessTokenHelper
 
     /**
      * Get allowed keys.
-     *
-     * @return array
      */
     public function allowedKeys(): array
     {

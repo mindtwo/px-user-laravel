@@ -8,9 +8,6 @@ class UserTokenRefreshListener
 {
     /**
      * Handle the event.
-     *
-     * @param  PxUserTokenRefreshEvent  $event
-     * @return void
      */
     public function handle(PxUserTokenRefreshEvent $event): void
     {

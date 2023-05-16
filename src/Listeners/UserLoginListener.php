@@ -8,9 +8,6 @@ class UserLoginListener
 {
     /**
      * Handle the event.
-     *
-     * @param  PxUserLoginEvent  $event
-     * @return void
      */
     public function handle(PxUserLoginEvent $event): void
     {

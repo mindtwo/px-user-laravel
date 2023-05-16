@@ -7,7 +7,6 @@ use Throwable;
 
 class PxUserClient extends PxClient
 {
-
     public function __construct(
         private array $config = [],
     ) {
@@ -22,9 +21,6 @@ class PxUserClient extends PxClient
     /**
      * Get user data from PX-User API.
      *
-     * @param  string  $access_token
-     * @param  bool  $withPermissions
-     * @return array|null
      *
      * @throws Throwable
      */
@@ -62,9 +58,6 @@ class PxUserClient extends PxClient
     /**
      * Get user data from PX-User API.
      *
-     * @param  string  $access_token
-     * @param  array  $px_user_ids
-     * @return array|null
      *
      * @throws Throwable
      */

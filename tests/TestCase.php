@@ -2,11 +2,11 @@
 
 namespace mindtwo\PxUserLaravel\Tests;
 
+use Illuminate\Contracts\Config\Repository;
 use mindtwo\PxUserLaravel\Facades\AccessTokenHelper;
 use mindtwo\PxUserLaravel\Facades\UserDataCache;
 use mindtwo\PxUserLaravel\Providers\PxUserProvider;
 use Orchestra\Testbench\TestCase as Orchestra;
-use Illuminate\Contracts\Config\Repository;
 
 class TestCase extends Orchestra
 {
