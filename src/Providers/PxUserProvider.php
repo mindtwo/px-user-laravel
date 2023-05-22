@@ -54,6 +54,10 @@ class PxUserProvider extends ServiceProvider
                     return false;
                 }
 
+                if ($accessToken->tokenable === null) {
+                    return false;
+                }
+
                 $accessTokenHelper = app()->makeWith(AccessTokenHelper::class, [
                     'user' => $accessToken->tokenable,
                 ]);
