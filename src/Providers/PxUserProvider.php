@@ -50,11 +50,7 @@ class PxUserProvider extends ServiceProvider
             \Laravel\Sanctum\Sanctum::usePersonalAccessTokenModel(PersonalAccessToken::class);
 
             \Laravel\Sanctum\Sanctum::authenticateAccessTokensUsing(function (PersonalAccessToken $accessToken, bool $isValid) {
-                if (! $isValid) {
-                    return false;
-                }
-
-                if ($accessToken->tokenable === null) {
+                if (! $isValid || $accessToken->tokenable === null) {
                     return false;
                 }
 
