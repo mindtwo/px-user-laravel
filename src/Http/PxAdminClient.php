@@ -3,6 +3,7 @@
 namespace mindtwo\PxUserLaravel\Http;
 
 use Illuminate\Support\Facades\Log;
+use mindtwo\PxUserLaravel\Facades\AccessTokenHelper;
 use Throwable;
 
 class PxAdminClient extends PxClient
@@ -168,7 +169,11 @@ class PxAdminClient extends PxClient
     public function forgotPassword(string $username)
     {
         try {
-            $response = $this->request()->post('forgot-password-code', [
+            $accessToken = AccessTokenHelper::get('access_token');
+
+            $response = $this->request([
+                'Authorization' => "Bearer {$accessToken}",
+            ])->post('forgot-password-code', [
                 'username' => $username,
                 'tenant_code' => $this->tenant,
                 'domain_code' => $this->domain,
@@ -205,7 +210,11 @@ class PxAdminClient extends PxClient
         try {
             $user = $this->user($userId);
 
-            $response = $this->request()->post('forgot-password-code', [
+            $accessToken = AccessTokenHelper::get('access_token');
+
+            $response = $this->request([
+                'Authorization' => "Bearer {$accessToken}",
+            ])->post('forgot-password-code', [
                 'username' => $user['preferred_username'],
                 'tenant_code' => $this->tenant,
                 'domain_code' => $this->domain,
