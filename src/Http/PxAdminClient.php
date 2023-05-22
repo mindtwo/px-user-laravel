@@ -165,7 +165,42 @@ class PxAdminClient extends PxClient
      *
      * @return array|null
      */
-    public function forgotPassword(string $userId)
+    public function forgotPassword(string $username)
+    {
+        try {
+            $response = $this->request()->post('forgot-password-code', [
+                'username' => $username,
+                'tenant_code' => $this->tenant,
+                'domain_code' => $this->domain,
+            ])->throw();
+        } catch (Throwable $e) {
+            Log::error('Failed to login user for url: ');
+            Log::error($this->getUri());
+            Log::error($e->getMessage());
+
+            return null;
+        }
+
+        // Check if status is 200
+        if ($response->getStatusCode() === 200) {
+            $body = $response->getBody();
+            $responseData = optional(json_decode((string) $body))->response;
+
+            return [
+                'forgot_password_code' => $responseData->forgot_password_code,
+                'forgot_password_code_valid_until' => $responseData->forgot_password_code_valid_until,
+            ];
+        }
+
+        return null;
+    }
+
+    /**
+     * Initiate forgot password process.
+     *
+     * @return array|null
+     */
+    public function forgotPasswordById(string $userId)
     {
         try {
             $user = $this->user($userId);
