@@ -180,7 +180,7 @@ class PxAdminClient extends PxClient
                 'domain_code' => $this->domain,
             ])->throw();
         } catch (Throwable $e) {
-            Log::error('Failed to login user for url: ');
+            Log::error('Failed to inititate password forgot for url: ');
             Log::error($this->getUri());
             Log::error($e->getMessage());
 
