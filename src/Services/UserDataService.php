@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use mindtwo\PxUserLaravel\Actions\PxUserDataRefreshAction;
 use mindtwo\PxUserLaravel\Actions\PxUserGetDetailsAction;
+use mindtwo\PxUserLaravel\Http\PxAdminClient;
 
 class UserDataService
 {
