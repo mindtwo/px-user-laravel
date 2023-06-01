@@ -30,6 +30,13 @@ class UserDataService
             return [];
         }
 
+        if (App::runningInConsole()) {
+            // TODO cache here?
+            $pxAdmin = App::make(PxAdminClient::class);
+
+            return $pxAdmin->user($px_user_id);
+        }
+
         $currentUserId = Auth::user()?->{config('px-user.px_user_id')};
 
         if ($px_user_id === $currentUserId) {
