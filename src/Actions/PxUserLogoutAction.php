@@ -22,6 +22,8 @@ class PxUserLogoutAction
             // forget user data in cache
             Cache::forget($cachePrefix);
 
+            // TODO invalidate personal access token here
+
             AccessTokenHelper::flush();
 
             if (method_exists(app('auth'), 'logout')) {
