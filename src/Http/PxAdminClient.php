@@ -67,7 +67,7 @@ class PxAdminClient extends PxClient
                 'password' => $password,
                 'tenant_code' => $this->tenant,
                 'domain_code' => $this->domain,
-            ])->throw();
+            ]);
         } catch (Throwable $e) {
             Log::error('Failed to login user for url: ');
             Log::error($this->getUri());
@@ -101,7 +101,7 @@ class PxAdminClient extends PxClient
         $response = $this->request([
             'X-Context-Tenant-Code' => $this->tenant,
             'X-Context-Domain-Code' => $this->domain,
-        ])
+        ], false)
             ->get("user/$userId");
 
         if (! $response->clientError() && $response->status() === 200) {
@@ -131,7 +131,7 @@ class PxAdminClient extends PxClient
         try {
             $response = $this->request([
                 'Authorization' => "Bearer {$refresh_token}",
-            ])->get('refresh-tokens')->throw();
+            ])->get('refresh-tokens');
         } catch (Throwable $e) {
             Log::error('Failed refresh token for url: ');
             Log::error($this->getUri());
@@ -173,7 +173,7 @@ class PxAdminClient extends PxClient
                 'username' => $username,
                 'tenant_code' => $this->tenant,
                 'domain_code' => $this->domain,
-            ])->throw();
+            ]);
         } catch (Throwable $e) {
             Log::error('Failed to inititate password forgot for url: ');
             Log::error($this->getUri());
@@ -214,7 +214,7 @@ class PxAdminClient extends PxClient
                 'username' => $user['preferred_username'],
                 'tenant_code' => $this->tenant,
                 'domain_code' => $this->domain,
-            ])->throw();
+            ]);
         } catch (Throwable $e) {
             Log::error('Failed to login user for url: ');
             Log::error($this->getUri());

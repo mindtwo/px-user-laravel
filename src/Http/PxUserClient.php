@@ -30,7 +30,7 @@ class PxUserClient extends PxClient
         try {
             $response = $this->request([
                 'Authorization' => "Bearer {$access_token}",
-            ])->get($withPermissions ? 'user-with-permissions' : 'user')->throw();
+            ])->get($withPermissions ? 'user-with-permissions' : 'user');
         } catch (Throwable $e) {
             Log::error('Failed login for url: ');
             Log::error($this->getUri());
@@ -73,7 +73,7 @@ class PxUserClient extends PxClient
             'Authorization' => "Bearer {$access_token}",
             'X-Context-Tenant-Code' => $this->tenant,
             'X-Context-Domain-Code' => $this->domain,
-        ])->post('users/details', [
+        ], false)->post('users/details', [
             'user_ids' => $px_user_ids,
         ]);
 

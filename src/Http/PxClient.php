@@ -50,9 +50,11 @@ abstract class PxClient
     /**
      * Base request for px user API.
      */
-    public function request(array $headers = []): PendingRequest
+    public function request(array $headers = [], $throws = true): PendingRequest
     {
-        return Http::withHeaders($this->headers($headers))->baseUrl($this->getUri());
+        return Http::withHeaders($this->headers($headers))->baseUrl($this->getUri())->when($throws, function ($request) {
+            return $request->throw();
+        });
     }
 
     /**
