@@ -97,30 +97,25 @@ class PxAdminClient extends PxClient
      */
     public function user(string $userId): ?array
     {
-        try {
-            $response = $this->request([
-                'X-Context-Tenant-Code' => $this->tenant,
-                'X-Context-Domain-Code' => $this->domain,
-            ])->get("user/$userId")->throw();
-        } catch (Throwable $e) {
-            Log::error('Failed to get user data via admin for url: ');
-            Log::error($this->getUri());
-            Log::error($e->getMessage());
 
-            return null;
-        }
+        $response = $this->request([
+            'X-Context-Tenant-Code' => $this->tenant,
+            'X-Context-Domain-Code' => $this->domain,
+        ])
+            ->get("user/$userId");
 
-        // Check if status is 200
-        if ($response->status() === 200) {
-            $body = $response->body();
-            $responseData = json_decode((string) $body, true);
-
+        if (! $response->clientError() && $response->status() === 200) {
+            $responseData = $response->json();
             // parse response body and return stdClass Object
             $userData = optional($responseData['response'])['user'];
 
             if ($userData) {
                 return $userData;
             }
+        }
+
+        if ($response->status() === 429) {
+            $response->throw();
         }
 
         return null;
