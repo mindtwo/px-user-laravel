@@ -32,10 +32,18 @@ class UserDataService
         }
 
         if (App::runningInConsole()) {
-            // TODO cache here?
             $pxAdmin = App::make(PxAdminClient::class);
+            $arrayCache = Cache::store('array');
 
-            return $pxAdmin->user($px_user_id);
+            if ($arrayCache->has('admin:user:cached_'.$px_user_id)) {
+                return $arrayCache->get('admin:user:cached_'.$px_user_id);
+            }
+
+            $userData = $pxAdmin->user($px_user_id);
+
+            $arrayCache->put('admin:user:cached_'.$px_user_id, $userData);
+
+            return $userData;
         }
 
         $currentUserId = Auth::user()?->{config('px-user.px_user_id')};
