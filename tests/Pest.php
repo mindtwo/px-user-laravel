@@ -44,8 +44,24 @@ function fakePxUserApi()
         'refresh_token_expiration_utc' => \Carbon\Carbon::now()->addHours(12),
     ];
 
+    $fakeResponse = [
+        'success' => true,
+        'code' => 200,
+        'http_code' => 200,
+        'message' => 'OK',
+        'response' => [
+            'user' => $fakeUserData,
+        ],
+        'metadata' => [],
+    ];
+
     Http::fake([
-        'https://user.api.pl-x.cloud/v1/user' => Http::response([
+        'user.*.pl-x.cloud/v1/user/*' => Http::sequence()
+            ->push($fakeResponse, 200)
+            ->push($fakeResponse, 200)
+            ->pushStatus(429)
+            ->pushStatus(400),
+        'user.*.pl-x.cloud/v1/user' => Http::response([
             'success' => true,
             'code' => 200,
             'http_code' => 200,
@@ -55,10 +71,7 @@ function fakePxUserApi()
             ],
             'metadata' => [],
         ], 200),
-    ]);
-
-    Http::fake([
-        'https://user.api.pl-x.cloud/v1/user-with-permissions' => Http::response([
+        'user.*.pl-x.cloud/v1/user-with-permissions' => Http::response([
             'success' => true,
             'code' => 200,
             'http_code' => 200,
@@ -68,47 +81,7 @@ function fakePxUserApi()
             ],
             'metadata' => [],
         ], 200),
-    ]);
-
-    Http::fake([
-        'https://user.api.pl-x.cloud/v1/refresh-tokens' => Http::response([
-            'success' => true,
-            'code' => 200,
-            'http_code' => 200,
-            'message' => 'OK',
-            'response' => $fakeTokenData,
-            'metadata' => [],
-        ], 200),
-    ]);
-
-    Http::fake([
-        'https://user.api.preprod.pl-x.cloud/v1/user' => Http::response([
-            'success' => true,
-            'code' => 200,
-            'http_code' => 200,
-            'message' => 'OK',
-            'response' => [
-                'user' => $fakeUserData,
-            ],
-            'metadata' => [],
-        ], 200),
-    ]);
-
-    Http::fake([
-        'https://user.api.preprod.pl-x.cloud/v1/user-with-permissions' => Http::response([
-            'success' => true,
-            'code' => 200,
-            'http_code' => 200,
-            'message' => 'OK',
-            'response' => [
-                'user' => $fakeUserData,
-            ],
-            'metadata' => [],
-        ], 200),
-    ]);
-
-    Http::fake([
-        'https://user.api.preprod.pl-x.cloud/v1/refresh-tokens' => Http::response([
+        'user.*.pl-x.cloud/v1/refresh-tokens' => Http::response([
             'success' => true,
             'code' => 200,
             'http_code' => 200,
