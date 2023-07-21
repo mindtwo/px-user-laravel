@@ -59,7 +59,7 @@ class PxUserProvider extends ServiceProvider
                 ]);
 
                 // invalidate personal access token from sanctum if user token is expired
-                if ($accessTokenHelper->accessTokenExpired()) {
+                if ($accessTokenHelper->accessTokenExpired() && ! $accessTokenHelper->canRefresh()) {
                     $accessToken->update([
                         'expires_at' => Carbon::now(),
                     ]);
