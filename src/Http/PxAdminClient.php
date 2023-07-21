@@ -237,6 +237,25 @@ class PxAdminClient extends PxClient
         return null;
     }
 
+    public function validateToken(?string $token): bool
+    {
+        if (! $token) {
+            return false;
+        }
+
+        try {
+            $response = $this->request()->get("validate-token/$token")->throw();
+        } catch (Throwable $e) {
+            Log::error('Failed to login user for url: ');
+            Log::error($this->getUri());
+            Log::error($e->getMessage());
+
+            return null;
+        }
+
+        return $response->ok();
+    }
+
     /**
      * Get request headers.
      */
