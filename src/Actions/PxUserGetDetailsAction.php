@@ -54,6 +54,10 @@ class PxUserGetDetailsAction
         // fetch with session token
         $accessToken = AccessTokenHelper::get('access_token');
 
+        if ($accessToken === null) {
+            return null;
+        }
+
         return Cache::remember(
             $cachePrefix,
             now()->addMinutes(config('px-user.px_user_cache_time')),
