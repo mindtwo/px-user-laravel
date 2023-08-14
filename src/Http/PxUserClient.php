@@ -32,9 +32,10 @@ class PxUserClient extends PxClient
                 'Authorization' => "Bearer {$access_token}",
             ])->get($withPermissions ? 'user-with-permissions' : 'user')->throw();
         } catch (Throwable $e) {
-            Log::error('Failed login for url: ');
-            Log::error($this->getUri());
-            Log::error($e->getMessage());
+            Log::error("Failed to login user for url: {$this->getUri()}", [
+                'message' => $e->getMessage(),
+                'url' => $this->getUri(),
+            ]);
 
             throw $e;
         }

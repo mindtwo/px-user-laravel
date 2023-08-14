@@ -69,9 +69,10 @@ class PxAdminClient extends PxClient
                 'domain_code' => $this->domain,
             ])->throw();
         } catch (Throwable $e) {
-            Log::error('Failed to login user for url: ');
-            Log::error($this->getUri());
-            Log::error($e->getMessage());
+            Log::error("Failed to login user for url: {$this->getUri()}", [
+                'message' => $e->getMessage(),
+                'url' => $this->getUri(),
+            ]);
 
             return null;
         }
@@ -133,9 +134,10 @@ class PxAdminClient extends PxClient
                 'Authorization' => "Bearer {$refresh_token}",
             ])->get('refresh-tokens')->throw();
         } catch (Throwable $e) {
-            Log::error('Failed refresh token for url: ');
-            Log::error($this->getUri());
-            Log::error($e->getMessage());
+            Log::error("Failed to login user for url: {$this->getUri()}", [
+                'message' => $e->getMessage(),
+                'url' => $this->getUri(),
+            ]);
 
             return null;
         }
@@ -175,9 +177,10 @@ class PxAdminClient extends PxClient
                 'domain_code' => $this->domain,
             ])->throw();
         } catch (Throwable $e) {
-            Log::error('Failed to inititate password forgot for url: ');
-            Log::error($this->getUri());
-            Log::error($e->getMessage());
+            Log::error("Failed to login user for url: {$this->getUri()}", [
+                'message' => $e->getMessage(),
+                'url' => $this->getUri(),
+            ]);
 
             return null;
         }
@@ -216,9 +219,10 @@ class PxAdminClient extends PxClient
                 'domain_code' => $this->domain,
             ])->throw();
         } catch (Throwable $e) {
-            Log::error('Failed to login user for url: ');
-            Log::error($this->getUri());
-            Log::error($e->getMessage());
+            Log::error("Failed to login user for url: {$this->getUri()}", [
+                'message' => $e->getMessage(),
+                'url' => $this->getUri(),
+            ]);
 
             return null;
         }
@@ -246,9 +250,10 @@ class PxAdminClient extends PxClient
         try {
             $response = $this->request()->get("validate-token/$token")->throw();
         } catch (Throwable $e) {
-            Log::error('Failed to login user for url: ');
-            Log::error($this->getUri());
-            Log::error($e->getMessage());
+            Log::error("Failed to login user for url: {$this->getUri()}", [
+                'message' => $e->getMessage(),
+                'url' => $this->getUri(),
+            ]);
 
             return null;
         }
