@@ -29,7 +29,7 @@ class UserDataService
     {
         if (App::runningUnitTests()) {
             return [
-                'id' => $uuid ?? '94549d0a-4386-4ba7-ae48-f9247429e5c6',
+                'id' => $px_user_id ?? '94549d0a-4386-4ba7-ae48-f9247429e5c6',
                 'email' => 'as@domain.tld',
                 'tenant_code' => 'abc',
                 'domain_code' => 'def',
