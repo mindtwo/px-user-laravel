@@ -27,8 +27,29 @@ class UserDataService
      */
     public function getUserData(string $px_user_id)
     {
-        if (App::environment(['testing'])) {
-            return [];
+        if (App::runningUnitTests()) {
+            return [
+                'id' => $uuid ?? '94549d0a-4386-4ba7-ae48-f9247429e5c6',
+                'email' => 'as@domain.tld',
+                'tenant_code' => 'abc',
+                'domain_code' => 'def',
+                'is_enabled' => true,
+                'is_confirmed' => true,
+                'firstname' => 'Antonina',
+                'lastname' => 'Stępień',
+                'last_login_at' => '',
+                'products' => [
+                    'prod',
+                ],
+                'roles' => [
+                    'bjtd' => [
+                        'standard',
+                    ],
+                ],
+                'products' => [
+                    'bjtd',
+                ],
+            ];
         }
 
         if (App::runningInConsole()) {
