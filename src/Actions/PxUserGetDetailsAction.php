@@ -67,8 +67,6 @@ class PxUserGetDetailsAction
 
     /**
      * Get user details for one user, load them via API if user is not in cache.
-     *
-     * @param  string  $px_user_id
      */
     private function cacheMultipleUserDetails(array $px_user_ids): mixed
     {
@@ -81,6 +79,10 @@ class PxUserGetDetailsAction
 
         // fetch with session token
         $accessToken = AccessTokenHelper::get('access_token');
+
+        if ($accessToken === null) {
+            return null;
+        }
 
         // refresh details for users not in cache
         $userDetails = $this->pxUserClient->getUserDetails($accessToken, collect($px_user_ids)->diff($cachedIds)->toArray()) ?? [];
