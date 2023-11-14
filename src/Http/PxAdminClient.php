@@ -163,23 +163,28 @@ class PxAdminClient extends PxClient
      *
      * @return array|null
      */
-    public function forgotPassword(string $username)
+    public function forgotPassword(string $username, string $productCode)
     {
         try {
             $accessToken = AccessTokenHelper::get('access_token');
 
             $response = $this->request([
                 'Authorization' => "Bearer {$accessToken}",
-                'x-context-product-code' => 'dam',
             ])->post('forgot-password-code', [
                 'username' => $username,
                 'tenant_code' => $this->tenant,
                 'domain_code' => $this->domain,
+                'product_code' => $productCode,
             ])->throw();
         } catch (Throwable $e) {
-            Log::error("Failed to login user for url: {$this->getUri()}", [
+            Log::error("Failed to initiate forget password via {$this->getUri()}", [
                 'message' => $e->getMessage(),
                 'url' => $this->getUri(),
+                'tenant' => $this->tenant,
+                'domain' => $this->domain,
+                'context' => $this->getContext(),
+                'username' => $username,
+                'product' => $productCode,
             ]);
 
             return null;
