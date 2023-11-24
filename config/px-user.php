@@ -70,6 +70,11 @@ return [
          */
         'enabled' => false,
 
+        /**
+         * The custom access token model.
+         */
+        'access_token_model' => \mindtwo\PxUserLaravel\Sanctum\PersonalAccessToken::class,
+
     ],
 
     /**

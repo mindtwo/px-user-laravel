@@ -16,7 +16,6 @@ use mindtwo\PxUserLaravel\Http\PxAdminClient;
 use mindtwo\PxUserLaravel\Http\PxUserClient;
 use mindtwo\PxUserLaravel\Listeners\UserLoginListener;
 use mindtwo\PxUserLaravel\Listeners\UserTokenRefreshListener;
-use mindtwo\PxUserLaravel\Sanctum\PersonalAccessToken;
 use mindtwo\PxUserLaravel\Services\AccessTokenHelper;
 use mindtwo\PxUserLaravel\Services\CheckUserTokenService;
 use mindtwo\PxUserLaravel\Services\UserDataService;
@@ -47,9 +46,9 @@ class PxUserProvider extends ServiceProvider
 
         $this->sanctumIntegration = config('px-user.sanctum.enabled') === true && class_exists(\Laravel\Sanctum\Sanctum::class);
         if ($this->sanctumIntegration) {
-            \Laravel\Sanctum\Sanctum::usePersonalAccessTokenModel(PersonalAccessToken::class);
+            \Laravel\Sanctum\Sanctum::usePersonalAccessTokenModel(config('px-user.sanctum.access_token_model'));
 
-            \Laravel\Sanctum\Sanctum::authenticateAccessTokensUsing(function (PersonalAccessToken $accessToken, bool $isValid) {
+            \Laravel\Sanctum\Sanctum::authenticateAccessTokensUsing(function ($accessToken, bool $isValid) {
                 if (! $isValid || $accessToken->tokenable === null) {
                     return false;
                 }
