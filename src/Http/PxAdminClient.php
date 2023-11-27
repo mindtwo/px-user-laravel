@@ -246,43 +246,6 @@ class PxAdminClient extends PxClient
         return null;
     }
 
-    public function renewActivationCodeById(string $userId, string $productCode)
-    {
-        try {
-            $user = $this->user($userId);
-
-            $accessToken = AccessTokenHelper::get('access_token');
-
-            $response = $this->request([
-                'Authorization' => "Bearer {$accessToken}",
-            ])->post(sprintf('accounts/%s/renew-activation-code', $userId), [
-                'tenant_code' => $this->tenant,
-                'domain_code' => $this->domain,
-                'product_code' => $productCode,
-            ])->throw();
-        } catch (Throwable $e) {
-            Log::error("Failed to renew activation code for user.", [
-                'message' => $e->getMessage(),
-                'url' => $this->getUri(),
-            ]);
-
-            return null;
-        }
-
-        // Check if status is 200
-        if ($response->getStatusCode() === 200) {
-            $body = $response->getBody();
-            $responseData = optional(json_decode((string) $body))->response;
-
-            return [
-                'activation_code' => $responseData->activation_code,
-                'activation_code_valid_until' => $responseData->activation_code_valid_until,
-            ];
-        }
-
-        return null;
-    }
-
     public function validateToken(?string $token): bool
     {
         if (! $token) {
