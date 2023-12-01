@@ -170,6 +170,9 @@ class PxAdminClient extends PxClient
 
             $response = $this->request([
                 'Authorization' => "Bearer {$accessToken}",
+                'X-Context-Tenant-Code' => $this->tenant,
+                'X-Context-Domain-Code' => $this->domain,
+                'X-Context-Product-Code' => $productCode,
             ])->post('forgot-password-code', [
                 'username' => $username,
                 'tenant_code' => $this->tenant,
