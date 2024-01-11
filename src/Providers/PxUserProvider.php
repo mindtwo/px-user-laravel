@@ -6,10 +6,11 @@ use Illuminate\Foundation\Application;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\ServiceProvider;
 use mindtwo\PxUserLaravel\Actions\PxUserDataRefreshAction;
 use mindtwo\PxUserLaravel\Actions\PxUserGetDetailsAction;
-use mindtwo\PxUserLaravel\Contracts\AccessTokenHelper as ContractsAccessTokenHelper;
+// use mindtwo\PxUserLaravel\Contracts\AccessTokenHelper as ContractsAccessTokenHelper;
 use mindtwo\PxUserLaravel\Events\PxUserLoginEvent;
 use mindtwo\PxUserLaravel\Events\PxUserTokenRefreshEvent;
 use mindtwo\PxUserLaravel\Http\PxAdminClient;
@@ -46,19 +47,41 @@ class PxUserProvider extends ServiceProvider
 
         $this->sanctumIntegration = config('px-user.sanctum.enabled') === true && class_exists(\Laravel\Sanctum\Sanctum::class);
         if ($this->sanctumIntegration) {
+            Log::debug('PxUserLaravel: Sanctum integration enabled');
+
             \Laravel\Sanctum\Sanctum::usePersonalAccessTokenModel(config('px-user.sanctum.access_token_model'));
 
             \Laravel\Sanctum\Sanctum::authenticateAccessTokensUsing(function ($accessToken, bool $isValid) {
+                Log::debug('PxUserLaravel: Sanctum::authenticateAccessTokensUsing@1', [
+                    'accessToken' => $accessToken,
+                    'isValid' => $isValid,
+                    'tokenable' => $accessToken->tokenable,
+                    'abort' => ! $isValid || $accessToken->tokenable === null,
+                ]);
+
                 if (! $isValid || $accessToken->tokenable === null) {
                     return false;
                 }
+
+                Log::debug('PxUserLaravel: Sanctum::authenticateAccessTokensUsing@accessTokenHelperInit', [
+                    'tokenable' => $accessToken->tokenable,
+                ]);
 
                 $accessTokenHelper = app()->makeWith(AccessTokenHelper::class, [
                     'user' => $accessToken->tokenable,
                 ]);
 
+                Log::debug('PxUserLaravel: Sanctum::authenticateAccessTokensUsing@accessTokenHelperInitialized', [
+                    'user' => $accessTokenHelper->user,
+                    'accessTokenExpired' => $accessTokenHelper->accessTokenExpired(),
+                    'canRefresh' => $accessTokenHelper->canRefresh(),
+                    'abort' => $accessTokenHelper->accessTokenExpired() && ! $accessTokenHelper->canRefresh(),
+                ]);
+
                 // invalidate personal access token from sanctum if user token is expired
                 if ($accessTokenHelper->accessTokenExpired() && ! $accessTokenHelper->canRefresh()) {
+                    Log::debug('PxUserLaravel: Sanctum::authenticateAccessTokensUsing@expireToken');
+
                     $accessToken->update([
                         'expires_at' => Carbon::now(),
                     ]);
@@ -92,12 +115,12 @@ class PxUserProvider extends ServiceProvider
             return new CheckUserTokenService();
         });
 
-        $this->app->bind(ContractsAccessTokenHelper::class, function (Application $app) {
+        $this->app->bind(AccessTokenHelper::class, function (Application $app) {
             return new AccessTokenHelper(Auth::user());
         });
 
         $this->app->bind('AccessTokenHelper', function (Application $app) {
-            return $app->make(ContractsAccessTokenHelper::class);
+            return $app->make(AccessTokenHelper::class);
         });
 
         $this->app->singleton('UserDataCache', function (Application $app) {

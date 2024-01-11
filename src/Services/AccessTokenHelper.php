@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Cache;
 class AccessTokenHelper
 {
     public function __construct(
-        protected Authenticatable $user,
+        public Authenticatable $user,
     ) {
     }
 
