@@ -58,6 +58,14 @@ return [
      */
     'retrieve_user_action' => \mindtwo\PxUserLaravel\Actions\RetrieveUserOnLoginAction::class,
 
+
+    /**
+     * Amount of retries for http requests to px-user's api.
+     */
+    'http_request_retries' => 3,
+
+    'http_request_retry_delay' => 300,
+
     /**
      * Configuration regarding the sanctum integration.
      */

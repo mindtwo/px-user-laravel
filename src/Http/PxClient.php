@@ -2,7 +2,9 @@
 
 namespace mindtwo\PxUserLaravel\Http;
 
+use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\PendingRequest;
+use Illuminate\Http\Client\RequestException;
 use Illuminate\Support\Facades\Http;
 
 abstract class PxClient
@@ -52,7 +54,22 @@ abstract class PxClient
      */
     public function request(array $headers = []): PendingRequest
     {
-        return Http::withHeaders($this->headers($headers))->baseUrl($this->getUri());
+        return Http::withHeaders($this->headers($headers))
+            ->baseUrl($this->getUri())
+            ->retry(
+                config('px-user.http_request_retries'),
+                config('px-user.http_request_retry_delay', 300),
+                function (\Exception $exception, PendingRequest $request) {
+                    if ($exception instanceof ConnectionException) {
+                        return true;
+                    }
+
+                    if ($exception instanceof RequestException) {
+                        return $exception->response->status() >= 500;
+                    }
+
+                    return false;
+                });
     }
 
     /**
