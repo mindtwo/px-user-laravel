@@ -67,9 +67,7 @@ class PxUserProvider extends ServiceProvider
                     'tokenable' => $accessToken->tokenable,
                 ]);
 
-                $accessTokenHelper = app()->makeWith(AccessTokenHelper::class, [
-                    'user' => $accessToken->tokenable,
-                ]);
+                $accessTokenHelper = new AccessTokenHelper($accessToken->tokenable);
 
                 Log::debug('PxUserLaravel: Sanctum::authenticateAccessTokensUsing@accessTokenHelperInitialized', [
                     'user' => $accessTokenHelper->user,
