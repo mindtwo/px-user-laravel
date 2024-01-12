@@ -2,6 +2,7 @@
 
 namespace mindtwo\PxUserLaravel\Http;
 
+use Illuminate\Http\Client\RequestException;
 use Illuminate\Support\Facades\Log;
 use Throwable;
 
@@ -69,14 +70,26 @@ class PxUserClient extends PxClient
         }
 
         // check token expiration
-        /** @var \Illuminate\Http\Client\Response $response */
-        $response = $this->request([
-            'Authorization' => "Bearer {$access_token}",
-            'X-Context-Tenant-Code' => $this->tenant,
-            'X-Context-Domain-Code' => $this->domain,
-        ])->post('users/details', [
-            'user_ids' => $px_user_ids,
-        ]);
+        try {
+            //code...
+            /** @var \Illuminate\Http\Client\Response $response */
+            $response = $this->request([
+                'Authorization' => "Bearer {$access_token}",
+                'X-Context-Tenant-Code' => $this->tenant,
+                'X-Context-Domain-Code' => $this->domain,
+            ])->post('users/details', [
+                'user_ids' => $px_user_ids,
+            ]);
+        }  catch (\Throwable $th) {
+            Log::error("Failed to get user details for url: {$this->getUri()}", [
+                'message' => $th->getMessage(),
+                'th' => $th,
+                'url' => $this->getUri(),
+                'response' => $th instanceof RequestException ? $th->response->json() : null,
+            ]);
+
+            return null;
+        }
 
         // Check if status is 200
         if ($response->status() === 200) {
