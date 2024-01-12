@@ -79,7 +79,7 @@ class PxUserClient extends PxClient
                 'X-Context-Domain-Code' => $this->domain,
             ])->post('users/details', [
                 'user_ids' => $px_user_ids,
-            ]);
+            ])->throw();
         }  catch (\Throwable $th) {
             Log::error("Failed to get user details for url: {$this->getUri()}", [
                 'message' => $th->getMessage(),
