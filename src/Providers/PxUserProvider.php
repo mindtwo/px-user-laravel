@@ -50,7 +50,7 @@ class PxUserProvider extends ServiceProvider
             \Laravel\Sanctum\Sanctum::usePersonalAccessTokenModel(config('px-user.sanctum.access_token_model'));
 
             \Laravel\Sanctum\Sanctum::authenticateAccessTokensUsing(function ($accessToken, bool $isValid) {
-                Log::debug('PxUserLaravel: Sanctum::authenticateAccessTokensUsing@1', [
+                $this->debug('Sanctum::authenticateAccessTokensUsing@1', [
                     'accessToken' => $accessToken,
                     'isValid' => $isValid,
                     'tokenable' => $accessToken->tokenable,
@@ -61,13 +61,13 @@ class PxUserProvider extends ServiceProvider
                     return false;
                 }
 
-                Log::debug('PxUserLaravel: Sanctum::authenticateAccessTokensUsing@accessTokenHelperInit', [
+                $this->debug('Sanctum::authenticateAccessTokensUsing@accessTokenHelperInit', [
                     'tokenable' => $accessToken->tokenable,
                 ]);
 
                 $accessTokenHelper = new AccessTokenHelper($accessToken->tokenable);
 
-                Log::debug('PxUserLaravel: Sanctum::authenticateAccessTokensUsing@accessTokenHelperInitialized', [
+                $this->debug('Sanctum::authenticateAccessTokensUsing@accessTokenHelperInitialized', [
                     'user' => $accessTokenHelper->user,
                     'accessTokenExpired' => $accessTokenHelper->accessTokenExpired(),
                     'canRefresh' => $accessTokenHelper->canRefresh(),
@@ -76,7 +76,7 @@ class PxUserProvider extends ServiceProvider
 
                 // invalidate personal access token from sanctum if user token is expired
                 if ($accessTokenHelper->accessTokenExpired() && ! $accessTokenHelper->canRefresh()) {
-                    Log::debug('PxUserLaravel: Sanctum::authenticateAccessTokensUsing@expireToken');
+                    $this->debug('Sanctum::authenticateAccessTokensUsing@expireToken');
 
                     $accessToken->update([
                         'expires_at' => Carbon::now(),
@@ -88,6 +88,15 @@ class PxUserProvider extends ServiceProvider
                 return true;
             });
         }
+    }
+
+    protected function debug(string $message, array $context = []): void
+    {
+        if (! config('px-user.debug')) {
+            return;
+        }
+
+        Log::debug('PxUserLaravel: '.$message, $context);
     }
 
     /**

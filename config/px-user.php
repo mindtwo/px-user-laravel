@@ -7,6 +7,8 @@ return [
      */
     'user_model' => '',
 
+    'debug' => env('PX_USER_DEBUG', false),
+
     /**
      * The stage the app runs in
      *
