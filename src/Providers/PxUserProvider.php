@@ -19,6 +19,7 @@ use mindtwo\PxUserLaravel\Listeners\UserLoginListener;
 use mindtwo\PxUserLaravel\Listeners\UserTokenRefreshListener;
 use mindtwo\PxUserLaravel\Services\AccessTokenHelper;
 use mindtwo\PxUserLaravel\Services\CheckUserTokenService;
+use mindtwo\PxUserLaravel\Services\PxUserService;
 use mindtwo\PxUserLaravel\Services\UserDataService;
 
 class PxUserProvider extends ServiceProvider
@@ -108,10 +109,16 @@ class PxUserProvider extends ServiceProvider
     {
         $this->mergeConfigFrom(__DIR__.'/../../config/px-user.php', 'px-user');
 
+        $this->app->singleton('px-user', function (Application $app) {
+            return new PxUserService();
+        });
+
+        // TODO remove from here
         $this->app->singleton(PxAdminClient::class, function (Application $app) {
             return new PxAdminClient(config('px-user'));
         });
 
+        // TODO remove from here
         $this->app->singleton(PxUserClient::class, function (Application $app) {
             return new PxUserClient(config('px-user'));
         });
@@ -124,11 +131,8 @@ class PxUserProvider extends ServiceProvider
             return new AccessTokenHelper(Auth::user());
         });
 
-        $this->app->bind('AccessTokenHelper', function (Application $app) {
-            return $app->make(AccessTokenHelper::class);
-        });
-
-        $this->app->singleton('UserDataCache', function (Application $app) {
+        // TODO remove entire class
+        $this->app->singleton(UserDataService::class, function (Application $app) {
             $pxUserClient = $app->make(PxUserClient::class);
 
             return new UserDataService(

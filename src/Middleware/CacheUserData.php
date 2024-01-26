@@ -22,6 +22,7 @@ class CacheUserData
      */
     public function handle(Request $request, Closure $next)
     {
+        // TODO use new Data Cache here
         if ($request->user()) {
             try {
                 // cache user data for specified time period

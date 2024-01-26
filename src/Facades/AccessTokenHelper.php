@@ -3,6 +3,7 @@
 namespace mindtwo\PxUserLaravel\Facades;
 
 use Illuminate\Support\Facades\Facade;
+use mindtwo\PxUserLaravel\Services\AccessTokenHelper as ServicesAccessTokenHelper;
 
 /**
  * @method static bool accessTokenExpired()
@@ -27,6 +28,6 @@ class AccessTokenHelper extends Facade
      */
     protected static function getFacadeAccessor()
     {
-        return 'AccessTokenHelper';
+        return ServicesAccessTokenHelper::class;
     }
 }

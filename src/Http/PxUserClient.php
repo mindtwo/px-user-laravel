@@ -4,6 +4,7 @@ namespace mindtwo\PxUserLaravel\Http;
 
 use Illuminate\Http\Client\RequestException;
 use Illuminate\Support\Facades\Log;
+use mindtwo\PxUserLaravel\Facades\PxUser;
 use Throwable;
 
 class PxUserClient extends PxClient
@@ -27,6 +28,10 @@ class PxUserClient extends PxClient
      */
     public function getUserData(string $access_token, bool $withPermissions = false): ?array
     {
+        if (PxUser::isFaking()) {
+            return PxUser::fakeUserData(auth()->user()?->{config('px-user.px_user_id')});
+        }
+
         // check token expiration
         try {
             $response = $this->request([
@@ -36,6 +41,7 @@ class PxUserClient extends PxClient
             Log::error("Failed to login user for url: {$this->getUri()}", [
                 'message' => $e->getMessage(),
                 'url' => $this->getUri(),
+                'path' => $withPermissions ? 'user-with-permissions' : 'user',
             ]);
 
             throw $e;
