@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Facade;
 /**
  * @method static array get(string $pxUserId)
  * @method static self fake()
+ * @method static bool isFaking()
  */
 class PxUser extends Facade
 {

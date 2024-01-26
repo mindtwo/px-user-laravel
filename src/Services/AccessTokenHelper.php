@@ -5,6 +5,7 @@ namespace mindtwo\PxUserLaravel\Services;
 use Carbon\Carbon;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Support\Facades\Cache;
+use mindtwo\PxUserLaravel\Facades\PxUser;
 
 class AccessTokenHelper
 {
@@ -20,6 +21,10 @@ class AccessTokenHelper
      */
     public function accessTokenExpired(): bool
     {
+        if (PxUser::isFaking()) {
+            return false;
+        }
+
         if (null === ($time = $this->get('access_token_expiration_utc'))) {
             return false;
         }
@@ -98,6 +103,10 @@ class AccessTokenHelper
      */
     public function get(string $key): mixed
     {
+        if (PxUser::isFaking()) {
+            return 'fake-token';
+        }
+
         if (! $this->allowed($key)) {
             throw new \Exception('Error Processing Request', 1);
         }
