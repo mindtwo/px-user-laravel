@@ -86,7 +86,7 @@ class PxUserClient extends PxClient
             ])->post('users/details', [
                 'user_ids' => $px_user_ids,
             ])->throw();
-        }  catch (\Throwable $th) {
+        } catch (\Throwable $th) {
             Log::error("Failed to get user details for url: {$this->getUri()}", [
                 'message' => $th->getMessage(),
                 'th' => $th,

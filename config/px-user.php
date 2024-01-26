@@ -60,7 +60,6 @@ return [
      */
     'retrieve_user_action' => \mindtwo\PxUserLaravel\Actions\RetrieveUserOnLoginAction::class,
 
-
     /**
      * Amount of retries for http requests to px-user's api.
      */

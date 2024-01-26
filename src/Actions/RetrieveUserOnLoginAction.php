@@ -13,7 +13,7 @@ class RetrieveUserOnLoginAction
      */
     public function __invoke(array $requestData): bool|Authenticatable
     {
-        if (null === config('px-user.user_model')) {
+        if (config('px-user.user_model') === null) {
             return false;
         }
 

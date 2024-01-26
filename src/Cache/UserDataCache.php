@@ -55,7 +55,7 @@ class UserDataCache extends DataCache
 
         // TODO: Use user details?
 
-        if ((!$this->model instanceof Authenticatable) || ! $token = (new AccessTokenHelper($this->model))->get('access_token')) {
+        if ((! $this->model instanceof Authenticatable) || ! $token = (new AccessTokenHelper($this->model))->get('access_token')) {
             return [];
         }
 

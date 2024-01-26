@@ -27,7 +27,7 @@ class PxUserService
                 }
 
                 return Http::response($this->fakeUserData($user->{config('px-user.px_user_id')}), 200);
-            }
+            },
         ]);
 
         $this->fakes = true;
