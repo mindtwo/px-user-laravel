@@ -3,13 +3,12 @@
 namespace mindtwo\PxUserLaravel\Facades;
 
 use Illuminate\Support\Facades\Facade;
-use mindtwo\PxUserLaravel\Services\UserDataService;
 
 /**
- * @method static mixed|void getUserData(string $px_user_id)
- * @method static mixed refreshUserData(\Illuminate\Http\Request $request)
+ * @method static array get(string $pxUserId)
+ * @method static self fake()
  */
-class UserDataCache extends Facade
+class PxUser extends Facade
 {
     /**
      * Get the registered name of the component.
@@ -20,6 +19,6 @@ class UserDataCache extends Facade
      */
     protected static function getFacadeAccessor()
     {
-        return UserDataService::class;
+        return 'px-user';
     }
 }

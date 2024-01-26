@@ -3,6 +3,7 @@
 namespace mindtwo\PxUserLaravel\Cache;
 
 use Domain\User\Models\User;
+use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Support\Facades\App;
 use mindtwo\PxUserLaravel\Http\PxUserClient;
 use mindtwo\PxUserLaravel\Services\AccessTokenHelper;
@@ -54,9 +55,7 @@ class UserDataCache extends DataCache
 
         // TODO: Use user details?
 
-        $token = (new AccessTokenHelper($this->model))->get('access_token');
-
-        if (! $token) {
+        if ((!$this->model instanceof Authenticatable) || ! $token = (new AccessTokenHelper($this->model))->get('access_token')) {
             return [];
         }
 

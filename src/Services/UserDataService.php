@@ -35,8 +35,8 @@ class UserDataService
                 'domain_code' => 'def',
                 'is_enabled' => true,
                 'is_confirmed' => true,
-                'firstname' => 'Antonina',
-                'lastname' => 'Stępień',
+                'firstname' => 'Jon',
+                'lastname' => 'Doe',
                 'last_login_at' => '',
                 'products' => [
                     'prod',
