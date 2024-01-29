@@ -5,6 +5,7 @@ namespace mindtwo\PxUserLaravel\Cache;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\App;
+use Illuminate\Support\Facades\Cache;
 use mindtwo\PxUserLaravel\Http\PxUserClient;
 use mindtwo\PxUserLaravel\Services\AccessTokenHelper;
 use mindtwo\TwoTility\Cache\Data\DataCache;
@@ -25,18 +26,6 @@ class UserDataCache extends DataCache
         'preferred_username',
     ];
 
-    /**
-     * Create a new cache instance.
-     *
-     * @param Model $model
-     */
-    public function __construct(
-        protected $model,
-        protected ?array $initialData = [],
-    ) {
-        parent::__construct($model);
-    }
-
     protected function ttl(): int
     {
         return config('px-user.px_user_cache_time') * 60;
@@ -47,13 +36,6 @@ class UserDataCache extends DataCache
      */
     protected function cacheKey(): string
     {
-        if ($this->initialData['id'] ?? false) {
-            return cache_key('data_cache', [
-                'name' => 'user',
-                'uuid' => $this->initialData['id'],
-            ])->toString();
-        }
-
         return cache_key('data_cache', [
             'name' => 'user',
             'uuid' => $this->model->{config('px-user.px_user_id')},
@@ -87,5 +69,29 @@ class UserDataCache extends DataCache
         }
 
         return array_intersect_key($userData, array_flip($this->usedKeys));
+    }
+
+    /**
+     * Initialize data cache.
+     *
+     * @return void
+     */
+    public static function initialize(array $initialData)
+    {
+        $key = cache_key('data_cache', [
+            'name' => 'user',
+            'uuid' => $initialData['id'],
+        ])->toString();
+
+        Cache::put($key, array_intersect_key($initialData, array_flip([
+            'email',
+            'firstname',
+            'lastname',
+            'is_enabled',
+            'is_confirmed',
+            'roles',
+            'products',
+            'preferred_username',
+        ])), config('px-user.px_user_cache_time') * 60);
     }
 }

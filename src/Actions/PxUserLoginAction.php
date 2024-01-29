@@ -43,7 +43,7 @@ class PxUserLoginAction
         }
 
         // save the retrieved user data to cache
-        new UserDataCache($user, $userRequest);
+        UserDataCache::initialize($userRequest);
 
         // login user and save token data to cache
         Auth::login($user);
