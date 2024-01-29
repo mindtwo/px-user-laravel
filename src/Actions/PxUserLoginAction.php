@@ -4,6 +4,7 @@ namespace mindtwo\PxUserLaravel\Actions;
 
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
+use mindtwo\PxUserLaravel\Cache\UserDataCache;
 use mindtwo\PxUserLaravel\Events\PxUserLoginEvent;
 use mindtwo\PxUserLaravel\Facades\AccessTokenHelper;
 use mindtwo\PxUserLaravel\Http\PxUserClient;
@@ -41,9 +42,11 @@ class PxUserLoginAction
             return false;
         }
 
-        Auth::login($user);
+        // save the retrieved user data to cache
+        new UserDataCache($user, $userRequest);
 
-        // save token data to cache
+        // login user and save token data to cache
+        Auth::login($user);
         AccessTokenHelper::saveTokenData($tokenData);
 
         PxUserLoginEvent::dispatch($user, $userRequest, $tokenData['access_token']);

@@ -13,7 +13,6 @@ use mindtwo\PxUserLaravel\Services\AccessTokenHelper as ServicesAccessTokenHelpe
  * @method static array values()
  * @method static void put(string $key, string $value)
  * @method static mixed get(string $key)
- * @method static string prefix()
  * @method static string allowed(string $key)
  * @method static array allowedKeys()
  */

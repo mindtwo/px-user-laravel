@@ -76,7 +76,10 @@ class AccessTokenHelper
     public function flush()
     {
         foreach ($this->allowedKeys() as $key) {
-            $sessionKey = $this->prefix()."_$key";
+            $sessionKey = cache_key(config('px-user.session_prefix') ?? 'px_user', [
+                $this->user->{config('px-user.px_user_id')},
+                $key,
+            ]);
 
             Cache::forget($sessionKey);
         }
@@ -93,7 +96,10 @@ class AccessTokenHelper
             throw new \Exception('Error Processing Request', 1);
         }
 
-        $sessionKey = $this->prefix()."_$key";
+        $sessionKey = cache_key(config('px-user.session_prefix') ?? 'px_user', [
+            $this->user->{config('px-user.px_user_id')},
+            $key,
+        ]);
 
         Cache::put($sessionKey, $value);
     }
@@ -111,17 +117,12 @@ class AccessTokenHelper
             throw new \Exception('Error Processing Request', 1);
         }
 
-        $sessionKey = $this->prefix()."_$key";
+        $sessionKey = cache_key(config('px-user.session_prefix') ?? 'px_user', [
+            $this->user->{config('px-user.px_user_id')},
+            $key,
+        ]);
 
         return Cache::get($sessionKey);
-    }
-
-    public function prefix(): string
-    {
-        $prefix = config('px-user.session_prefix') ?? 'px_user';
-        $px_user_id = $this->user->{config('px-user.px_user_id')};
-
-        return "$px_user_id:$prefix";
     }
 
     /**
