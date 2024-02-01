@@ -53,7 +53,7 @@ class UserDataCache extends DataCache
             return $this->initialData;
         }
 
-        if (! $this->model->{config('px-user.px_user_id')} || ! $this->model->tenant_code || ! $this->model->domain_code) {
+        if (! isset($this->model->{config('px-user.px_user_id')}) || ! $this->model->tenant_code || ! $this->model->domain_code) {
             return [];
         }
 
