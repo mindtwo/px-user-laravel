@@ -69,10 +69,12 @@ class PxAdminClient extends PxClient
                 'domain_code' => $this->domain,
             ])->throw();
         } catch (Throwable $e) {
-            Log::error("Failed to login user for url: {$this->getUri()}", [
-                'message' => $e->getMessage(),
-                'url' => $this->getUri(),
-            ]);
+            if (config('px-user.debug')) {
+                Log::error("Failed to login user for url: {$this->getUri()}", [
+                    'message' => $e->getMessage(),
+                    'url' => $this->getUri(),
+                ]);
+            }
 
             return null;
         }
@@ -134,10 +136,12 @@ class PxAdminClient extends PxClient
                 'Authorization' => "Bearer {$refresh_token}",
             ])->get('refresh-tokens')->throw();
         } catch (Throwable $e) {
-            Log::error("Failed to login user for url: {$this->getUri()}", [
-                'message' => $e->getMessage(),
-                'url' => $this->getUri(),
-            ]);
+            if (config('px-user.debug')) {
+                Log::error("Failed to login user for url: {$this->getUri()}", [
+                    'message' => $e->getMessage(),
+                    'url' => $this->getUri(),
+                ]);
+            }
 
             return null;
         }
@@ -180,16 +184,17 @@ class PxAdminClient extends PxClient
                 'product_code' => $productCode,
             ])->throw();
         } catch (Throwable $e) {
-            Log::error("Failed to initiate forget password via {$this->getUri()}", [
-                'message' => $e->getMessage(),
-                'url' => $this->getUri(),
-                'tenant' => $this->tenant,
-                'domain' => $this->domain,
-                'context' => $this->getContext(),
-                'username' => $username,
-                'product' => $productCode,
-            ]);
-
+            if (config('px-user.debug')) {
+                Log::error("Failed to initiate forget password via {$this->getUri()}", [
+                    'message' => $e->getMessage(),
+                    'url' => $this->getUri(),
+                    'tenant' => $this->tenant,
+                    'domain' => $this->domain,
+                    'context' => $this->getContext(),
+                    'username' => $username,
+                    'product' => $productCode,
+                ]);
+            }
             return null;
         }
 
@@ -227,11 +232,12 @@ class PxAdminClient extends PxClient
                 'domain_code' => $this->domain,
             ])->throw();
         } catch (Throwable $e) {
-            Log::error("Failed to login user for url: {$this->getUri()}", [
-                'message' => $e->getMessage(),
-                'url' => $this->getUri(),
-            ]);
-
+            if (config('px-user.debug')) {
+                Log::error("Failed to login user for url: {$this->getUri()}", [
+                    'message' => $e->getMessage(),
+                    'url' => $this->getUri(),
+                ]);
+            }
             return null;
         }
 
@@ -258,11 +264,12 @@ class PxAdminClient extends PxClient
         try {
             $response = $this->request()->get("validate-token/$token")->throw();
         } catch (Throwable $e) {
-            Log::error("Failed to login user for url: {$this->getUri()}", [
-                'message' => $e->getMessage(),
-                'url' => $this->getUri(),
-            ]);
-
+            if (config('px-user.debug')) {
+                Log::error("Failed to login user for url: {$this->getUri()}", [
+                    'message' => $e->getMessage(),
+                    'url' => $this->getUri(),
+                ]);
+            }
             return null;
         }
 

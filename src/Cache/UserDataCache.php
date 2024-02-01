@@ -63,12 +63,21 @@ class UserDataCache extends DataCache
             return [];
         }
 
-        $userData = App::make(PxUserClient::class)->getUserData($token);
+        try {
+            $userData = App::make(PxUserClient::class)->getUserData($token);
+        } catch (\Throwable $th) {
+            $userData = [];
+        }
         if (empty($userData)) {
             return [];
         }
 
         return array_intersect_key($userData, array_flip($this->usedKeys));
+    }
+
+    protected function canLoad(): bool
+    {
+        return isset($this->model->{config('px-user.px_user_id')});
     }
 
     /**
