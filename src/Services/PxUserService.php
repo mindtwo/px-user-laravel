@@ -48,6 +48,10 @@ class PxUserService
      */
     public function getRecommendedCacheClass(): string
     {
+        if ($this->fakes || app()->runningUnitTests()) {
+            return UserDataCache::class;
+        }
+
         return app()->runningInConsole() ? AdminUserDataCache::class : UserDataCache::class;
     }
 

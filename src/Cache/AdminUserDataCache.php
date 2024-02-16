@@ -46,7 +46,7 @@ class AdminUserDataCache extends DataCache
      */
     public function cacheData(): array
     {
-        if (! App::runningInConsole()) {
+        if (! App::runningInConsole() || App::runningUnitTests()) {
             return [];
         }
 
