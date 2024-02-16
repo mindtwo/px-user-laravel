@@ -3,6 +3,7 @@
 namespace mindtwo\PxUserLaravel\Services;
 
 use Illuminate\Support\Facades\Http;
+use mindtwo\PxUserLaravel\Cache\AdminUserDataCache;
 use mindtwo\PxUserLaravel\Cache\UserDataCache;
 
 class PxUserService
@@ -40,6 +41,21 @@ class PxUserService
         return $this->fakes;
     }
 
+    /**
+     * Get recommended cache class. If running in console, use AdminUserDataCache, otherwise UserDataCache.
+     *
+     * @return class-string<DataCache>
+     */
+    public function getRecommendedCacheClass(): string
+    {
+        return app()->runningInConsole() ? AdminUserDataCache::class : UserDataCache::class;
+    }
+
+    public function getRecommendedCacheClassInstance($user): AdminUserDataCache|UserDataCache
+    {
+        return (new ($this->getRecommendedCacheClass()))($user);
+    }
+
     public function get(string $pxUserId): array
     {
         if ($this->fakes) {
@@ -47,8 +63,11 @@ class PxUserService
         }
 
         $user = config('px-user.px_user_model')::where(config('px-user.px_user_id'), $pxUserId)->first();
+        if ($user === null) {
+            return [];
+        }
 
-        return (new UserDataCache($user))->toArray();
+        return $this->getRecommendedCacheClassInstance($user)->toArray();
     }
 
     public function fakeUserData(?string $pxUserId, bool $withPermissions = false, array $overwrite = []): array

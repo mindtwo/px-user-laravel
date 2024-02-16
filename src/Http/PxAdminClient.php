@@ -3,7 +3,6 @@
 namespace mindtwo\PxUserLaravel\Http;
 
 use Illuminate\Support\Facades\Log;
-use mindtwo\PxUserLaravel\Facades\AccessTokenHelper;
 use Throwable;
 
 class PxAdminClient extends PxClient
@@ -52,47 +51,6 @@ class PxAdminClient extends PxClient
         $this->domain = $defaultDomain;
 
         return $this;
-    }
-
-    /**
-     * Login user using username and password.
-     *
-     * @return array|null
-     */
-    public function login($username, $password)
-    {
-        try {
-            $response = $this->request()->post('login', [
-                'username' => $username,
-                'password' => $password,
-                'tenant_code' => $this->tenant,
-                'domain_code' => $this->domain,
-            ])->throw();
-        } catch (Throwable $e) {
-            if (config('px-user.debug')) {
-                Log::error("Failed to login user for url: {$this->getUri()}", [
-                    'message' => $e->getMessage(),
-                    'url' => $this->getUri(),
-                ]);
-            }
-
-            return null;
-        }
-
-        // Check if status is 200
-        if ($response->getStatusCode() === 200) {
-            $body = $response->getBody();
-            $responseData = optional(json_decode((string) $body))->response;
-
-            return [
-                'access_token' => $responseData->access_token,
-                'access_token_expiration_utc' => $responseData->access_token_expiration_utc,
-                'refresh_token' => $responseData->refresh_token,
-                'refresh_token_expiration_utc' => $responseData->refresh_token_expiration_utc,
-            ];
-        }
-
-        return null;
     }
 
     /**
@@ -156,99 +114,6 @@ class PxAdminClient extends PxClient
                 'access_token_expiration_utc' => $responseData->access_token_expiration_utc,
                 'refresh_token' => $responseData->refresh_token,
                 'refresh_token_expiration_utc' => $responseData->refresh_token_expiration_utc,
-            ];
-        }
-
-        return null;
-    }
-
-    /**
-     * Initiate forgot password process.
-     *
-     * @return array|null
-     */
-    public function forgotPassword(string $username, string $productCode)
-    {
-        try {
-            $accessToken = AccessTokenHelper::get('access_token');
-
-            $response = $this->request([
-                'Authorization' => "Bearer {$accessToken}",
-                'X-Context-Tenant-Code' => $this->tenant,
-                'X-Context-Domain-Code' => $this->domain,
-                'X-Context-Product-Code' => $productCode,
-            ])->post('forgot-password-code', [
-                'username' => $username,
-                'tenant_code' => $this->tenant,
-                'domain_code' => $this->domain,
-                'product_code' => $productCode,
-            ])->throw();
-        } catch (Throwable $e) {
-            if (config('px-user.debug')) {
-                Log::error("Failed to initiate forget password via {$this->getUri()}", [
-                    'message' => $e->getMessage(),
-                    'url' => $this->getUri(),
-                    'tenant' => $this->tenant,
-                    'domain' => $this->domain,
-                    'context' => $this->getContext(),
-                    'username' => $username,
-                    'product' => $productCode,
-                ]);
-            }
-            return null;
-        }
-
-        // Check if status is 200
-        if ($response->getStatusCode() === 200) {
-            $body = $response->getBody();
-            $responseData = optional(json_decode((string) $body))->response;
-
-            return [
-                'forgot_password_code' => $responseData->forgot_password_code,
-                'forgot_password_code_valid_until' => $responseData->forgot_password_code_valid_until,
-            ];
-        }
-
-        return null;
-    }
-
-    /**
-     * Initiate forgot password process.
-     *
-     * @return array|null
-     */
-    public function forgotPasswordById(string $userId)
-    {
-        try {
-            $user = $this->user($userId);
-
-            $accessToken = AccessTokenHelper::get('access_token');
-
-            $response = $this->request([
-                'Authorization' => "Bearer {$accessToken}",
-            ])->post('forgot-password-code', [
-                'username' => $user['preferred_username'],
-                'tenant_code' => $this->tenant,
-                'domain_code' => $this->domain,
-            ])->throw();
-        } catch (Throwable $e) {
-            if (config('px-user.debug')) {
-                Log::error("Failed to login user for url: {$this->getUri()}", [
-                    'message' => $e->getMessage(),
-                    'url' => $this->getUri(),
-                ]);
-            }
-            return null;
-        }
-
-        // Check if status is 200
-        if ($response->getStatusCode() === 200) {
-            $body = $response->getBody();
-            $responseData = optional(json_decode((string) $body))->response;
-
-            return [
-                'forgot_password_code' => $responseData->forgot_password_code,
-                'forgot_password_code_valid_until' => $responseData->forgot_password_code_valid_until,
             ];
         }
 
