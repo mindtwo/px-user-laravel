@@ -16,6 +16,6 @@ class PersonalAccessToken extends SanctumPersonalAccessToken
         'token',
         'abilities',
         'expires_at',
-        'linked_px_user_token',
+        'refresh_token',
     ];
 }

@@ -50,44 +50,45 @@ class PxUserProvider extends ServiceProvider
         if ($this->sanctumIntegration) {
             \Laravel\Sanctum\Sanctum::usePersonalAccessTokenModel(config('px-user.sanctum.access_token_model'));
 
-            \Laravel\Sanctum\Sanctum::authenticateAccessTokensUsing(function ($accessToken, bool $isValid) {
-                $this->debug('Sanctum::authenticateAccessTokensUsing@1', [
-                    'accessToken' => $accessToken,
-                    'isValid' => $isValid,
-                    'tokenable' => $accessToken->tokenable,
-                    'abort' => ! $isValid || $accessToken->tokenable === null,
-                ]);
+            // TODO
+            // \Laravel\Sanctum\Sanctum::authenticateAccessTokensUsing(function ($accessToken, bool $isValid) {
+            //     $this->debug('Sanctum::authenticateAccessTokensUsing@1', [
+            //         'accessToken' => $accessToken,
+            //         'isValid' => $isValid,
+            //         'tokenable' => $accessToken->tokenable,
+            //         'abort' => ! $isValid || $accessToken->tokenable === null,
+            //     ]);
 
-                if (! $isValid || $accessToken->tokenable === null) {
-                    return false;
-                }
+            //     if (! $isValid || $accessToken->tokenable === null) {
+            //         return false;
+            //     }
 
-                $this->debug('Sanctum::authenticateAccessTokensUsing@accessTokenHelperInit', [
-                    'tokenable' => $accessToken->tokenable,
-                ]);
+            //     $this->debug('Sanctum::authenticateAccessTokensUsing@accessTokenHelperInit', [
+            //         'tokenable' => $accessToken->tokenable,
+            //     ]);
 
-                $accessTokenHelper = new AccessTokenHelper($accessToken->tokenable);
+            //     $accessTokenHelper = new AccessTokenHelper($accessToken->tokenable);
 
-                $this->debug('Sanctum::authenticateAccessTokensUsing@accessTokenHelperInitialized', [
-                    'user' => $accessTokenHelper->user,
-                    'accessTokenExpired' => $accessTokenHelper->accessTokenExpired(),
-                    'canRefresh' => $accessTokenHelper->canRefresh(),
-                    'abort' => $accessTokenHelper->accessTokenExpired() && ! $accessTokenHelper->canRefresh(),
-                ]);
+            //     $this->debug('Sanctum::authenticateAccessTokensUsing@accessTokenHelperInitialized', [
+            //         'user' => $accessTokenHelper->user,
+            //         'accessTokenExpired' => $accessTokenHelper->accessTokenExpired(),
+            //         'canRefresh' => $accessTokenHelper->canRefresh(),
+            //         'abort' => $accessTokenHelper->accessTokenExpired() && ! $accessTokenHelper->canRefresh(),
+            //     ]);
 
-                // invalidate personal access token from sanctum if user token is expired
-                if ($accessTokenHelper->accessTokenExpired() && ! $accessTokenHelper->canRefresh()) {
-                    $this->debug('Sanctum::authenticateAccessTokensUsing@expireToken');
+            //     // invalidate personal access token from sanctum if user token is expired
+            //     if ($accessTokenHelper->accessTokenExpired() && ! $accessTokenHelper->canRefresh()) {
+            //         $this->debug('Sanctum::authenticateAccessTokensUsing@expireToken');
 
-                    $accessToken->update([
-                        'expires_at' => Carbon::now(),
-                    ]);
+            //         $accessToken->update([
+            //             'expires_at' => Carbon::now(),
+            //         ]);
 
-                    return false;
-                }
+            //         return false;
+            //     }
 
-                return true;
-            });
+            //     return true;
+            // });
         }
     }
 
