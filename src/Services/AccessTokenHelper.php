@@ -26,7 +26,7 @@ class AccessTokenHelper
         }
 
         if (null === ($time = $this->get('access_token_expiration_utc'))) {
-            return false;
+            return true;
         }
 
         return Carbon::now()->gt($time);
