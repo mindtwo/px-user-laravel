@@ -9,6 +9,8 @@ return [
 
     'debug' => env('PX_USER_DEBUG', false),
 
+    'base_url' => env('PX_USER_BASE_URL', 'https://user.api.preprod.pl-x.cloud'),
+
     /**
      * The stage the app runs in
      *

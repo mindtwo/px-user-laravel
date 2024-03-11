@@ -10,13 +10,16 @@ use Throwable;
 class PxUserClient extends PxClient
 {
     public function __construct(
-        private array $config = [],
+        ?string $tenantCode = null,
+        ?string $domainCode = null,
+        ?string $baseUrl = null,
+        string $version = 'v1',
     ) {
-        $this->stage = $config['stage'] ?? 'prod';
-
-        $this->setCredentials(
-            ($config['tenant'] ?? null),
-            ($config['domain'] ?? null),
+        parent::__construct(
+            tenantCode: $tenantCode,
+            domainCode: $domainCode,
+            baseUrl: $baseUrl,
+            version: $version,
         );
     }
 
@@ -116,3 +119,41 @@ class PxUserClient extends PxClient
         return null;
     }
 }
+
+
+/*
+<?php
+
+namespace mindtwo\PxEmployeeManagement\Services;
+
+use Domain\User\Models\User;
+use mindtwo\LaravelDecorator\Interfaces\Decoratable;
+use mindtwo\LaravelDecorator\Traits\HasDecorator;
+use mindtwo\PxEmployeeManagement\Decorator\PlatformDecorator;
+
+class PxEmployeeManagementClient extends PxClient implements Decoratable
+{
+    use HasDecorator;
+
+    public $default_decorator = PlatformDecorator::class;
+
+    public function __construct(
+        ?string $tenantCode = null,
+        ?string $domainCode = null,
+        ?string $productCode = null,
+        ?string $baseUrl = null,
+        string $version = 'v1',
+        ?User $userScope = null,
+    ) {
+        parent::__construct(
+            tenantCode: $tenantCode,
+            domainCode: $domainCode,
+            productCode: $productCode,
+            baseUrl: $baseUrl,
+            version: $version,
+            userScope: $userScope,
+        );
+    }
+}
+
+*/

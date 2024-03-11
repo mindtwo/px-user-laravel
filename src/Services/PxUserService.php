@@ -2,6 +2,7 @@
 
 namespace mindtwo\PxUserLaravel\Services;
 
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Http;
 use mindtwo\PxUserLaravel\Cache\AdminUserDataCache;
 use mindtwo\PxUserLaravel\Cache\UserDataCache;
@@ -55,6 +56,11 @@ class PxUserService
         return app()->runningInConsole() ? AdminUserDataCache::class : UserDataCache::class;
     }
 
+    /**
+     * Get recommended cache class instance.
+     *
+     * @param  Model  $user
+     */
     public function getRecommendedCacheClassInstance($user): AdminUserDataCache|UserDataCache
     {
         return (new ($this->getRecommendedCacheClass()))($user);
