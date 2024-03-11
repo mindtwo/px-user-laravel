@@ -115,12 +115,12 @@ class PxUserProvider extends ServiceProvider
 
         // TODO remove from here
         $this->app->singleton(PxAdminClient::class, function (Application $app) {
-            return new PxAdminClient(config('px-user'));
+            return new PxAdminClient(...config('px-user'));
         });
 
         // TODO remove from here
         $this->app->singleton(PxUserClient::class, function (Application $app) {
-            return new PxUserClient(config('px-user'));
+            return new PxUserClient(...config('px-user'));
         });
 
         $this->app->singleton(CheckUserTokenService::class, function (Application $app) {

@@ -16,16 +16,14 @@ class PxAdminClient extends PxClient
     protected $m2mCredentials = null;
 
     public function __construct(
-        private array $config = [],
+        ?string $tenantCode = null,
+        ?string $domainCode = null,
+        ?string $baseUrl = null,
+        string $version = 'v1'
     ) {
-        $this->stage = $config['stage'] ?? 'prod';
+        parent::__construct($tenantCode, $domainCode, $baseUrl, $version);
 
-        $this->setCredentials(
-            ($config['tenant'] ?? null),
-            ($config['domain'] ?? null),
-        );
-
-        $this->setM2M(($config['m2m_credentials'] ?? null));
+        $this->m2mCredentials = config('px-user.m2m_credentials');
     }
 
     /**
@@ -38,32 +36,12 @@ class PxAdminClient extends PxClient
         return $this;
     }
 
-    public function scope($tenant, $domain, callable $callback)
-    {
-        $defaultTenant = $this->tenant;
-        $defaultDomain = $this->domain;
-
-        $this->setCredentials($tenant, $domain);
-
-        $callback($this);
-
-        $this->tenant = $defaultTenant;
-        $this->domain = $defaultDomain;
-
-        return $this;
-    }
-
     /**
      * Get user data by id.
      */
     public function user(string $userId): ?array
     {
-
-        $response = $this->request([
-            'X-Context-Tenant-Code' => $this->tenant,
-            'X-Context-Domain-Code' => $this->domain,
-        ])
-            ->get("user/$userId");
+        $response = $this->get("user/$userId");
 
         if (! $response->clientError() && $response->status() === 200) {
             $responseData = $response->json();
@@ -90,15 +68,15 @@ class PxAdminClient extends PxClient
     public function refreshToken($refresh_token)
     {
         try {
-            $response = $this->request([
+            $response = $this->client([
                 'Authorization' => "Bearer {$refresh_token}",
             ])->get('refresh-tokens')->throw();
         } catch (Throwable $e) {
             if (config('px-user.debug')) {
-                Log::error("Failed to login user for url: {$this->getUri()}", [
-                    'message' => $e->getMessage(),
-                    'url' => $this->getUri(),
-                ]);
+                // Log::error("Failed to login user for url: {$this->getUri()}", [
+                //     'message' => $e->getMessage(),
+                //     'url' => $this->getUri(),
+                // ]);
             }
 
             return null;
@@ -127,13 +105,13 @@ class PxAdminClient extends PxClient
         }
 
         try {
-            $response = $this->request()->get("validate-token/$token")->throw();
+            $response = $this->get("validate-token/$token")->throw();
         } catch (Throwable $e) {
             if (config('px-user.debug')) {
-                Log::error("Failed to login user for url: {$this->getUri()}", [
-                    'message' => $e->getMessage(),
-                    'url' => $this->getUri(),
-                ]);
+                // Log::error("Failed to login user for url: {$this->getUri()}", [
+                //     'message' => $e->getMessage(),
+                //     'url' => $this->baseUrl,
+                // ]);
             }
             return null;
         }
