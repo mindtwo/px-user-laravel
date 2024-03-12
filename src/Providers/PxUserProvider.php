@@ -72,18 +72,18 @@ class PxUserProvider extends ServiceProvider
             );
         });
 
-        // $this->app->bind(SessionDriver::class, function () {
-        //     $guardName = $this->getGuardName();
+        $this->app->bind(SessionDriver::class, function () {
+            $guardName = $this->getGuardName();
 
-        //     Log::debug($guardName);
+            Log::debug($guardName);
 
-        //     if ($this->sanctumIntegration) {
-        //         return new \mindtwo\PxUserLaravel\Driver\Sanctum\SanctumSessionDriver();
-        //     }
+            if ($this->sanctumIntegration) {
+                return new \mindtwo\PxUserLaravel\Driver\Sanctum\SanctumSessionDriver();
+            }
 
-        //     return new WebSessionDriver();
+            return new WebSessionDriver();
 
-        // });
+        });
     }
 
     protected function getGuardName(): ?string
