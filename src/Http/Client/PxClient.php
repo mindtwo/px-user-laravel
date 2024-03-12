@@ -1,6 +1,6 @@
 <?php
 
-namespace mindtwo\PxUserLaravel\Http;
+namespace mindtwo\PxUserLaravel\Http\Client;
 
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\PendingRequest;
@@ -94,17 +94,20 @@ class PxClient
     /**
      * @throws Exception
      */
-    public function send(string $method, string $url, array $options = []): Response
+    protected function send(string $method, string $url, array $options = []): Response
     {
+        $headers = $options['headers'] ?? [];
+
         try {
-            return $this->client()->send($method, $url, $options);
+            return $this->client($headers)->send($method, $url, $options);
         } catch (\Throwable $th) {
             Log::error(sprintf('An error occured while requesting external data. (Code: %s, message: %s)', $th->getCode(), $th->getMessage()), [
                 'version' => $this->version,
                 'baseUrl' => $this->baseUrl,
+                'path' => $url,
                 'tenantCode' => $this->tenantCode,
                 'domainCode' => $this->domainCode,
-                'user' => auth()->user(),
+                'headers' => $headers,
             ]);
 
             if (! $th instanceof RequestException || $th->response->status() >= 500) {
@@ -116,41 +119,46 @@ class PxClient
 
     }
 
-    public function get(string $path): Response
+    public function get(string $path, array $options = []): Response
     {
-        return $this->send('GET', $path);
+        return $this->send('GET', $path, $options);
     }
 
-    public function post(string $path, array $data = []): Response
+    public function post(string $path, array $data = [], array $options = []): Response
     {
-        return $this->send('POST', $path, ['json' => $data]);
+        return $this->send('POST', $path, [
+            'json' => $data,
+            ...$options,
+        ]);
     }
 
-    public function put(string $path, array $data = []): Response
+    public function put(string $path, array $data = [], array $options = []): Response
     {
-        return $this->send('PUT', $path, ['json' => $data]);
+        return $this->send('PUT', $path, ['json' => $data, ...$options]);
     }
 
-    public function patch(string $path, array $data = []): Response
+    public function patch(string $path, array $data = [], array $options = []): Response
     {
-        return $this->send('PATCH', $path, ['json' => $data]);
+        return $this->send('PATCH', $path, ['json' => $data, ...$options]);
     }
 
-    public function delete(string $path, array $data = []): Response
+    public function delete(string $path, array $data = [], array $options = []): Response
     {
-        return $this->send('DELETE', $path, ['json' => $data]);
+        return $this->send('DELETE', $path, ['json' => $data, ...$options]);
     }
 
     /**
      * Get request headers.
      */
-    public function headers(array $headers = []): array
+    protected function headers(array $headers = []): array
     {
         $context = "{$this->tenantCode}:{$this->domainCode}";
 
         return array_merge([
             'Content-Type' => 'application/json',
             'Accept' => 'application/json',
+            'X-Context-Tenant-Code' => $this->tenantCode,
+            'X-Context-Domain-Code' => $this->domainCode,
             'X-M2M-User-Context' => $context,
         ], $headers);
     }

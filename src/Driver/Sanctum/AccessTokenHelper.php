@@ -1,63 +1,18 @@
 <?php
 
-namespace mindtwo\PxUserLaravel\Services;
+namespace mindtwo\PxUserLaravel\Driver\Sanctum;
 
-use Carbon\Carbon;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Support\Facades\Cache;
+use mindtwo\PxUserLaravel\Driver\Contracts\AccessTokenHelper as ContractsAccessTokenHelper;
 use mindtwo\PxUserLaravel\Facades\PxUser;
 
-class AccessTokenHelper
+class AccessTokenHelper implements ContractsAccessTokenHelper
 {
     public function __construct(
-        public Authenticatable $user,
+        private ?Authenticatable $user = null,
     ) {
-    }
 
-    private array $accessTokenKeys = ['access_token', 'access_token_expiration_utc', 'refresh_token', 'refresh_token_expiration_utc'];
-
-    /**
-     * Check if access token is expired.
-     */
-    public function accessTokenExpired(): bool
-    {
-        if (PxUser::isFaking()) {
-            return false;
-        }
-
-        if (null === ($time = $this->get('access_token_expiration_utc'))) {
-            return true;
-        }
-
-        return Carbon::now()->gt($time);
-    }
-
-    /**
-     * Check if access token is expiring soon.
-     */
-    public function accessTokenExpiringSoon(): bool
-    {
-        if (PxUser::isFaking()) {
-            return false;
-        }
-
-        if (null === ($time = $this->get('access_token_expiration_utc'))) {
-            return false;
-        }
-
-        return Carbon::now()->addMinutes(15)->gte($time);
-    }
-
-    /**
-     * Check if tokens can be refreshed.
-     */
-    public function canRefresh(): bool
-    {
-        if ($this->get('refresh_token') === null || ($time = $this->get('refresh_token_expiration_utc')) === null) {
-            return false;
-        }
-
-        return Carbon::now()->lt($time);
     }
 
     /**
@@ -65,7 +20,7 @@ class AccessTokenHelper
      */
     public function saveTokenData(array $tokenData): void
     {
-        foreach ($this->accessTokenKeys as $key) {
+        foreach ($this->allowedKeys() as $key) {
             if (isset($tokenData[$key])) {
                 $this->put($key, $tokenData[$key]);
             }
@@ -74,22 +29,18 @@ class AccessTokenHelper
 
     /**
      * Get px user token data for current user
-     *
-     * @return array
      */
-    public function values()
+    public function values(): array
     {
-        return collect($this->accessTokenKeys)
+        return collect($this->allowedKeys())
             ->mapWithKeys(fn ($key) => [$key => $this->get($key)])
             ->toArray();
     }
 
     /**
      * Remove session data for request
-     *
-     * @return void
      */
-    public function flush()
+    public function flush(): void
     {
         foreach ($this->allowedKeys() as $key) {
             Cache::forget($this->getCacheKey($key));
@@ -98,10 +49,8 @@ class AccessTokenHelper
 
     /**
      * Put value for passed key
-     *
-     * @return void
      */
-    public function put(string $key, string $value)
+    public function put(string $key, mixed $value): void
     {
         if (! $this->allowed($key)) {
             throw new \Exception('Error Processing Request', 1);
@@ -133,7 +82,7 @@ class AccessTokenHelper
      */
     public function allowed(string $key): bool
     {
-        return in_array($key, $this->accessTokenKeys);
+        return in_array($key, $this->allowedKeys());
     }
 
     /**
@@ -141,7 +90,7 @@ class AccessTokenHelper
      */
     public function allowedKeys(): array
     {
-        return $this->accessTokenKeys;
+        return ['access_token', 'access_token_expiration_utc', 'refresh_token', 'refresh_token_expiration_utc'];
     }
 
     private function getCacheKey(string $key): string

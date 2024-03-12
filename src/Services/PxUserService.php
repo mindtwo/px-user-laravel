@@ -66,20 +66,6 @@ class PxUserService
         return (new ($this->getRecommendedCacheClass()))($user);
     }
 
-    public function get(string $pxUserId): array
-    {
-        if ($this->fakes) {
-            return $this->fakeUserData($pxUserId);
-        }
-
-        $user = config('px-user.px_user_model')::where(config('px-user.px_user_id'), $pxUserId)->first();
-        if ($user === null) {
-            return [];
-        }
-
-        return $this->getRecommendedCacheClassInstance($user)->toArray();
-    }
-
     public function fakeUserData(?string $pxUserId, bool $withPermissions = false, array $overwrite = []): array
     {
         $rolesKey = $withPermissions ? 'capabilities' : 'roles';

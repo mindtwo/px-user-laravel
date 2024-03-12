@@ -70,36 +70,36 @@ return [
     'http_request_retry_delay' => 300,
 
     /**
-     * Configuration regarding the sanctum integration.
+     * The drivers used to authenticate the user.
      */
-    'sanctum' => [
+    'driver' => [
+
+        'default' => 'sanctum',
 
         /**
-         * Enable or disable integration for laravel sanctum.
-         * If the integration is enabled you should set
-         * config('sanctum.expiration') to 'null'.
+         * Configuration regarding the sanctum session driver.
          */
-        'enabled' => false,
+        'sanctum' => [
+            /**
+             * The guard used to authenticate the user we check these to the session driver.
+             */
+            'guard' => 'sanctum',
 
-        /**
-         * The custom access token model.
-         */
-        'access_token_model' => \mindtwo\PxUserLaravel\Sanctum\PersonalAccessToken::class,
+            /**
+             * The custom access token model.
+             */
+            'access_token_model' => \mindtwo\PxUserLaravel\Driver\Sanctum\Models\PersonalAccessToken::class,
 
+            'driver' => \mindtwo\PxUserLaravel\Driver\Sanctum\SanctumSessionDriver::class,
+        ],
+
+        'session' => [
+            /**
+             * The guard used to authenticate the user we check these to the session driver.
+             */
+            'guard' => 'web',
+
+            'driver' => \mindtwo\PxUserLaravel\Driver\Session\WebSessionDriver::class,
+        ],
     ],
-
-    /**
-     * Permissions
-     *
-     * TODO: clean up later
-     */
-    'admin_emails' => [
-    ],
-
-    /**
-     * Admin role value
-     *
-     * TODO: clean up later
-     */
-    'admin_role_value' => 0,
 ];
