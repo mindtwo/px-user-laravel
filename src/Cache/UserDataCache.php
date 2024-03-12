@@ -4,10 +4,11 @@ namespace mindtwo\PxUserLaravel\Cache;
 
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Cache;
-use mindtwo\PxUserLaravel\Http\PxUserClient;
-use mindtwo\PxUserLaravel\Services\AccessTokenHelper;
+use Illuminate\Support\Facades\Log;
+use mindtwo\PxUserLaravel\Facades\PxUserSession;
+use mindtwo\PxUserLaravel\Http\Client\PxClient;
+use mindtwo\PxUserLaravel\Http\Client\PxUserClient;
 use mindtwo\TwoTility\Cache\Data\DataCache;
 
 /**
@@ -58,16 +59,34 @@ class UserDataCache extends DataCache
         }
 
         // TODO: Use user details?
+        $client = app()->make(PxClient::class, [
+            'tenantCode' => $this->model->tenant_code,
+            'domainCode' => $this->model->domain_code,
+        ]);
 
-        if ((! $this->model instanceof Authenticatable) || ! $token = (new AccessTokenHelper($this->model))->get('access_token')) {
+        if ((! $this->model instanceof Authenticatable)) {
+            return [];
+        }
+
+        $accessTokenHelper = PxUserSession::newAccessTokenHelper($this->model);
+        if (! $accessTokenHelper->get('access_token') ) {
             return [];
         }
 
         try {
-            $userData = App::make(PxUserClient::class)->getUserData($token);
+            $userData = $client->get(PxUserClient::USER, [
+                'headers' => [
+                    'Authorization' => 'Bearer ' . $accessTokenHelper->get('access_token'),
+                ]
+            ])
+                ->json('response');
         } catch (\Throwable $th) {
+            Log::error('UserdataCache: ' . $th->getMessage());
             $userData = [];
         }
+
+        $userData = $userData['user'] ?? null;
+
         if (empty($userData)) {
             return [];
         }

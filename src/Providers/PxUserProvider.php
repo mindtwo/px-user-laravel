@@ -3,24 +3,14 @@
 namespace mindtwo\PxUserLaravel\Providers;
 
 use Illuminate\Foundation\Application;
-use Illuminate\Support\Carbon;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
-use mindtwo\PxUserLaravel\Actions\PxUserDataRefreshAction;
-use mindtwo\PxUserLaravel\Actions\PxUserGetDetailsAction;
-// use mindtwo\PxUserLaravel\Contracts\AccessTokenHelper as ContractsAccessTokenHelper;
-use mindtwo\PxUserLaravel\Events\PxUserLoginEvent;
-use mindtwo\PxUserLaravel\Events\PxUserTokenRefreshEvent;
-use mindtwo\PxUserLaravel\Http\PxAdminClient;
-use mindtwo\PxUserLaravel\Http\PxUserClient;
-use mindtwo\PxUserLaravel\Listeners\UserLoginListener;
-use mindtwo\PxUserLaravel\Listeners\UserTokenRefreshListener;
-use mindtwo\PxUserLaravel\Services\AccessTokenHelper;
-use mindtwo\PxUserLaravel\Services\CheckUserTokenService;
+use mindtwo\PxUserLaravel\Driver\Contracts\SessionDriver;
+use mindtwo\PxUserLaravel\Http\Client\PxAdminClient;
+use mindtwo\PxUserLaravel\Http\Client\PxClient;
+use mindtwo\PxUserLaravel\Http\Client\PxUserClient;
 use mindtwo\PxUserLaravel\Services\PxUserService;
-use mindtwo\PxUserLaravel\Services\UserDataService;
 
 class PxUserProvider extends ServiceProvider
 {
@@ -36,59 +26,10 @@ class PxUserProvider extends ServiceProvider
         $this->publishConfig();
         $this->publishMigrations();
 
-        Event::listen(
-            PxUserLoginEvent::class,
-            UserLoginListener::class,
-        );
+        $this->sanctumIntegration = /* config('px-user.sanctum.enabled') === true && */ class_exists(\Laravel\Sanctum\Sanctum::class);
 
-        Event::listen(
-            PxUserTokenRefreshEvent::class,
-            UserTokenRefreshListener::class,
-        );
-
-        $this->sanctumIntegration = config('px-user.sanctum.enabled') === true && class_exists(\Laravel\Sanctum\Sanctum::class);
         if ($this->sanctumIntegration) {
             \Laravel\Sanctum\Sanctum::usePersonalAccessTokenModel(config('px-user.sanctum.access_token_model'));
-
-            // TODO
-            // \Laravel\Sanctum\Sanctum::authenticateAccessTokensUsing(function ($accessToken, bool $isValid) {
-            //     $this->debug('Sanctum::authenticateAccessTokensUsing@1', [
-            //         'accessToken' => $accessToken,
-            //         'isValid' => $isValid,
-            //         'tokenable' => $accessToken->tokenable,
-            //         'abort' => ! $isValid || $accessToken->tokenable === null,
-            //     ]);
-
-            //     if (! $isValid || $accessToken->tokenable === null) {
-            //         return false;
-            //     }
-
-            //     $this->debug('Sanctum::authenticateAccessTokensUsing@accessTokenHelperInit', [
-            //         'tokenable' => $accessToken->tokenable,
-            //     ]);
-
-            //     $accessTokenHelper = new AccessTokenHelper($accessToken->tokenable);
-
-            //     $this->debug('Sanctum::authenticateAccessTokensUsing@accessTokenHelperInitialized', [
-            //         'user' => $accessTokenHelper->user,
-            //         'accessTokenExpired' => $accessTokenHelper->accessTokenExpired(),
-            //         'canRefresh' => $accessTokenHelper->canRefresh(),
-            //         'abort' => $accessTokenHelper->accessTokenExpired() && ! $accessTokenHelper->canRefresh(),
-            //     ]);
-
-            //     // invalidate personal access token from sanctum if user token is expired
-            //     if ($accessTokenHelper->accessTokenExpired() && ! $accessTokenHelper->canRefresh()) {
-            //         $this->debug('Sanctum::authenticateAccessTokensUsing@expireToken');
-
-            //         $accessToken->update([
-            //             'expires_at' => Carbon::now(),
-            //         ]);
-
-            //         return false;
-            //     }
-
-            //     return true;
-            // });
         }
     }
 
@@ -110,37 +51,60 @@ class PxUserProvider extends ServiceProvider
     {
         $this->mergeConfigFrom(__DIR__.'/../../config/px-user.php', 'px-user');
 
-        $this->app->singleton('px-user', function (Application $app) {
+        $this->app->scoped('px-user', function (Application $app) {
             return new PxUserService();
         });
 
-        // TODO remove from here
-        $this->app->singleton(PxAdminClient::class, function (Application $app) {
-            return new PxAdminClient(config('px-user'));
-        });
+        $this->app->scoped(PxClient::class, function (Application $app) {
+            if (app()->runningInConsole()) {
+                return new PxAdminClient(
+                    tenantCode: config('px-user.tenant'),
+                    domainCode: config('px-user.domain'),
+                    baseUrl: config('px-user.base_url'),
+                );
+            }
 
-        // TODO remove from here
-        $this->app->singleton(PxUserClient::class, function (Application $app) {
-            return new PxUserClient(config('px-user'));
-        });
-
-        $this->app->singleton(CheckUserTokenService::class, function (Application $app) {
-            return new CheckUserTokenService();
-        });
-
-        $this->app->bind(AccessTokenHelper::class, function (Application $app) {
-            return new AccessTokenHelper(Auth::user());
-        });
-
-        // TODO remove entire class
-        $this->app->singleton(UserDataService::class, function (Application $app) {
-            $pxUserClient = $app->make(PxUserClient::class);
-
-            return new UserDataService(
-                new PxUserDataRefreshAction($pxUserClient),
-                new PxUserGetDetailsAction($pxUserClient),
+            return new PxUserClient(
+                tenantCode: config('px-user.tenant'),
+                domainCode: config('px-user.domain'),
+                baseUrl: config('px-user.base_url'),
             );
         });
+
+        $this->app->bind(SessionDriver::class, function () {
+
+            // TODO do this manually
+            $usedDrivers = config('px-user.driver.used_by');
+
+            $avaiableDrivers = array_keys($usedDrivers);
+            $useableDrivers = array_filter(Route::current()->gatherMiddleware(), function ($driver) use ($avaiableDrivers) {
+                return in_array($driver, $avaiableDrivers);
+            });
+
+            $useDriver = count($useableDrivers) > 0 && isset($usedDrivers[$useableDrivers[0]]) ? $usedDrivers[$useableDrivers[0]] : config('px-user.driver.default');
+            if (! $useDriver) {
+                Log::debug('PxUserLaravel: No driver found');
+                return null;
+            }
+
+            $driverClass = config("px-user.driver.$useDriver.driver");
+
+            return app()->make($driverClass);
+        });
+    }
+
+    protected function getGuardName(): ?string
+    {
+        $request = request();
+
+        if (! $request->user()) {
+            Log::debug('PxUserLaravel: No user found in request');
+            return null;
+        }
+
+        $guard = $request->user()->getAuthIdentifierName();
+
+        return $guard;
     }
 
     /**
@@ -167,5 +131,7 @@ class PxUserProvider extends ServiceProvider
         $this->publishes([
             $configPath => config_path('px-user.php'),
         ], 'px-user');
+
+        $this->mergeConfigFrom($configPath, 'px-user');
     }
 }

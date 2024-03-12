@@ -1,6 +1,6 @@
 <?php
 
-namespace mindtwo\PxUserLaravel\Sanctum;
+namespace mindtwo\PxUserLaravel\Driver\Sanctum\Models;
 
 use Laravel\Sanctum\PersonalAccessToken as SanctumPersonalAccessToken;
 

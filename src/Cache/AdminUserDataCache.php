@@ -4,7 +4,7 @@ namespace mindtwo\PxUserLaravel\Cache;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\App;
-use mindtwo\PxUserLaravel\Http\PxAdminClient;
+use mindtwo\PxUserLaravel\Http\Client\PxAdminClient;
 use mindtwo\TwoTility\Cache\Data\DataCache;
 
 /**
@@ -54,12 +54,22 @@ class AdminUserDataCache extends DataCache
             return [];
         }
 
-        $pxAdmin = App::make(PxAdminClient::class);
+        $pxAdmin = new PxAdminClient(
+            tenantCode: $this->model->tenant_code,
+            domainCode: $this->model->domain_code,
+        );
+
+        $userId = $this->model->{config('px-user.px_user_id')};
+
         try {
-            $userData = $pxAdmin->user($this->model->{config('px-user.px_user_id')});
+            $userData = $pxAdmin->get("user/$userId")
+                ->json('response');
         } catch (\Throwable $th) {
             $userData = [];
         }
+
+        $userData = $userData['user'] ?? null;
+
         if (empty($userData)) {
             return [];
         }

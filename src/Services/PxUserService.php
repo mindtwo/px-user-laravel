@@ -2,6 +2,7 @@
 
 namespace mindtwo\PxUserLaravel\Services;
 
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Http;
 use mindtwo\PxUserLaravel\Cache\AdminUserDataCache;
 use mindtwo\PxUserLaravel\Cache\UserDataCache;
@@ -55,23 +56,14 @@ class PxUserService
         return app()->runningInConsole() ? AdminUserDataCache::class : UserDataCache::class;
     }
 
+    /**
+     * Get recommended cache class instance.
+     *
+     * @param  Model  $user
+     */
     public function getRecommendedCacheClassInstance($user): AdminUserDataCache|UserDataCache
     {
         return (new ($this->getRecommendedCacheClass()))($user);
-    }
-
-    public function get(string $pxUserId): array
-    {
-        if ($this->fakes) {
-            return $this->fakeUserData($pxUserId);
-        }
-
-        $user = config('px-user.px_user_model')::where(config('px-user.px_user_id'), $pxUserId)->first();
-        if ($user === null) {
-            return [];
-        }
-
-        return $this->getRecommendedCacheClassInstance($user)->toArray();
     }
 
     public function fakeUserData(?string $pxUserId, bool $withPermissions = false, array $overwrite = []): array
