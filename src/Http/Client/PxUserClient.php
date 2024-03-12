@@ -2,7 +2,6 @@
 
 namespace mindtwo\PxUserLaravel\Http\Client;
 
-use mindtwo\PxUserLaravel\Facades\PxUserSession;
 use Throwable;
 
 class PxUserClient extends PxClient

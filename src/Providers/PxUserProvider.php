@@ -84,6 +84,7 @@ class PxUserProvider extends ServiceProvider
             $useDriver = count($useableDrivers) > 0 && isset($usedDrivers[$useableDrivers[0]]) ? $usedDrivers[$useableDrivers[0]] : config('px-user.driver.default');
             if (! $useDriver) {
                 Log::debug('PxUserLaravel: No driver found');
+
                 return null;
             }
 
@@ -99,6 +100,7 @@ class PxUserProvider extends ServiceProvider
 
         if (! $request->user()) {
             Log::debug('PxUserLaravel: No user found in request');
+
             return null;
         }
 

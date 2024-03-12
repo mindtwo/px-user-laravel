@@ -3,7 +3,6 @@
 namespace mindtwo\PxUserLaravel\Http\Middleware;
 
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Log;
 use mindtwo\PxUserLaravel\Facades\PxUserSession;
 
 class CheckPxUserSession

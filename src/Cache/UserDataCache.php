@@ -69,19 +69,19 @@ class UserDataCache extends DataCache
         }
 
         $accessTokenHelper = PxUserSession::newAccessTokenHelper($this->model);
-        if (! $accessTokenHelper->get('access_token') ) {
+        if (! $accessTokenHelper->get('access_token')) {
             return [];
         }
 
         try {
             $userData = $client->get(PxUserClient::USER, [
                 'headers' => [
-                    'Authorization' => 'Bearer ' . $accessTokenHelper->get('access_token'),
-                ]
+                    'Authorization' => 'Bearer '.$accessTokenHelper->get('access_token'),
+                ],
             ])
                 ->json('response');
         } catch (\Throwable $th) {
-            Log::error('UserdataCache: ' . $th->getMessage());
+            Log::error('UserdataCache: '.$th->getMessage());
             $userData = [];
         }
 

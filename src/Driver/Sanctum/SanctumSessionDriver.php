@@ -90,6 +90,7 @@ class SanctumSessionDriver implements SessionDriver
                 'currentPlainTextToken' => $currentPlainTextToken,
                 'isAboutToExpire' => $isAboutToExpire,
             ]);
+
             return [
                 'access_token' => $currentPlainTextToken,
                 'expires_at' => $accessTokenHelper->get('access_token_expiration_utc'),
