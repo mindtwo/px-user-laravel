@@ -3,6 +3,7 @@
 namespace mindtwo\PxUserLaravel\Http\Middleware;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use mindtwo\PxUserLaravel\Facades\PxUserSession;
 
 class CheckPxUserSession
@@ -20,7 +21,6 @@ class CheckPxUserSession
             $pxSession = PxUserSession::driver();
 
             $pxSession->setUser($request->user());
-
             if (! $pxSession->valid()) {
                 $pxSession->logout();
                 abort(401);

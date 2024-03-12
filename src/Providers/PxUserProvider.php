@@ -4,9 +4,9 @@ namespace mindtwo\PxUserLaravel\Providers;
 
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
 use mindtwo\PxUserLaravel\Driver\Contracts\SessionDriver;
-use mindtwo\PxUserLaravel\Driver\Session\WebSessionDriver;
 use mindtwo\PxUserLaravel\Http\Client\PxAdminClient;
 use mindtwo\PxUserLaravel\Http\Client\PxClient;
 use mindtwo\PxUserLaravel\Http\Client\PxUserClient;
@@ -26,8 +26,7 @@ class PxUserProvider extends ServiceProvider
         $this->publishConfig();
         $this->publishMigrations();
 
-        // TODO we should use configuration options for different drivers
-        $this->sanctumIntegration = config('px-user.sanctum.enabled') === true && class_exists(\Laravel\Sanctum\Sanctum::class);
+        $this->sanctumIntegration = /* config('px-user.sanctum.enabled') === true && */ class_exists(\Laravel\Sanctum\Sanctum::class);
 
         if ($this->sanctumIntegration) {
             \Laravel\Sanctum\Sanctum::usePersonalAccessTokenModel(config('px-user.sanctum.access_token_model'));
@@ -73,16 +72,24 @@ class PxUserProvider extends ServiceProvider
         });
 
         $this->app->bind(SessionDriver::class, function () {
-            $guardName = $this->getGuardName();
 
-            Log::debug($guardName);
+            // TODO do this manually
+            $usedDrivers = config('px-user.driver.used_by');
 
-            if ($this->sanctumIntegration) {
-                return new \mindtwo\PxUserLaravel\Driver\Sanctum\SanctumSessionDriver();
+            $avaiableDrivers = array_keys($usedDrivers);
+            $useableDrivers = array_filter(Route::current()->gatherMiddleware(), function ($driver) use ($avaiableDrivers) {
+                return in_array($driver, $avaiableDrivers);
+            });
+
+            $useDriver = count($useableDrivers) > 0 && isset($usedDrivers[$useableDrivers[0]]) ? $usedDrivers[$useableDrivers[0]] : config('px-user.driver.default');
+            if (! $useDriver) {
+                Log::debug('PxUserLaravel: No driver found');
+                return null;
             }
 
-            return new WebSessionDriver();
+            $driverClass = config("px-user.driver.$useDriver.driver");
 
+            return app()->make($driverClass);
         });
     }
 

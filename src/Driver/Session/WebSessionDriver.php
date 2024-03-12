@@ -55,7 +55,8 @@ class WebSessionDriver implements SessionDriver
     {
         $expirationHelper = $this->getExpirationHelper();
 
-        return $expirationHelper->accessTokenExpired() && ! $expirationHelper->canRefresh();
+        return true;
+        // return $expirationHelper->accessTokenExpired() && ! $expirationHelper->canRefresh();
     }
 
     /**

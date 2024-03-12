@@ -76,15 +76,16 @@ return [
 
         'default' => 'sanctum',
 
+        'used_by' => [
+            'api' => 'sanctum',
+            'web' => 'session',
+            'nova' => 'session',
+        ],
+
         /**
          * Configuration regarding the sanctum session driver.
          */
         'sanctum' => [
-            /**
-             * The guard used to authenticate the user we check these to the session driver.
-             */
-            'guard' => 'sanctum',
-
             /**
              * The custom access token model.
              */
@@ -94,11 +95,6 @@ return [
         ],
 
         'session' => [
-            /**
-             * The guard used to authenticate the user we check these to the session driver.
-             */
-            'guard' => 'web',
-
             'driver' => \mindtwo\PxUserLaravel\Driver\Session\WebSessionDriver::class,
         ],
     ],
