@@ -76,12 +76,6 @@ return [
 
         'default' => 'sanctum',
 
-        'used_by' => [
-            'api' => 'sanctum',
-            'web' => 'session',
-            'nova' => 'session',
-        ],
-
         /**
          * Configuration regarding the sanctum session driver.
          */
@@ -91,11 +85,11 @@ return [
              */
             'access_token_model' => \mindtwo\PxUserLaravel\Driver\Sanctum\Models\PersonalAccessToken::class,
 
-            'driver' => \mindtwo\PxUserLaravel\Driver\Sanctum\SanctumSessionDriver::class,
+            'session_driver' => \mindtwo\PxUserLaravel\Driver\Sanctum\SanctumSessionDriver::class,
         ],
 
-        'session' => [
-            'driver' => \mindtwo\PxUserLaravel\Driver\Session\WebSessionDriver::class,
+        'web' => [
+            'session_driver' => \mindtwo\PxUserLaravel\Driver\Session\WebSessionDriver::class,
         ],
     ],
 ];

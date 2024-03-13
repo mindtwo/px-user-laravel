@@ -54,25 +54,21 @@ class UserDataCache extends DataCache
             return $this->initialData;
         }
 
-        if (! isset($this->model->{config('px-user.px_user_id')}) || ! $this->model->tenant_code || ! $this->model->domain_code) {
+        if (! $this->checkModel()) {
             return [];
         }
 
-        // TODO: Use user details?
         $client = app()->make(PxClient::class, [
             'tenantCode' => $this->model->tenant_code,
             'domainCode' => $this->model->domain_code,
         ]);
-
-        if ((! $this->model instanceof Authenticatable)) {
-            return [];
-        }
 
         $accessTokenHelper = PxUserSession::newAccessTokenHelper($this->model);
         if (! $accessTokenHelper->get('access_token')) {
             return [];
         }
 
+        // TODO: user details?
         try {
             $userData = $client->get(PxUserClient::USER, [
                 'headers' => [
@@ -84,7 +80,6 @@ class UserDataCache extends DataCache
             Log::error('UserdataCache: '.$th->getMessage());
             $userData = [];
         }
-
         $userData = $userData['user'] ?? null;
 
         if (empty($userData)) {
@@ -92,6 +87,19 @@ class UserDataCache extends DataCache
         }
 
         return array_intersect_key($userData, array_flip($this->usedKeys));
+    }
+
+    protected function checkModel(): bool
+    {
+        if (! $this->model instanceof Authenticatable) {
+            return false;
+        }
+
+        if (! isset($this->model->{config('px-user.px_user_id')}) || ! $this->model->tenant_code || ! $this->model->domain_code) {
+            return false;
+        }
+
+        return true;
     }
 
     protected function canLoad(): bool

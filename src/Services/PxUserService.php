@@ -4,8 +4,10 @@ namespace mindtwo\PxUserLaravel\Services;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use mindtwo\PxUserLaravel\Cache\AdminUserDataCache;
 use mindtwo\PxUserLaravel\Cache\UserDataCache;
+use mindtwo\PxUserLaravel\Driver\Contracts\SessionDriver;
 
 class PxUserService
 {
@@ -16,19 +18,29 @@ class PxUserService
 
     public function fake(): self
     {
-        if (! app()->environment('testing') || ! app()->runningUnitTests()) {
+        if (! app()->runningUnitTests()) {
             throw new \RuntimeException('PxUserService::fake() can only be used in testing environment.');
         }
 
+        $url = sprintf(
+            '%s/%s',
+            rtrim(config('px-user.base_url'), '/'),
+            'v1',
+        );
+
         Http::fake([
-            'user.*.pl-x.cloud/v1/user' => function () {
+            "$url/user" => function () {
                 $user = auth()->user();
 
                 if ($user === null) {
                     return Http::response(['error' => 'Unauthorized'], 401);
                 }
 
-                return Http::response($this->fakeUserData($user->{config('px-user.px_user_id')}), 200);
+                return Http::response([
+                    'response' => [
+                        'user' => $this->fakeUserData($user->{config('px-user.px_user_id')}),
+                    ],
+                ], 200);
             },
         ]);
 
@@ -66,7 +78,32 @@ class PxUserService
         return (new ($this->getRecommendedCacheClass()))($user);
     }
 
-    public function fakeUserData(?string $pxUserId, bool $withPermissions = false, array $overwrite = []): array
+    /**
+     * Get session driver for active auth guard.
+     */
+    public function session(?string $guard = null): ?SessionDriver
+    {
+        // If no guard is given, use the active guard, if that is not available, use the default guard.
+        if ($guard === null) {
+            $guard = active_guard(config('px-user.driver.default'));
+        }
+
+        $driverConfig = config("px-user.driver.$guard");
+        if (! $driverConfig) {
+            Log::error('PxUserLaravel: No driver found');
+
+            return null;
+        }
+
+        $driverClass = $driverConfig['session_driver'];
+
+        return app()->make($driverClass);
+    }
+
+    /**
+     * Fake user data.
+     */
+    public function fakeUserData(?string $pxUserId, bool $withPermissions = false): array
     {
         $rolesKey = $withPermissions ? 'capabilities' : 'roles';
         $rolesValue = $withPermissions ? [

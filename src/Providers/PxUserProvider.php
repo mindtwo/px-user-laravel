@@ -4,7 +4,6 @@ namespace mindtwo\PxUserLaravel\Providers;
 
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
 use mindtwo\PxUserLaravel\Driver\Contracts\SessionDriver;
 use mindtwo\PxUserLaravel\Http\Client\PxAdminClient;
@@ -56,7 +55,7 @@ class PxUserProvider extends ServiceProvider
         });
 
         $this->app->scoped(PxClient::class, function (Application $app) {
-            if (app()->runningInConsole()) {
+            if (app()->runningInConsole() && ! app()->runningUnitTests()) {
                 return new PxAdminClient(
                     tenantCode: config('px-user.tenant'),
                     domainCode: config('px-user.domain'),
@@ -72,43 +71,11 @@ class PxUserProvider extends ServiceProvider
         });
 
         $this->app->bind(SessionDriver::class, function () {
-
-            // TODO do this manually
-            $usedDrivers = config('px-user.driver.used_by');
-
-            $avaiableDrivers = array_keys($usedDrivers);
-            $useableDrivers = array_filter(Route::current()->gatherMiddleware(), function ($driver) use ($avaiableDrivers) {
-                return in_array($driver, $avaiableDrivers);
-            });
-
-            $useDriver = count($useableDrivers) > 0 && isset($usedDrivers[$useableDrivers[0]]) ? $usedDrivers[$useableDrivers[0]] : config('px-user.driver.default');
-            if (! $useDriver) {
-                Log::debug('PxUserLaravel: No driver found');
-
-                return null;
-            }
-
-            $driverClass = config("px-user.driver.$useDriver.driver");
-
-            return app()->make($driverClass);
+            // session method handles the retrieval of the guard
+            return app('px-user')->session();
         });
     }
-
-    protected function getGuardName(): ?string
-    {
-        $request = request();
-
-        if (! $request->user()) {
-            Log::debug('PxUserLaravel: No user found in request');
-
-            return null;
-        }
-
-        $guard = $request->user()->getAuthIdentifierName();
-
-        return $guard;
-    }
-
+  
     /**
      * Publish the config file.
      *
