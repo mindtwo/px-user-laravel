@@ -19,7 +19,7 @@
     ],
     "require": {
         "php": "^8.0|^8.1|^8.2",
-        "laravel/framework": "^9.0|^10.0",
+        "laravel/framework": "^9.0|^10.0|^11.0",
         "mindtwo/two-tility": "^0.1",
         "mindtwo/laravel-decorator": "^3.0"
     },
