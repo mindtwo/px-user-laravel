@@ -6,7 +6,6 @@ use Illuminate\Contracts\Auth\Authenticatable;
 
 interface SessionDriver
 {
-
     public function newAccessTokenHelper(Authenticatable $user): AccessTokenHelper;
 
     public function getAccessTokenHelper(): ?AccessTokenHelper;
@@ -22,8 +21,6 @@ interface SessionDriver
 
     /**
      * Return the domain of the current session.
-     *
-     * @return string
      */
     public function getDomain(): string;
 
@@ -35,9 +32,9 @@ interface SessionDriver
     /**
      * Login a user.
      *
-     * @param array $tokenData The token from px-user to login with.
+     * @param  array  $tokenData  The token from px-user to login with.
      */
-    public function login(array $tokenData): null|self;
+    public function login(array $tokenData): ?self;
 
     /**
      * Refresh the current session.
@@ -51,7 +48,7 @@ interface SessionDriver
 
     public function userId(): null|int|string;
 
-    public function user(): null|Authenticatable;
+    public function user(): ?Authenticatable;
 
     public function setUser(Authenticatable $user): void;
 }

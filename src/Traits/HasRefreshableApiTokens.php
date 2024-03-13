@@ -4,11 +4,11 @@ namespace mindtwo\PxUserLaravel\Traits;
 
 use Illuminate\Support\Carbon;
 
-trait HasRefreshableApiTokens {
-
+trait HasRefreshableApiTokens
+{
     use \Laravel\Sanctum\HasApiTokens;
 
-    public function createAccessToken(string $name, ?Carbon $expiresAt = null, string $refresh_token, array $abilities = ['*']): \Laravel\Sanctum\NewAccessToken
+    public function createAccessToken(string $name, ?Carbon $expiresAt, string $refresh_token, array $abilities = ['*']): \Laravel\Sanctum\NewAccessToken
     {
         $plainTextToken = $this->generateTokenString();
 
@@ -35,7 +35,7 @@ trait HasRefreshableApiTokens {
 
         $token->token = hash('sha256', $plainTextToken);
 
-        if (!is_null($newExpiresAt)) {
+        if (! is_null($newExpiresAt)) {
             $token->expires_at = $newExpiresAt;
         }
 
@@ -44,5 +44,4 @@ trait HasRefreshableApiTokens {
 
         return new \Laravel\Sanctum\NewAccessToken($token, $token->getKey().'|'.$plainTextToken);
     }
-
 }

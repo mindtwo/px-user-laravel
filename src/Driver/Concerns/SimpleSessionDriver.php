@@ -11,8 +11,8 @@ use mindtwo\PxUserLaravel\Events\PxUserLoginEvent;
 use mindtwo\PxUserLaravel\Http\Client\PxClient;
 use mindtwo\PxUserLaravel\Http\Client\PxUserClient;
 
-trait SimpleSessionDriver {
-
+trait SimpleSessionDriver
+{
     protected ?\Illuminate\Contracts\Auth\Authenticatable $user = null;
 
     public function driver(): self
@@ -23,7 +23,7 @@ trait SimpleSessionDriver {
     /**
      * Login a user.
      */
-    public function login(array $tokenData): null|self
+    public function login(array $tokenData): ?self
     {
         if (! $this->validateTokenData($tokenData)) {
             return false;
@@ -33,7 +33,7 @@ trait SimpleSessionDriver {
 
         try {
             $userRequest = $pxClient->get(PxUserClient::USER_WITH_PERMISSIONS, [
-                'headers' => ['Authorization' => 'Bearer ' . $tokenData['access_token'],]
+                'headers' => ['Authorization' => 'Bearer '.$tokenData['access_token']],
             ]);
         } catch (\Throwable $e) {
             throw new \Exception('No user found.', 0, $e);
@@ -87,10 +87,12 @@ trait SimpleSessionDriver {
             }
         } catch (\Throwable $th) {
             Log::error($th);
+
             return false;
         }
 
         $this->user = null;
+
         return true;
     }
 
@@ -99,7 +101,7 @@ trait SimpleSessionDriver {
         return $this->user ? $this->user->{config('px-user.px_user_id')} : null;
     }
 
-    public function user(): null|\Illuminate\Contracts\Auth\Authenticatable
+    public function user(): ?\Illuminate\Contracts\Auth\Authenticatable
     {
         return $this->user;
     }
@@ -124,5 +126,4 @@ trait SimpleSessionDriver {
 
         return ! $validator->fails();
     }
-
 }

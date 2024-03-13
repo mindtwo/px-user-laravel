@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Facade;
 
 /**
  * TODO merge this and PxUserSession Facade
+ *
  * @method static self fake()
  * @method static bool isFaking()
  */

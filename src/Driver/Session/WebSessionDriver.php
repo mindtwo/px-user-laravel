@@ -12,7 +12,6 @@ use mindtwo\PxUserLaravel\Driver\Session\ExpirationHelper as SessionExpirationHe
 
 class WebSessionDriver implements SessionDriver
 {
-
     use SimpleSessionDriver;
 
     public function newAccessTokenHelper(Authenticatable $user): AccessTokenHelper
@@ -40,8 +39,6 @@ class WebSessionDriver implements SessionDriver
 
     /**
      * Return the domain of the current session.
-     *
-     * @return string
      */
     public function getDomain(): string
     {
@@ -66,5 +63,4 @@ class WebSessionDriver implements SessionDriver
     {
         return null;
     }
-
 }

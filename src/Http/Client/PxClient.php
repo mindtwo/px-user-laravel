@@ -11,7 +11,6 @@ use Illuminate\Support\Facades\Log;
 
 class PxClient
 {
-
     protected ?string $tenantCode = null;
 
     protected ?string $domainCode = null;

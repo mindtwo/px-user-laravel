@@ -8,7 +8,6 @@ use mindtwo\PxUserLaravel\Facades\PxUser;
 
 class ExpirationHelper implements ContractsExpirationHelper
 {
-
     public function __construct(
         private ?AccessTokenHelper $accessTokenHelper = null,
     ) {
