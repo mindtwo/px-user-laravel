@@ -78,10 +78,14 @@ class PxUserService
         return (new ($this->getRecommendedCacheClass()))($user);
     }
 
-    public function session(?string $guard = null): SessionDriver
+    /**
+     * Get session driver for active auth guard.
+     */
+    public function session(?string $guard = null): ?SessionDriver
     {
+        // If no guard is given, use the active guard, if that is not available, use the default guard.
         if ($guard === null) {
-            $guard = config('px-user.driver.default');
+            $guard = active_guard(config('px-user.driver.default'));
         }
 
         $driverConfig = config("px-user.driver.$guard");
@@ -94,10 +98,12 @@ class PxUserService
         $driverClass = $driverConfig['session_driver'];
 
         return app()->make($driverClass);
-
     }
 
-    public function fakeUserData(?string $pxUserId, bool $withPermissions = false, array $overwrite = []): array
+    /**
+     * Fake user data.
+     */
+    public function fakeUserData(?string $pxUserId, bool $withPermissions = false): array
     {
         $rolesKey = $withPermissions ? 'capabilities' : 'roles';
         $rolesValue = $withPermissions ? [

@@ -25,14 +25,6 @@ class PxUserProvider extends ServiceProvider
         $this->publishConfig();
         $this->publishMigrations();
 
-        $this->booting(function () {
-            $test = auth()->guard();
-
-            Log::debug('PxUserProvider: booting', [
-                'guard' => $test,
-            ]);
-        });
-
         $this->sanctumIntegration = /* config('px-user.sanctum.enabled') === true && */ class_exists(\Laravel\Sanctum\Sanctum::class);
 
         if ($this->sanctumIntegration) {
@@ -79,6 +71,7 @@ class PxUserProvider extends ServiceProvider
         });
 
         $this->app->bind(SessionDriver::class, function () {
+            // session method handles the retrieval of the guard
             return app('px-user')->session();
         });
     }

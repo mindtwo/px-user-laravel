@@ -13,3 +13,16 @@ if (! function_exists('px_user')) {
         return app('px-user');
     }
 }
+
+if (! function_exists('active_guard')) {
+    function active_guard(?string $default = null): ?string
+    {
+        foreach (array_keys(config('auth.guards')) as $guard) {
+            if (auth()->guard($guard)->check()) {
+                return $guard;
+            }
+        }
+
+        return $default;
+    }
+}

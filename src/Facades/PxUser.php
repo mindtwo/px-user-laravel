@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Facade;
 
 /**
  * TODO merge this and PxUserSession Facade
+ * @method static null|\mindtwo\PxUserLaravel\Driver\Contracts\SessionDriver session(?string $guard = null)
  *
  * @method static self fake()
  * @method static bool isFaking()
