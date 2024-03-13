@@ -75,7 +75,7 @@ class PxUserProvider extends ServiceProvider
             return app('px-user')->session();
         });
     }
-  
+
     /**
      * Publish the config file.
      *
