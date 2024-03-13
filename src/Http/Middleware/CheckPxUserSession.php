@@ -3,7 +3,6 @@
 namespace mindtwo\PxUserLaravel\Http\Middleware;
 
 use Illuminate\Http\Request;
-use mindtwo\PxUserLaravel\Facades\PxUserSession;
 
 class CheckPxUserSession
 {
@@ -13,11 +12,10 @@ class CheckPxUserSession
      * @param  \Closure(\Illuminate\Http\Request): (\Illuminate\Http\Response|\Illuminate\Http\RedirectResponse)  $next
      * @return \Illuminate\Http\Response|\Illuminate\Http\RedirectResponse
      */
-    public function handle(Request $request, \Closure $next)
+    public function handle(Request $request, \Closure $next, ?string $guard = null)
     {
-
         if ($request->user()) {
-            $pxSession = PxUserSession::driver();
+            $pxSession = px_session($guard);
 
             $pxSession->setUser($request->user());
             if (! $pxSession->valid()) {

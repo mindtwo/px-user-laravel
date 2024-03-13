@@ -43,7 +43,7 @@
             "mindtwo\\PxUserLaravel\\Tests\\": "tests"
         },
         "files": [
-            "src/helpers.php"
+            "src/helper.php"
         ]
     },
     "extra": {
