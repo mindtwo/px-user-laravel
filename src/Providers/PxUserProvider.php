@@ -28,7 +28,7 @@ class PxUserProvider extends ServiceProvider
         $this->sanctumIntegration = /* config('px-user.sanctum.enabled') === true && */ class_exists(\Laravel\Sanctum\Sanctum::class);
 
         if ($this->sanctumIntegration) {
-            \Laravel\Sanctum\Sanctum::usePersonalAccessTokenModel(config('px-user.sanctum.access_token_model'));
+            \Laravel\Sanctum\Sanctum::usePersonalAccessTokenModel(config('px-user.driver.sanctum.access_token_model'));
         }
     }
 
