@@ -50,9 +50,10 @@ class PxUserProvider extends ServiceProvider
     {
         $this->mergeConfigFrom(__DIR__.'/../../config/px-user.php', 'px-user');
 
-        $this->app->scoped('px-user', function (Application $app) {
+        $this->app->scoped(PxUserService::class, function (Application $app) {
             return new PxUserService();
         });
+        $this->app->alias(PxUserService::class, 'px-user');
 
         $this->app->scoped(PxClient::class, function (Application $app) {
             if (app()->runningInConsole() && ! app()->runningUnitTests()) {
@@ -70,9 +71,9 @@ class PxUserProvider extends ServiceProvider
             );
         });
 
-        $this->app->bind(SessionDriver::class, function () {
+        $this->app->bind(SessionDriver::class, function (Application $app) {
             // session method handles the retrieval of the guard
-            return app('px-user')->session();
+            return $app->make('px-user')->session();
         });
     }
 
