@@ -52,6 +52,8 @@ class PxAdminClient extends PxClient implements Decoratable
             'Content-Type' => 'application/json',
             'Accept' => 'application/json',
             'X-M2M-User-Context' => $context,
+            'X-Context-Tenant-Code' => $this->tenantCode,
+            'X-Context-Domain-Code' => $this->domainCode,
         ], $headers);
     }
 
