@@ -50,14 +50,11 @@ class AdminUserDataCache extends DataCache
             return [];
         }
 
-        if (! isset($this->model->{config('px-user.px_user_id')}) || ! $this->model->tenant_code || ! $this->model->domain_code) {
+        if (! isset($this->model->{config('px-user.px_user_id')})) {
             return [];
         }
 
-        $pxAdmin = new PxAdminClient(
-            tenantCode: $this->model->tenant_code,
-            domainCode: $this->model->domain_code,
-        );
+        $pxAdmin = $this->getPxAdminClient(new PxAdminClient());
 
         $userId = $this->model->{config('px-user.px_user_id')};
 
@@ -75,6 +72,17 @@ class AdminUserDataCache extends DataCache
         }
 
         return array_intersect_key($userData, array_flip($this->usedKeys));
+    }
+
+    protected function getPxAdminClient(PxAdminClient $pxAdminClient): PxAdminClient
+    {
+        $action = config('px-user.configure_px_admin_client');
+
+        if (! is_callable($action)) {
+            return $pxAdminClient;
+        }
+
+        return $action($pxAdminClient, $this->model);
     }
 
     protected function canLoad(): bool
