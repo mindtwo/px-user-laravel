@@ -76,7 +76,11 @@ class AdminUserDataCache extends DataCache
 
     protected function getPxAdminClient(PxAdminClient $pxAdminClient): PxAdminClient
     {
-        $action = config('px-user.configure_px_admin_client');
+        if (! config('px-user.configure_px_admin_client')) {
+            return $pxAdminClient;
+        }
+
+        $action = app()->make(config('px-user.configure_px_admin_client'));
 
         if (! is_callable($action)) {
             return $pxAdminClient;
