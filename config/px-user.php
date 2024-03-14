@@ -54,7 +54,7 @@ return [
      */
     'px_user_cache_time' => 120,
 
-    'configure_px_admin_client_action' => null,
+    'configure_px_admin_client' => null,
 
     /**
      * Invokeable action class used to retrieve user model.
