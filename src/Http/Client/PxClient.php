@@ -63,10 +63,10 @@ class PxClient
     /**
      * Update credentials.
      */
-    public function setCredentials(string $tenantCode, string $domainCode): self
+    public function setCredentials(?string $tenantCode = null, ?string $domainCode = null): self
     {
-        $this->tenantCode = $tenantCode;
-        $this->domainCode = $domainCode;
+        $this->tenantCode = $tenantCode ?? $this->tenantCode;
+        $this->domainCode = $domainCode ?? $this->domainCode;
 
         return $this;
     }

@@ -2,10 +2,15 @@
 
 namespace mindtwo\PxUserLaravel\Http\Client;
 
+use mindtwo\LaravelDecorator\Interfaces\Decoratable;
+use mindtwo\LaravelDecorator\Traits\HasDecorator;
 use Throwable;
 
-class PxAdminClient extends PxClient
+class PxAdminClient extends PxClient implements Decoratable
 {
+
+    use HasDecorator;
+
     /**
      * Machine-to-machine credentials used for communication between backend
      * and PX User API.
@@ -23,6 +28,13 @@ class PxAdminClient extends PxClient
         parent::__construct($tenantCode, $domainCode, $baseUrl, $version);
 
         $this->m2mCredentials = config('px-user.m2m_credentials');
+    }
+
+    public function setOptions(?string $tenantCode = null, ?string $domainCode = null, ?string $m2mToken = null): self
+    {
+        $this->m2mCredentials = $m2mToken ?? $this->m2mCredentials ?? config('px-user.m2m_credentials');
+
+        return $this->setCredentials($tenantCode, $domainCode);
     }
 
     /**
