@@ -154,14 +154,14 @@ class PxClient
      */
     protected function headers(array $headers = []): array
     {
-        $context = "{$this->tenantCode}:{$this->domainCode}";
+        // $context = "{$this->tenantCode}:{$this->domainCode}";
 
         return array_merge([
             'Content-Type' => 'application/json',
             'Accept' => 'application/json',
             'X-Context-Tenant-Code' => $this->tenantCode,
             'X-Context-Domain-Code' => $this->domainCode,
-            'X-M2M-User-Context' => $context,
+            // 'X-M2M-User-Context' => $context,
         ], $headers);
     }
 }
