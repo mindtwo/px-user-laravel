@@ -78,7 +78,7 @@ trait SimpleSessionDriver
                 'uuid' => $this->userId(),
             ])->toString());
 
-            $this->getAccessTokenHelper()->flush();
+            $this->getAccessTokenHelper()?->flush();
 
             // TODO invalidate personal access token here
 
