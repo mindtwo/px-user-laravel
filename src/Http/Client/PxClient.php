@@ -107,6 +107,9 @@ class PxClient
                 'tenantCode' => $this->tenantCode,
                 'domainCode' => $this->domainCode,
                 'headers' => $headers,
+                'error' => $th->getMessage(),
+                'errorCode' => $th->getCode(),
+                'response' => $th instanceof RequestException ? $th->response->json() : null,
             ]);
 
             if (! $th instanceof RequestException || $th->response->status() >= 500) {
