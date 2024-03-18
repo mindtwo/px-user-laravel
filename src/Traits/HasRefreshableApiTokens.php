@@ -23,11 +23,11 @@ trait HasRefreshableApiTokens
         return new \Laravel\Sanctum\NewAccessToken($token, $token->getKey().'|'.$plainTextToken);
     }
 
-    public function refreshAccessToken(string $refreshToken, ?Carbon $newExpiresAt = null): \Laravel\Sanctum\NewAccessToken
+    public function refreshAccessToken(string $oldRefreshToken, string $newRefreshToken, ?Carbon $newExpiresAt = null): \Laravel\Sanctum\NewAccessToken
     {
         $plainTextToken = $this->generateTokenString();
 
-        $token = $this->tokens()->where('refresh_token', $refreshToken)->first();
+        $token = $this->tokens()->where('refresh_token', $oldRefreshToken)->first();
 
         if (! $token) {
             throw new \RuntimeException('Token not found');
@@ -39,7 +39,7 @@ trait HasRefreshableApiTokens
             $token->expires_at = $newExpiresAt;
         }
 
-        $token->refresh_token = $refreshToken;
+        $token->refresh_token = $newRefreshToken;
         $token->save();
 
         return new \Laravel\Sanctum\NewAccessToken($token, $token->getKey().'|'.$plainTextToken);
