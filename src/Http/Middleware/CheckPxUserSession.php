@@ -18,7 +18,7 @@ class CheckPxUserSession
             $pxSession = px_session($guard);
 
             $pxSession->setUser($request->user());
-            if (! $pxSession->valid()) {
+            if (! $pxSession->validate()) {
                 $pxSession->logout();
                 abort(401);
             }

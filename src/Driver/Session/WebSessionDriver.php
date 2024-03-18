@@ -48,12 +48,11 @@ class WebSessionDriver implements SessionDriver
     /**
      * Return if the current session is valid.
      */
-    public function valid(): bool
+    public function validate(): bool
     {
         $expirationHelper = $this->getExpirationHelper();
 
         return true;
-        // return $expirationHelper->accessTokenExpired() && ! $expirationHelper->canRefresh();
     }
 
     /**

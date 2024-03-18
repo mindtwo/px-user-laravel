@@ -4,7 +4,6 @@ namespace mindtwo\PxUserLaravel\Driver\Sanctum;
 
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Support\Carbon;
-use Illuminate\Support\Facades\Log;
 use mindtwo\PxUserLaravel\Driver\Concerns\SimpleSessionDriver;
 use mindtwo\PxUserLaravel\Driver\Contracts\SessionDriver;
 use mindtwo\PxUserLaravel\Http\Client\PxClient;
@@ -62,8 +61,26 @@ class SanctumSessionDriver implements SessionDriver
     /**
      * Return if the current session is valid.
      */
-    public function valid(): bool
+    public function validate(): bool
     {
+        $expirationHelper = $this->getExpirationHelper();
+        $accessTokenHelper = $this->getAccessTokenHelper();
+
+        // check if we can refresh the token
+        if ($expirationHelper->accessTokenExpired() && ! $expirationHelper->canRefresh()) {
+            return false;
+        }
+
+        // check if we need to refresh the token
+        if ($expirationHelper->accessTokenExpired()) {
+            try {
+                // Refresh the token
+                $this->refreshAccessToken($accessTokenHelper->get('refresh_token'));
+            } catch (\Throwable $th) {
+                return false;
+            }
+        }
+
         return true;
     }
 
@@ -83,14 +100,9 @@ class SanctumSessionDriver implements SessionDriver
 
         $refreshToken = $refreshToken ?? $accessTokenHelper->get('refresh_token');
         $currentPlainTextToken = str_replace('Bearer ', '', request()->header('Authorization'));
-        $isAboutToExpire = $expirationHelper->accessTokenExpired() || $expirationHelper->accessTokenExpiringSoon();
 
-        if ($currentPlainTextToken && ! $isAboutToExpire) {
-            Log::info('Token is still valid', [
-                'currentPlainTextToken' => $currentPlainTextToken,
-                'isAboutToExpire' => $isAboutToExpire,
-            ]);
-
+        // check if we can return the current token and don't need to refresh
+        if ($currentPlainTextToken && ! $expirationHelper->accessTokenExpired()) {
             return [
                 'access_token' => $currentPlainTextToken,
                 'expires_at' => $accessTokenHelper->get('access_token_expiration_utc'),
@@ -103,23 +115,38 @@ class SanctumSessionDriver implements SessionDriver
             return false;
         }
 
-        // check if we need to refresh the token
-        if ($isAboutToExpire) {
-            $newTokenData = $this->getNewRefreshToken($refreshToken);
-        }
-
-        $refreshToken = isset($newTokenData) ? $newTokenData['refresh_token'] : $refreshToken;
-        $newExpiresAt = isset($newTokenData) ? Carbon::parse($newTokenData['access_token_expiration_utc']) : null;
-        $refreshedToken = $authenticatable->refreshAccessToken($refreshToken, $newExpiresAt);
-
-        $accessToken = $refreshedToken->plainTextToken;
-        $expires_at = $refreshedToken->accessToken->expires_at;
+        // refresh the token
+        $refreshedToken = $this->refreshAccessToken($refreshToken);
 
         return [
-            'access_token' => $accessToken,
-            'expires_at' => $expires_at,
-            'refresh_token' => $refreshToken,
+            'access_token' => $refreshedToken->plainTextToken,
+            'refresh_token' => $refreshedToken->accessToken->refresh_token,
+            'expires_at' => $refreshedToken->accessToken->expires_at,
         ];
+    }
+
+    /**
+     * Refresh the current user's access token using the given refresh token.
+     * The refresh token is used to obtain a new valid access token from the PX-User API.
+     *
+     * @param string $refreshToken
+     * @return \Laravel\Sanctum\NewAccessToken
+     */
+    private function refreshAccessToken(string $refreshToken): \Laravel\Sanctum\NewAccessToken
+    {
+        // Get new token from PX-User API
+        $newTokenData = $this->getNewRefreshToken($refreshToken);
+
+        // Save new token data in the "session"
+        $this->getAccessTokenHelper()->saveTokenData($newTokenData);
+
+        // Update the current token for the user
+        $newExpiresAt = Carbon::parse($newTokenData['access_token_expiration_utc']);
+        $newRefreshToken = $newTokenData['refresh_token'];
+
+        $refreshedToken = $this->user()->refreshAccessToken($refreshToken, $newRefreshToken, $newExpiresAt);
+
+        return $refreshedToken;
     }
 
     /**

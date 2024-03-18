@@ -13,7 +13,7 @@ use mindtwo\PxUserLaravel\Driver\Contracts\SessionDriver;
  * @method static null|\mindtwo\PxUserLaravel\Driver\Contracts\ExpirationHelper getExpirationHelper()
  * @method static string getTenant()
  * @method static string getDomain()
- * @method static bool valid()
+ * @method static bool validate()
  * @method static null|bool|array refresh(\Illuminate\Contracts\Auth\Authenticatable $user, ?string $refreshToken = null)
  * @method static bool logout()
  * @method static null|int|string userId()
