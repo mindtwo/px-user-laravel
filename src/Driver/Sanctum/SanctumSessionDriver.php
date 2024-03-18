@@ -179,10 +179,10 @@ class SanctumSessionDriver implements SessionDriver
         $responseData = $response->json('response');
 
         return [
-            'access_token' => $responseData->access_token,
-            'access_token_expiration_utc' => $responseData->access_token_expiration_utc,
-            'refresh_token' => $responseData->refresh_token,
-            'refresh_token_expiration_utc' => $responseData->refresh_token_expiration_utc,
+            'access_token' => $responseData['access_token'],
+            'access_token_expiration_utc' => $responseData['access_token_expiration_utc'],
+            'refresh_token' => $responseData['refresh_token'],
+            'refresh_token_expiration_utc' => $responseData['refresh_token_expiration_utc'],
         ];
     }
 }
