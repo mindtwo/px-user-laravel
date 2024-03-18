@@ -26,11 +26,10 @@
     "require-dev": {
         "laravel/pint": "^1.2",
         "laravel/sanctum": "^3.2",
-        "orchestra/testbench": "^7.15",
+        "orchestra/testbench": "^7.15|^8.0|^9.0",
         "pestphp/pest": "^1.23|^2.0",
         "pestphp/pest-plugin-laravel": "^1.3|^2.0",
-        "mockery/mockery": "^1.5",
-        "guzzlehttp/guzzle": "^7.5"
+        "mockery/mockery": "^1.5"
     },
     "suggest": {
         "laravel/sanctum": "The package provides a custom AuthToken Model which may be used by your application"
@@ -51,7 +50,7 @@
             "providers": [
                 "mindtwo\\PxUserLaravel\\Providers\\PxUserProvider"
             ],
-            "aliases": {}
+            "aliases": []
         }
     },
     "config": {
@@ -61,7 +60,31 @@
     },
     "scripts": {
         "post-autoload-dump": [
+            "@clear",
+            "@prepare",
             "@php vendor/bin/testbench package:discover --ansi"
+        ],
+        "clear": "@php vendor/bin/testbench package:purge-skeleton --ansi",
+        "prepare": "@php vendor/bin/testbench package:discover --ansi",
+        "build": "@php vendor/bin/testbench workbench:build --ansi",
+        "serve": [
+            "Composer\\Config::disableProcessTimeout",
+            "@build",
+            "@php vendor/bin/testbench serve"
+        ],
+        "lint": [
+            "@php vendor/bin/pint",
+            "@php vendor/bin/phpstan analyse"
+        ],
+        "test": [
+            "@php vendor/bin/pest"
         ]
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Workbench\\App\\": "workbench/app/",
+            "Workbench\\Database\\Factories\\": "workbench/database/factories/",
+            "Workbench\\Database\\Seeders\\": "workbench/database/seeders/"
+        }
     }
 }

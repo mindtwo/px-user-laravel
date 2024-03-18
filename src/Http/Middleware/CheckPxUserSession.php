@@ -14,10 +14,10 @@ class CheckPxUserSession
      */
     public function handle(Request $request, \Closure $next, ?string $guard = null)
     {
-        if ($request->user()) {
+        if (! is_null($user = $request->user())) {
             $pxSession = px_session($guard);
 
-            $pxSession->setUser($request->user());
+            $pxSession->setUser($user);
             if (! $pxSession->validate()) {
                 $pxSession->logout();
                 abort(401);

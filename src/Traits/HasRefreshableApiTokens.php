@@ -44,4 +44,15 @@ trait HasRefreshableApiTokens
 
         return new \Laravel\Sanctum\NewAccessToken($token, $token->getKey().'|'.$plainTextToken);
     }
+
+    public function updateCurrentAccessTokenExpiration(string $oldRefreshToken, string $newRefreshToken, Carbon $expiresAt): void
+    {
+        $token = $this->tokens()->where('refresh_token', $oldRefreshToken)->first();
+
+        if ($token) {
+            $token->expires_at = $expiresAt;
+            $token->refresh_token = $newRefreshToken;
+            $token->save();
+        }
+    }
 }

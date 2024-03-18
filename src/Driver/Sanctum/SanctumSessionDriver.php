@@ -75,7 +75,7 @@ class SanctumSessionDriver implements SessionDriver
         if ($expirationHelper->accessTokenExpired()) {
             try {
                 // Refresh the token
-                $this->refreshAccessToken($accessTokenHelper->get('refresh_token'));
+                $this->refreshAccessToken($accessTokenHelper->get('refresh_token'), true);
             } catch (\Throwable $th) {
                 return false;
             }
@@ -116,6 +116,7 @@ class SanctumSessionDriver implements SessionDriver
         }
 
         // refresh the token
+        /** @var \Laravel\Sanctum\NewAccessToken $refreshedToken */
         $refreshedToken = $this->refreshAccessToken($refreshToken);
 
         return [
@@ -130,9 +131,9 @@ class SanctumSessionDriver implements SessionDriver
      * The refresh token is used to obtain a new valid access token from the PX-User API.
      *
      * @param string $refreshToken
-     * @return \Laravel\Sanctum\NewAccessToken
+     * @return ?\Laravel\Sanctum\NewAccessToken - retuns null if onlyUpdate is true
      */
-    private function refreshAccessToken(string $refreshToken): \Laravel\Sanctum\NewAccessToken
+    private function refreshAccessToken(string $refreshToken, bool $onlyUpdate = false): ?\Laravel\Sanctum\NewAccessToken
     {
         // Get new token from PX-User API
         $newTokenData = $this->getNewRefreshToken($refreshToken);
@@ -144,6 +145,11 @@ class SanctumSessionDriver implements SessionDriver
         $newExpiresAt = Carbon::parse($newTokenData['access_token_expiration_utc']);
         $newRefreshToken = $newTokenData['refresh_token'];
 
+        if ($onlyUpdate) {
+            $this->user()->updateCurrentAccessTokenExpiration($refreshToken, $newRefreshToken, $newExpiresAt);
+            return null;
+        }
+
         $refreshedToken = $this->user()->refreshAccessToken($refreshToken, $newRefreshToken, $newExpiresAt);
 
         return $refreshedToken;
@@ -154,6 +160,7 @@ class SanctumSessionDriver implements SessionDriver
      */
     private function getNewRefreshToken(string $refreshToken): array
     {
+        /** @var PxClient $pxClient */
         $pxClient = app()->make(PxClient::class, [
             'tenantCode' => $this->getTenant(),
             'domainCode' => $this->getDomain(),
@@ -165,12 +172,11 @@ class SanctumSessionDriver implements SessionDriver
             ],
         ]);
         // Check if status is 200
-        if ($response->getStatusCode() !== 200) {
+        if ($response->status() !== 200) {
             throw new \Exception('Error Processing Request', 1);
         }
 
-        $body = $response->getBody();
-        $responseData = optional(json_decode((string) $body))->response;
+        $responseData = $response->json('response');
 
         return [
             'access_token' => $responseData->access_token,
