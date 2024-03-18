@@ -31,22 +31,6 @@ class ExpirationHelper implements ContractsExpirationHelper
     }
 
     /**
-     * Check if access token is expiring soon.
-     */
-    public function accessTokenExpiringSoon(): bool
-    {
-        if (PxUser::isFaking()) {
-            return false;
-        }
-
-        if (null == ($time = $this->get('access_token_expiration_utc'))) {
-            return false;
-        }
-
-        return Carbon::now()->addMinutes(2)->gte($time);
-    }
-
-    /**
      * Check if tokens can be refreshed.
      */
     public function canRefresh(): bool
