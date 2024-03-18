@@ -159,7 +159,7 @@ class SanctumSessionDriver implements SessionDriver
             'domainCode' => $this->getDomain(),
         ]);
 
-        $response = $pxClient->get('user/refresh-token', [
+        $response = $pxClient->get('user/refresh-tokens', [
             'headers' => [
                 'Authorization' => "Bearer $refreshToken",
             ],
