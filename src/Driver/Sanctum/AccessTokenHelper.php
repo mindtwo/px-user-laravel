@@ -2,6 +2,7 @@
 
 namespace mindtwo\PxUserLaravel\Driver\Sanctum;
 
+use DateTimeInterface;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Support\Facades\Cache;
 use mindtwo\PxUserLaravel\Driver\Contracts\AccessTokenHelper as ContractsAccessTokenHelper;
@@ -50,13 +51,15 @@ class AccessTokenHelper implements ContractsAccessTokenHelper
     /**
      * Put value for passed key
      */
-    public function put(string $key, mixed $value): void
+    public function put(string $key, mixed $value, ?DateTimeInterface $dateTimeInterface = null): void
     {
         if (! $this->allowed($key)) {
             throw new \Exception('Error Processing Request', 1);
         }
 
-        Cache::put($this->getCacheKey($key), $value);
+        $validUntil = $dateTimeInterface ?? now()->addMinutes(config('px-user.driver.sanctum.max_cache_time', 720));
+
+        Cache::put($this->getCacheKey($key), $value, $validUntil);
     }
 
     /**

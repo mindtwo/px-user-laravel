@@ -87,7 +87,16 @@ return [
              */
             'access_token_model' => \mindtwo\PxUserLaravel\Driver\Sanctum\Models\PersonalAccessToken::class,
 
+            /**
+             * The session driver used to authenticate the user.
+             */
             'session_driver' => \mindtwo\PxUserLaravel\Driver\Sanctum\SanctumSessionDriver::class,
+
+            /**
+             * The maximum minutes we keep the data in the cache in minutes.
+             * Default: 720 (mins)/12 hours
+             */
+            'max_cache_time' => env('PX_USER_SANCTUM_MAX_CACHE_TIME', 720),
         ],
 
         'web' => [
