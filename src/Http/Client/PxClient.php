@@ -56,7 +56,7 @@ class PxClient
                     }
 
                     if ($exception instanceof RequestException) {
-                        return $exception->response->status() >= 500;
+                        return in_array($exception->response->status(), [503, 504]);
                     }
 
                     return false;
