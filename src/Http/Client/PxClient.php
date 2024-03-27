@@ -44,9 +44,12 @@ class PxClient
                 rtrim($this->baseUrl, '/'),
                 $this->version,
             ))
+            ->connectTimeout(config('px-user.http_request_connect_timeout', 10))
             ->retry(
                 config('px-user.http_request_retries'),
-                config('px-user.http_request_retry_delay', 300),
+                function (int $attempt, \Exception $exception) {
+                    return $attempt * config('px-employee-management.http_request_retry_delay', 100);
+                },
                 function (\Exception $exception, PendingRequest $request) {
                     if ($exception instanceof ConnectionException) {
                         return true;

@@ -4,6 +4,7 @@ namespace mindtwo\PxUserLaravel\Driver\Sanctum;
 
 use DateTimeInterface;
 use Illuminate\Contracts\Auth\Authenticatable;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cache;
 use mindtwo\PxUserLaravel\Driver\Contracts\AccessTokenHelper as ContractsAccessTokenHelper;
 use mindtwo\PxUserLaravel\Facades\PxUser;
@@ -23,7 +24,7 @@ class AccessTokenHelper implements ContractsAccessTokenHelper
     {
         foreach ($this->allowedKeys() as $key) {
             if (isset($tokenData[$key])) {
-                $this->put($key, $tokenData[$key]);
+                $this->put($key, $tokenData[$key], $this->getKeyTtl($key, $tokenData));
             }
         }
     }
@@ -51,7 +52,7 @@ class AccessTokenHelper implements ContractsAccessTokenHelper
     /**
      * Put value for passed key
      */
-    public function put(string $key, mixed $value, ?DateTimeInterface $dateTimeInterface = null): void
+    public function put(string $key, mixed $value, null|int|DateTimeInterface $dateTimeInterface = null): void
     {
         if (! $this->allowed($key)) {
             throw new \Exception('Error Processing Request', 1);
@@ -102,5 +103,18 @@ class AccessTokenHelper implements ContractsAccessTokenHelper
             $this->user->{config('px-user.px_user_id')},
             $key,
         ])->debugIf(config('px-user.debug'))->toString();
+    }
+
+    private function getKeyTtl(string $key, array $tokenData): int
+    {
+        if (config('px-user.driver.sanctum.use_api_ttl', false)) {
+            // TODO implement this
+
+            $expirationUtc = $tokenData["{$key}_expiration_utc"] ?? null;
+
+            return $expirationUtc ? Carbon::parse($expirationUtc)->diffInMinutes(now()) : config('px-user.driver.sanctum.max_cache_time', 720);
+        }
+
+        return config('px-user.driver.sanctum.max_cache_time', 720);
     }
 }

@@ -72,6 +72,11 @@ return [
     'http_request_retry_delay' => 300,
 
     /**
+     * Timeout for http requests to px-user's api.
+     */
+    'http_request_connect_timeout' => 10,
+
+    /**
      * The drivers used to authenticate the user.
      */
     'driver' => [
@@ -91,6 +96,11 @@ return [
              * The session driver used to authenticate the user.
              */
             'session_driver' => \mindtwo\PxUserLaravel\Driver\Sanctum\SanctumSessionDriver::class,
+
+            /**
+             * Use the ttl given by the PX User API for the access token.
+             */
+            'use_api_ttl' => env('PX_USER_SANCTUM_USE_API_TTL', false),
 
             /**
              * The maximum minutes we keep the data in the cache in minutes.
