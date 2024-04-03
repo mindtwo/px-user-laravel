@@ -111,10 +111,12 @@ class AccessTokenHelper implements ContractsAccessTokenHelper
             // TODO implement this
 
             $expirationUtc = $tokenData["{$key}_expiration_utc"] ?? null;
+            // get ttl in minutes
+            $ttlMinutes = $expirationUtc ? Carbon::parse($expirationUtc)->diffInMinutes(now()) : config('px-user.driver.sanctum.max_cache_time', 720);
 
-            return $expirationUtc ? Carbon::parse($expirationUtc)->diffInMinutes(now()) : config('px-user.driver.sanctum.max_cache_time', 720);
+            return $ttlMinutes * 60;
         }
 
-        return config('px-user.driver.sanctum.max_cache_time', 720);
+        return config('px-user.driver.sanctum.max_cache_time', 720) * 60;
     }
 }
