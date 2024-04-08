@@ -72,7 +72,16 @@ class UserDataCache extends DataCache
             return [];
         }
 
-        // TODO: user details?
+        // Check if the user is the same as the authenticated user.
+        if (auth()->id() !== $this->model->id) {
+            // TODO: user details?
+            Log::error('UserdataCache: User is not the same as the authenticated user.', [
+                'auth_user' => auth()->id(),
+                'called_from' => debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 2)[1]['function'],
+            ]);
+            return array_fill_keys($this->keys(), null);
+        }
+
         try {
             $userData = $client->get(PxUserClient::USER, [
                 'headers' => [
@@ -87,7 +96,7 @@ class UserDataCache extends DataCache
         $userData = $userData['user'] ?? null;
 
         if (empty($userData)) {
-            return [];
+            return array_fill_keys($this->keys(), null);
         }
 
         return array_intersect_key($userData, array_flip($this->keys()));
