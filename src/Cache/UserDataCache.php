@@ -75,8 +75,9 @@ class UserDataCache extends DataCache
         // Check if the user is the same as the authenticated user.
         if (auth()->id() !== $this->model->id) {
             // TODO: user details?
-            Log::error('UserdataCache: User is not the same as the authenticated user.', [
+            Log::debug('UserdataCache: User is not the same as the authenticated user.', [
                 'auth_user' => auth()->id(),
+                'entrypoint' => request()->path(),
                 'called_from' => debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 2)[1]['function'],
             ]);
             return array_fill_keys($this->keys(), null);
