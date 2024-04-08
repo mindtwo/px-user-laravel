@@ -23,6 +23,10 @@ class AdminUserDataCache extends DataCache
         'preferred_username',
     ];
 
+    protected bool $loadOnAccess = true;
+
+    protected bool $loadOnlyOnce = true;
+
     /**
      * Cache driver.
      */
@@ -31,7 +35,7 @@ class AdminUserDataCache extends DataCache
     /**
      * Get cache key.
      */
-    protected function cacheKey(): string
+    public function cacheKey(): string
     {
         return cache_key('data_cache', [
             'name' => 'admin_cache:user',
@@ -72,6 +76,11 @@ class AdminUserDataCache extends DataCache
         }
 
         return array_intersect_key($userData, array_flip($this->usedKeys));
+    }
+
+    public function keys(): array
+    {
+        return $this->usedKeys;
     }
 
     protected function getPxAdminClient(PxAdminClient $pxAdminClient): PxAdminClient

@@ -27,6 +27,10 @@ class UserDataCache extends DataCache
         'preferred_username',
     ];
 
+    protected bool $loadOnAccess = true;
+
+    protected bool $loadOnlyOnce = true;
+
     protected function ttl(): int
     {
         return config('px-user.px_user_cache_time') * 60;
@@ -35,7 +39,7 @@ class UserDataCache extends DataCache
     /**
      * Get cache key.
      */
-    protected function cacheKey(): string
+    public function cacheKey(): string
     {
         return cache_key('data_cache', [
             'name' => 'user',
@@ -86,7 +90,7 @@ class UserDataCache extends DataCache
             return [];
         }
 
-        return array_intersect_key($userData, array_flip($this->usedKeys));
+        return array_intersect_key($userData, array_flip($this->keys()));
     }
 
     protected function checkModel(): bool
@@ -105,6 +109,11 @@ class UserDataCache extends DataCache
     protected function canLoad(): bool
     {
         return isset($this->model->{config('px-user.px_user_id')});
+    }
+
+    public function keys(): array
+    {
+        return $this->usedKeys;
     }
 
     /**
