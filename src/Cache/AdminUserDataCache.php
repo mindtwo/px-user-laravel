@@ -25,8 +25,6 @@ class AdminUserDataCache extends DataCache
 
     protected bool $loadOnAccess = true;
 
-    protected bool $loadOnlyOnce = true;
-
     /**
      * Cache driver.
      */
