@@ -103,7 +103,7 @@ class PxClient
         try {
             return $this->client($headers)->send($method, $url, $options);
         } catch (\Throwable $th) {
-            Log::error(sprintf('An error occured while requesting external data. (Code: %s, message: %s)', $th->getCode(), $th->getMessage()), [
+            Log::info(sprintf('An error occured while requesting external data. (Code: %s, message: %s)', $th->getCode(), $th->getMessage()), [
                 'version' => $this->version,
                 'baseUrl' => $this->baseUrl,
                 'path' => $url,

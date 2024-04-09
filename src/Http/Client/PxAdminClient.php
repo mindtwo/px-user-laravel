@@ -67,7 +67,7 @@ class PxAdminClient extends PxClient implements Decoratable
             $response = $this->get("validate-token/$token")->throw();
         } catch (Throwable $e) {
             if (config('px-user.debug')) {
-                // Log::error("Failed to login user for url: {$this->getUri()}", [
+                // Log::info("Failed to login user for url: {$this->getUri()}", [
                 //     'message' => $e->getMessage(),
                 //     'url' => $this->baseUrl,
                 // ]);

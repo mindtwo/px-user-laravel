@@ -5,6 +5,7 @@ namespace mindtwo\PxUserLaravel\Cache;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Client\RequestException;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use mindtwo\PxUserLaravel\Facades\PxUserSession;
@@ -74,10 +75,12 @@ class UserDataCache extends DataCache
         }
 
         // Check if the user is the same as the authenticated user.
-        if (auth()->id() !== $this->model->id) {
+        if (Auth::id() !== $this->model->id) {
             // TODO: user details?
-            Log::debug('UserdataCache: User is not the same as the authenticated user.', [
-                'auth_user' => auth()->id(),
+            Log::info('UserdataCache: User is not the same as the authenticated user.', [
+                'auth_user' => Auth::id(),
+                'model_user' => $this->model->id,
+                'request_user' => request()->user()?->id,
                 'entrypoint' => request()->path(),
                 'called_from' => debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 2)[1]['function'],
             ]);
