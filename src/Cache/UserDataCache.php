@@ -4,6 +4,7 @@ namespace mindtwo\PxUserLaravel\Cache;
 
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Http\Client\RequestException;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use mindtwo\PxUserLaravel\Facades\PxUserSession;
@@ -91,8 +92,11 @@ class UserDataCache extends DataCache
             ])
                 ->json('response');
         } catch (\Throwable $th) {
-            Log::error('UserdataCache: '.$th->getMessage());
-            $userData = [];
+            if (! $th instanceof RequestException || ! in_array($th->response->status(), [401, 403])) {
+                throw $th;
+            }
+
+            abort($th->response->status());
         }
         $userData = $userData['user'] ?? null;
 
