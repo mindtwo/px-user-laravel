@@ -3,7 +3,9 @@
 namespace mindtwo\PxUserLaravel\Cache;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Http\Client\RequestException;
 use Illuminate\Support\Facades\App;
+use Illuminate\Support\Facades\Log;
 use mindtwo\PxUserLaravel\Http\Client\PxAdminClient;
 use mindtwo\TwoTility\Cache\Data\DataCache;
 
@@ -24,11 +26,6 @@ class AdminUserDataCache extends DataCache
     ];
 
     protected bool $loadOnAccess = true;
-
-    /**
-     * Cache driver.
-     */
-    protected ?string $cacheDriver = 'array';
 
     /**
      * Get cache key.
@@ -64,6 +61,12 @@ class AdminUserDataCache extends DataCache
             $userData = $pxAdmin->get("user/$userId")
                 ->json('response');
         } catch (\Throwable $th) {
+            Log::error("[PX-User (admin)]: Failed to load data for user $userId.", [
+                'message' => $th->getMessage(),
+                'code' => $th->getCode(),
+                'response' => $th instanceof RequestException ? $th->response->json() : null,
+            ]);
+
             $userData = [];
         }
 
