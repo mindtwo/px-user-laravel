@@ -2,21 +2,18 @@
 
 namespace mindtwo\PxUserLaravel\Cache;
 
-use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Client\RequestException;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Log;
 use mindtwo\PxUserLaravel\Facades\PxUserSession;
-use mindtwo\PxUserLaravel\Http\Client\PxClient;
 use mindtwo\PxUserLaravel\Http\Client\PxUserClient;
 use mindtwo\TwoTility\Cache\Data\DataCache;
 
 /**
  * @extends DataCache<Model>
  */
-class UserDataCache extends DataCache
+class UserDetailDataCache extends DataCache
 {
     private array $usedKeys = [
         'email',
@@ -44,7 +41,7 @@ class UserDataCache extends DataCache
     public function cacheKey(): string
     {
         return cache_key('data_cache', [
-            'name' => 'user',
+            'name' => 'user_detail',
             'uuid' => $this->model->{config('px-user.px_user_id')},
         ])->toString();
     }
@@ -64,59 +61,47 @@ class UserDataCache extends DataCache
             return [];
         }
 
-        $client = app()->make(PxClient::class, [
-            'tenantCode' => $this->model->tenant_code,
-            'domainCode' => $this->model->domain_code,
-        ]);
+        $client = $client = new PxUserClient(
+            tenantCode: $this->model->tenant_code,
+            domainCode: $this->model->domain_code
+        );
 
-        $accessTokenHelper = PxUserSession::newAccessTokenHelper($this->model);
+        $accessTokenHelper = PxUserSession::newAccessTokenHelper(auth()->user());
         if (! $accessTokenHelper->get('access_token')) {
             return [];
         }
 
         // Check if the user is the same as the authenticated user.
-        if (Auth::id() !== $this->model->id) {
-            // TODO: user details?
-            Log::info('UserdataCache: User is not the same as the authenticated user.', [
-                'auth_user' => Auth::id(),
-                'model_user' => $this->model->id,
-                'request_user' => request()->user()?->id,
-                'entrypoint' => request()->path(),
-                'called_from' => debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 2)[1]['function'],
-            ]);
-
+        if (Auth::id() === $this->model->id) {
             return array_fill_keys($this->keys(), null);
         }
 
         try {
-            $userData = $client->get(PxUserClient::USER, [
+            $response = $client->post('users/details', [
+                'user_ids' => [$this->model->{config('px-user.px_user_id')}],
+            ], [
                 'headers' => [
                     'Authorization' => 'Bearer '.$accessTokenHelper->get('access_token'),
                 ],
             ])
                 ->json('response');
         } catch (\Throwable $th) {
-            if (! $th instanceof RequestException || ! in_array($th->response->status(), [401, 403])) {
+            if (! $th instanceof RequestException || ! in_array($th->response->status(), [401, 403, 404])) {
                 throw $th;
             }
 
-            abort($th->response->status());
+            $response = [];
         }
-        $userData = $userData['user'] ?? null;
 
-        if (empty($userData)) {
+        if (empty($response)) {
             return array_fill_keys($this->keys(), null);
         }
 
-        return array_intersect_key($userData, array_flip($this->keys()));
+        return array_intersect_key($response[0], array_flip($this->keys()));
     }
 
     protected function checkModel(): bool
     {
-        if (! $this->model instanceof Authenticatable) {
-            return false;
-        }
-
         if (! isset($this->model->{config('px-user.px_user_id')}) || ! $this->model->tenant_code || ! $this->model->domain_code) {
             return false;
         }
@@ -126,7 +111,11 @@ class UserDataCache extends DataCache
 
     protected function canLoad(): bool
     {
-        return isset($this->model->{config('px-user.px_user_id')});
+        if (! isset($this->model->{config('px-user.px_user_id')})) {
+            return false;
+        }
+
+        return Auth::id() !== $this->model->id;
     }
 
     public function keys(): array
@@ -142,7 +131,7 @@ class UserDataCache extends DataCache
     public static function initialize(array $initialData)
     {
         $key = cache_key('data_cache', [
-            'name' => 'user',
+            'name' => 'user_detail',
             'uuid' => $initialData['id'],
         ])->toString();
 

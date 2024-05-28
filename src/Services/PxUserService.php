@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use mindtwo\PxUserLaravel\Cache\AdminUserDataCache;
 use mindtwo\PxUserLaravel\Cache\UserDataCache;
+use mindtwo\PxUserLaravel\Cache\UserDetailDataCache;
 use mindtwo\PxUserLaravel\Driver\Contracts\SessionDriver;
 
 class PxUserService
@@ -44,6 +45,22 @@ class PxUserService
             },
         ]);
 
+        Http::fake([
+            "$url/users/details" => function () {
+                $user = auth()->user();
+
+                if ($user === null) {
+                    return Http::response(['error' => 'Unauthorized'], 401);
+                }
+
+                return Http::response([
+                    'response' => [
+                        $this->fakeUserData($user->{config('px-user.px_user_id')}),
+                    ],
+                ], 200);
+            },
+        ]);
+
         $this->fakes = true;
 
         return $this;
@@ -57,15 +74,20 @@ class PxUserService
     /**
      * Get recommended cache class. If running in console, use AdminUserDataCache, otherwise UserDataCache.
      *
+     * @param  ?Model  $user
      * @return class-string<DataCache>
      */
-    public function getRecommendedCacheClass(): string
+    public function getRecommendedCacheClass($user): string
     {
-        if ($this->fakes || app()->runningUnitTests()) {
+        if (app()->runningInConsole() && ! $this->fakes && ! app()->runningUnitTests()) {
+            return AdminUserDataCache::class;
+        }
+
+        if (! auth()->hasUser() || ! $user) {
             return UserDataCache::class;
         }
 
-        return app()->runningInConsole() ? AdminUserDataCache::class : UserDataCache::class;
+        return $user->id === auth()->user()->id ? UserDataCache::class : UserDetailDataCache::class;
     }
 
     /**
@@ -75,7 +97,7 @@ class PxUserService
      */
     public function getRecommendedCacheClassInstance($user): AdminUserDataCache|UserDataCache
     {
-        return (new ($this->getRecommendedCacheClass()))($user);
+        return (new ($this->getRecommendedCacheClass($user)))($user);
     }
 
     /**
