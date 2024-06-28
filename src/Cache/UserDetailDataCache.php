@@ -139,8 +139,6 @@ class UserDetailDataCache extends DataCache
             'email',
             'firstname',
             'lastname',
-            'is_enabled',
-            'is_confirmed',
             'roles',
             'products',
             'preferred_username',
