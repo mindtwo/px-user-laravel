@@ -10,9 +10,7 @@ class ExpirationHelper implements ContractsExpirationHelper
 {
     public function __construct(
         private ?AccessTokenHelper $accessTokenHelper = null,
-    ) {
-
-    }
+    ) {}
 
     /**
      * Check if access token is expired.

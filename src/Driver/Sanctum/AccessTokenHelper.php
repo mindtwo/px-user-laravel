@@ -13,9 +13,7 @@ class AccessTokenHelper implements ContractsAccessTokenHelper
 {
     public function __construct(
         private ?Authenticatable $user = null,
-    ) {
-
-    }
+    ) {}
 
     /**
      * Save token data either to cache or session

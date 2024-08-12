@@ -16,17 +16,17 @@ class WebSessionDriver implements SessionDriver
 
     public function newAccessTokenHelper(Authenticatable $user): AccessTokenHelper
     {
-        return new SessionAccessTokenHelper();
+        return new SessionAccessTokenHelper;
     }
 
     public function getAccessTokenHelper(): ?AccessTokenHelper
     {
-        return new SessionAccessTokenHelper();
+        return new SessionAccessTokenHelper;
     }
 
     public function getExpirationHelper(): ?ExpirationHelper
     {
-        return new SessionExpirationHelper();
+        return new SessionExpirationHelper;
     }
 
     /**

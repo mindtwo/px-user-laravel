@@ -38,6 +38,6 @@ class ExpirationHelper implements ContractsExpirationHelper
 
     private function get(string $key): mixed
     {
-        return (new AccessTokenHelper())->get($key);
+        return (new AccessTokenHelper)->get($key);
     }
 }

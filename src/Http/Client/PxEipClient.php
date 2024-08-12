@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Http;
 class PxEipClient extends PxClient
 {
     private string $userToken;
+
     public function __construct(
         string $userToken,
         ?string $tenantCode = null,

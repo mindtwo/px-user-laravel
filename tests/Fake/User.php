@@ -20,6 +20,6 @@ class User extends AuthUser
      */
     protected static function newFactory()
     {
-        return new UserFactory();
+        return new UserFactory;
     }
 }

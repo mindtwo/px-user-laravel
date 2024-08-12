@@ -1,4 +1,5 @@
 <?php
+
 use Illuminate\Support\Facades\Config;
 use mindtwo\PxUserLaravel\Facades\PxUserSession;
 
@@ -23,7 +24,7 @@ test('get new refresh token', function () {
         get_class($driver), 'getNewRefreshToken'
     );
 
-    $method->setAccessible(TRUE);
+    $method->setAccessible(true);
 
     $this->assertEquals(
         // (Object [, mixed $parameter [, mixed $... ]])

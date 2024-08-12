@@ -19,6 +19,5 @@ class PxUserTokenRefreshEvent
     public function __construct(
         public Authenticatable $user,
         public string $newAccessToken,
-    ) {
-    }
+    ) {}
 }

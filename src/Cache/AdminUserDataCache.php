@@ -53,7 +53,7 @@ class AdminUserDataCache extends DataCache
             return [];
         }
 
-        $pxAdmin = $this->getPxAdminClient(new PxAdminClient());
+        $pxAdmin = $this->getPxAdminClient(new PxAdminClient);
 
         $userId = $this->model->{config('px-user.px_user_id')};
 

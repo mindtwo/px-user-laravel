@@ -8,7 +8,6 @@ use Throwable;
 
 class PxAdminClient extends PxClient implements Decoratable
 {
-
     use HasDecorator;
 
     /**

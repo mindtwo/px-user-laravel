@@ -20,6 +20,5 @@ class PxUserLoginEvent
         public Authenticatable $user,
         public array $userData,
         public string $accessToken,
-    ) {
-    }
+    ) {}
 }

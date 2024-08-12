@@ -130,7 +130,6 @@ class SanctumSessionDriver implements SessionDriver
      * Refresh the current user's access token using the given refresh token.
      * The refresh token is used to obtain a new valid access token from the PX-User API.
      *
-     * @param string $refreshToken
      * @return ?\Laravel\Sanctum\NewAccessToken - retuns null if onlyUpdate is true
      */
     private function refreshAccessToken(string $refreshToken, bool $onlyUpdate = false): ?\Laravel\Sanctum\NewAccessToken
@@ -147,6 +146,7 @@ class SanctumSessionDriver implements SessionDriver
 
         if ($onlyUpdate) {
             $this->user()->updateCurrentAccessTokenExpiration($refreshToken, $newRefreshToken, $newExpiresAt);
+
             return null;
         }
 

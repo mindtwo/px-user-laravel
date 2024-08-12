@@ -51,7 +51,7 @@ class PxUserProvider extends ServiceProvider
         $this->mergeConfigFrom(__DIR__.'/../../config/px-user.php', 'px-user');
 
         $this->app->scoped(PxUserService::class, function (Application $app) {
-            return new PxUserService();
+            return new PxUserService;
         });
         $this->app->alias(PxUserService::class, 'px-user');
 
