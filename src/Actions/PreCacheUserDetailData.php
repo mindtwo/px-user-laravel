@@ -3,6 +3,7 @@
 namespace mindtwo\PxUserLaravel\Actions;
 
 use Illuminate\Http\Client\RequestException;
+use Illuminate\Support\Facades\Log;
 use mindtwo\PxUserLaravel\Cache\UserDetailDataCache;
 use mindtwo\PxUserLaravel\Facades\PxUserSession;
 use mindtwo\PxUserLaravel\Http\Client\PxUserClient;
@@ -51,6 +52,12 @@ class PreCacheUserDetailData
         }
 
         collect($response)->each(function (array $userDetailData) {
+            if (! isset($userDetailData['id'])) {
+                Log::warning('User detail data does not contain user id.', $userDetailData ?? []);
+
+                return;
+            }
+
             UserDetailDataCache::initialize($userDetailData);
         });
     }
