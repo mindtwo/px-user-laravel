@@ -56,15 +56,9 @@ class AccessTokenHelper implements ContractsAccessTokenHelper
      */
     public function get(string $key): mixed
     {
-
-        $getted = Cache::get('access_token_get', 1);
-        if (PxUser::isFaking() || $key === 'access_token' && $getted >= 3) {
-            Cache::forget('access_token_get');
-
+        if (PxUser::isFaking()) {
             return 'fake-token';
         }
-
-        Cache::put('access_token_get', $getted + 1, 1);
 
         if (! $this->allowed($key)) {
             throw new \Exception('Error Processing Request', 1);
