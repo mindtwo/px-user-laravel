@@ -11,6 +11,8 @@ return [
 
     'base_url' => env('PX_USER_BASE_URL', 'https://user.api.preprod.pl-x.cloud'),
 
+    'px_user_login_url' => env('PX_USER_LOGIN_URL', '/'),
+
     /**
      * The stage the app runs in
      *

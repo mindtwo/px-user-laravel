@@ -8,8 +8,6 @@ class RetrieveUserOnLoginAction
 {
     /**
      * Ivokeable which returns a model implementing Authenticatable Contract.
-     *
-     * @return bool|Authorizable
      */
     public function __invoke(array $requestData): bool|Authenticatable
     {

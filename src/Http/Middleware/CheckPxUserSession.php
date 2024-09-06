@@ -18,9 +18,14 @@ class CheckPxUserSession
             $pxSession = px_session($guard);
 
             $pxSession->setUser($user);
+
             if (! $pxSession->validate()) {
                 $pxSession->logout();
-                abort(401);
+
+                $redirectTo = config('px-user.px_user_login_url', '/');
+
+                return response()->redirectTo($redirectTo);
+
             }
         }
 

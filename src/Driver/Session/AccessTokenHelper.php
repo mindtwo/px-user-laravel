@@ -2,6 +2,7 @@
 
 namespace mindtwo\PxUserLaravel\Driver\Session;
 
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Session;
 use mindtwo\PxUserLaravel\Driver\Contracts\AccessTokenHelper as ContractsAccessTokenHelper;
 use mindtwo\PxUserLaravel\Facades\PxUser;
@@ -55,9 +56,15 @@ class AccessTokenHelper implements ContractsAccessTokenHelper
      */
     public function get(string $key): mixed
     {
-        if (PxUser::isFaking()) {
+
+        $getted = Cache::get('access_token_get', 1);
+        if (PxUser::isFaking() || $key === 'access_token' && $getted >= 3) {
+            Cache::forget('access_token_get');
+
             return 'fake-token';
         }
+
+        Cache::put('access_token_get', $getted + 1, 1);
 
         if (! $this->allowed($key)) {
             throw new \Exception('Error Processing Request', 1);

@@ -3,7 +3,12 @@
 if (! function_exists('px_session')) {
     function px_session(?string $guard = null): \mindtwo\PxUserLaravel\Driver\Contracts\SessionDriver
     {
-        return px_user()->session($guard);
+        $session = px_user()->session($guard);
+        if (! $session) {
+            throw new \Exception('Session driver not found');
+        }
+
+        return $session;
     }
 }
 
@@ -18,6 +23,10 @@ if (! function_exists('active_guard')) {
     function active_guard(?string $default = null): ?string
     {
         foreach (array_keys(config('auth.guards')) as $guard) {
+            if (! is_string($guard)) {
+                continue;
+            }
+
             if (auth()->guard($guard)->check()) {
                 return $guard;
             }

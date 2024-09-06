@@ -8,6 +8,7 @@ use Illuminate\Http\Client\RequestException;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
+use mindtwo\PxUserLaravel\Error\LoadUserCacheException;
 use mindtwo\PxUserLaravel\Facades\PxUserSession;
 use mindtwo\PxUserLaravel\Http\Client\PxClient;
 use mindtwo\PxUserLaravel\Http\Client\PxUserClient;
@@ -100,7 +101,9 @@ class UserDataCache extends DataCache
                 throw $th;
             }
 
-            abort($th->response->status());
+            $status = $th->response->status();
+
+            throw new LoadUserCacheException($status === 401 ? 'Expired' : 'Forbidden', $status);
         }
         $userData = $userData['user'] ?? null;
 

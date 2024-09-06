@@ -31,9 +31,11 @@ class PxAdminClient extends PxClient implements Decoratable
 
     public function setOptions(?string $tenantCode = null, ?string $domainCode = null, ?string $m2mToken = null): self
     {
+        $this->setCredentials($tenantCode, $domainCode);
+
         $this->m2mCredentials = $m2mToken ?? $this->m2mCredentials ?? config('px-user.m2m_credentials');
 
-        return $this->setCredentials($tenantCode, $domainCode);
+        return $this;
     }
 
     /**
@@ -72,7 +74,7 @@ class PxAdminClient extends PxClient implements Decoratable
                 // ]);
             }
 
-            return null;
+            return false;
         }
 
         return $response->ok();

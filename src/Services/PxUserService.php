@@ -75,7 +75,6 @@ class PxUserService
      * Get recommended cache class. If running in console, use AdminUserDataCache, otherwise UserDataCache.
      *
      * @param  ?Model  $user
-     * @return class-string<DataCache>
      */
     public function getRecommendedCacheClass($user): string
     {
@@ -83,11 +82,11 @@ class PxUserService
             return AdminUserDataCache::class;
         }
 
-        if (! auth()->hasUser() || ! $user) {
+        if (! auth()->hasUser() || ! $user || ! property_exists($user, 'id')) {
             return UserDataCache::class;
         }
 
-        return $user->id === auth()->user()->id ? UserDataCache::class : UserDetailDataCache::class;
+        return auth()->user() && $user->id === auth()->user()->id ? UserDataCache::class : UserDetailDataCache::class;
     }
 
     /**
@@ -97,7 +96,13 @@ class PxUserService
      */
     public function getRecommendedCacheClassInstance($user): AdminUserDataCache|UserDataCache
     {
-        return (new ($this->getRecommendedCacheClass($user)))($user);
+        $clz = $this->getRecommendedCacheClass($user);
+
+        if (! is_a($clz, UserDataCache::class, true)) {
+            throw new \RuntimeException('PxUserService::getRecommendedCacheClassInstance() returned an invalid class');
+        }
+
+        return new $clz($user);
     }
 
     /**

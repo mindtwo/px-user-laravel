@@ -9,6 +9,7 @@ use mindtwo\PxUserLaravel\Driver\Contracts\ExpirationHelper;
 use mindtwo\PxUserLaravel\Driver\Contracts\SessionDriver;
 use mindtwo\PxUserLaravel\Driver\Session\AccessTokenHelper as SessionAccessTokenHelper;
 use mindtwo\PxUserLaravel\Driver\Session\ExpirationHelper as SessionExpirationHelper;
+use mindtwo\PxUserLaravel\Http\Client\PxClient;
 
 class WebSessionDriver implements SessionDriver
 {
@@ -50,9 +51,28 @@ class WebSessionDriver implements SessionDriver
      */
     public function validate(): bool
     {
+        if (! $user = $this->user()) {
+            return false;
+        }
+
         $expirationHelper = $this->getExpirationHelper();
 
-        return true;
+        // if the access token is not expired, the session is valid
+        if (! $expirationHelper?->accessTokenExpired()) {
+            return true;
+        }
+
+        // if the access token is expired and the refresh token is not expired, the session is valid
+        if (! $expirationHelper->canRefresh()) {
+            return false;
+        }
+
+        // try to refresh the session
+        if ($this->refresh($user)) {
+            return true;
+        }
+
+        return false;
     }
 
     /**
@@ -60,6 +80,53 @@ class WebSessionDriver implements SessionDriver
      */
     public function refresh(Authenticatable $authenticatable, ?string $refreshToken = null): null|bool|array
     {
-        return null;
+        $accessTokenHelper = $this->getAccessTokenHelper();
+        if (! $accessTokenHelper) {
+            return false;
+        }
+
+        $refreshToken = $refreshToken ?? $accessTokenHelper->get('refresh_token');
+
+        // try to get new token data
+        $tokenData = $this->getNewRefreshToken($refreshToken);
+        if (! $tokenData) {
+            return false;
+        }
+
+        // save new token data
+        $accessTokenHelper->saveTokenData($tokenData);
+
+        return $tokenData;
+    }
+
+    /**
+     * Refresh token from PX-User API.
+     */
+    private function getNewRefreshToken(string $refreshToken): ?array
+    {
+        /** @var PxClient $pxClient */
+        $pxClient = app()->make(PxClient::class, [
+            'tenantCode' => $this->getTenant(),
+            'domainCode' => $this->getDomain(),
+        ]);
+
+        $response = $pxClient->get('refresh-tokens', [
+            'headers' => [
+                'Authorization' => "Bearer $refreshToken",
+            ],
+        ]);
+        // Check if status is 200
+        if ($response->status() !== 200) {
+            return null;
+        }
+
+        $responseData = $response->json('response');
+
+        return [
+            'access_token' => $responseData['access_token'],
+            'access_token_expiration_utc' => $responseData['access_token_expiration_utc'],
+            'refresh_token' => $responseData['refresh_token'],
+            'refresh_token_expiration_utc' => $responseData['refresh_token_expiration_utc'],
+        ];
     }
 }

@@ -74,7 +74,7 @@ class PxClient
         return $this;
     }
 
-    public function scope($tenantCode, $domainCode, callable $callback)
+    public function scope(?string $tenantCode, ?string $domainCode, callable $callback): self
     {
         $defaultTenant = $this->tenantCode;
         $defaultDomain = $this->domainCode;
@@ -94,7 +94,7 @@ class PxClient
      */
 
     /**
-     * @throws Exception
+     * @throws \Exception|\Throwable
      */
     protected function send(string $method, string $url, array $options = []): Response
     {

@@ -16,6 +16,10 @@ class PreCacheUserDetailData
         string|array $userIds
     ): void {
 
+        if (! auth()->user()) {
+            return;
+        }
+
         if (! is_array($userIds)) {
             $userIds = [$userIds];
         }
@@ -53,7 +57,7 @@ class PreCacheUserDetailData
 
         collect($response)->each(function (array $userDetailData) {
             if (! isset($userDetailData['id'])) {
-                Log::warning('User detail data does not contain user id.', $userDetailData ?? []);
+                Log::warning('User detail data does not contain user id.', $userDetailData);
 
                 return;
             }
