@@ -3,6 +3,7 @@
 namespace mindtwo\PxUserLaravel\Services;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use mindtwo\PxUserLaravel\Cache\AdminUserDataCache;
@@ -82,11 +83,11 @@ class PxUserService
             return AdminUserDataCache::class;
         }
 
-        if (! auth()->hasUser() || ! $user || ! property_exists($user, 'id')) {
+        if (! Auth::hasUser() || ! $user?->id ?? false) {
             return UserDataCache::class;
         }
 
-        return auth()->user() && $user->id === auth()->user()->id ? UserDataCache::class : UserDetailDataCache::class;
+        return Auth::user() && $user->id === Auth::user()->id ? UserDataCache::class : UserDetailDataCache::class;
     }
 
     /**
