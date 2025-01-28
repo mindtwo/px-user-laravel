@@ -10,6 +10,8 @@ class PxUserClient extends PxClient
 
     public const USER_DETAILS = 'users/details';
 
+    public const USER_VALIDITY = 'user-with-permissions?withExtendedProducts=true';
+
     public function __construct(
         ?string $tenantCode = null,
         ?string $domainCode = null,

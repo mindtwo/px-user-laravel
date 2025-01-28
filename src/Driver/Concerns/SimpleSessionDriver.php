@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 use mindtwo\PxUserLaravel\Cache\UserDataCache;
+use mindtwo\PxUserLaravel\Data\PxUserPermissionData;
 use mindtwo\PxUserLaravel\Events\PxUserLoginEvent;
 use mindtwo\PxUserLaravel\Http\Client\PxClient;
 use mindtwo\PxUserLaravel\Http\Client\PxUserClient;
@@ -34,6 +35,8 @@ trait SimpleSessionDriver
         try {
             $userRequest = $pxClient->get(PxUserClient::USER_WITH_PERMISSIONS, [
                 'headers' => ['Authorization' => 'Bearer '.$tokenData['access_token']],
+            ], [
+                'withExtendedProducts' => true,
             ]);
         } catch (\Throwable $e) {
             throw new \Exception('No user found.', 0, $e);
@@ -62,7 +65,11 @@ trait SimpleSessionDriver
         // login user and save token data to cache
         Auth::login($user);
 
-        PxUserLoginEvent::dispatch($user, $response['user'], $tokenData['access_token']);
+        PxUserLoginEvent::dispatch(
+            $user,
+            PxUserPermissionData::fromArray($response['user']),
+            $tokenData['access_token'],
+        );
 
         return $this;
     }

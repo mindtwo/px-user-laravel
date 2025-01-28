@@ -124,9 +124,12 @@ class PxClient
 
     }
 
-    public function get(string $path, array $options = []): Response
+    public function get(string $path, array $options = [], array $urlParams = []): Response
     {
-        return $this->send('GET', $path, $options);
+        return $this->send('GET', $path, [
+            'query' => $urlParams,
+            ...$options,
+        ]);
     }
 
     public function post(string $path, array $data = [], array $options = []): Response
