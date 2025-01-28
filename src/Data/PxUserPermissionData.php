@@ -157,6 +157,8 @@ class PxUserPermissionData
         // If roles are set, we simply return them.
         if (! empty($roles)) {
             $this->roles = $roles;
+
+            return;
         }
 
         // If roles are not set, we try to get them from capabilities.
