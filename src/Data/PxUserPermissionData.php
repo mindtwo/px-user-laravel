@@ -127,19 +127,23 @@ class PxUserPermissionData
             return;
         }
 
-        // Check if products are keyed by product code.
-        $products = array_reduce($products, function ($carry, $product) {
-            if (is_array($product) && isset($product['code'])) {
-                $carry[$product['code']] = $product;
-            } else {
-                $carry[] = $product;
-            }
+        $isExtended = ! is_null(Arr::get($products, '0.code'));
 
-            return $carry;
-        }, []);
+        // If products are not extended, we simply set the products.
+        if (! $isExtended) {
+            $this->products = $products;
+            $this->products_validity = null;
 
-        $this->products = array_keys($products);
-        $this->products_validity = $products;
+            return;
+        }
+
+        $this->products = Arr::pluck($products, 'code');
+        $this->products_validity = Arr::mapWithKeys($products, function ($product) {
+            return [$product['code'] => [
+                'valid_from' => $product['valid_from'] ?? null,
+                'valid_to' => $product['valid_to'] ?? null,
+            ]];
+        });
     }
 
     /**
