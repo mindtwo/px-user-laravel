@@ -127,8 +127,9 @@ class PxUserPermissionData
             return;
         }
 
-        $isExtended = ! is_null(Arr::get($products, '0.code'));
-
+        // if the first element is not indexed by 0, we assume the products are extended.
+        // We got a map of product code to validity.
+        $isExtended = is_null(Arr::get($products, '0'));
         // If products are not extended, we simply set the products.
         if (! $isExtended) {
             $this->products = $products;
