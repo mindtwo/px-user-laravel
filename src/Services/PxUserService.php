@@ -10,6 +10,7 @@ use mindtwo\PxUserLaravel\Cache\AdminUserDataCache;
 use mindtwo\PxUserLaravel\Cache\UserDataCache;
 use mindtwo\PxUserLaravel\Cache\UserDetailDataCache;
 use mindtwo\PxUserLaravel\Driver\Contracts\SessionDriver;
+use mindtwo\TwoTility\Cache\Data\DataCache;
 
 class PxUserService
 {
@@ -76,6 +77,7 @@ class PxUserService
      * Get recommended cache class. If running in console, use AdminUserDataCache, otherwise UserDataCache.
      *
      * @param  ?Model  $user
+     * @return class-string<DataCache>
      */
     public function getRecommendedCacheClass($user): string
     {
