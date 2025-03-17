@@ -5,10 +5,12 @@ namespace mindtwo\PxUserLaravel\Providers;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\ServiceProvider;
+use Laravel\Scout\EngineManager;
 use mindtwo\PxUserLaravel\Driver\Contracts\SessionDriver;
 use mindtwo\PxUserLaravel\Http\Client\PxAdminClient;
 use mindtwo\PxUserLaravel\Http\Client\PxClient;
 use mindtwo\PxUserLaravel\Http\Client\PxUserClient;
+use mindtwo\PxUserLaravel\Scout\PxUserEngine;
 use mindtwo\PxUserLaravel\Services\PxUserService;
 
 class PxUserProvider extends ServiceProvider
@@ -24,6 +26,10 @@ class PxUserProvider extends ServiceProvider
     {
         $this->publishConfig();
         $this->publishMigrations();
+
+        resolve(EngineManager::class)->extend('px-user', function () {
+            return new PxUserEngine;
+        });
 
         $this->sanctumIntegration = /* config('px-user.sanctum.enabled') === true && */ class_exists(\Laravel\Sanctum\Sanctum::class);
 

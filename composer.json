@@ -21,7 +21,8 @@
         "php": "^8.0|^8.1|^8.2",
         "laravel/framework": "^9.0|^10.0|^11.0",
         "mindtwo/two-tility": "^0.3",
-        "mindtwo/laravel-decorator": "^3.0"
+        "mindtwo/laravel-decorator": "^3.0",
+        "laravel/scout": "^10.13"
     },
     "require-dev": {
         "laravel/pint": "^1.2",
