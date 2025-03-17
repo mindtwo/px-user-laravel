@@ -24,7 +24,7 @@ class PreCacheUserDetailData
             $userIds = [$userIds];
         }
 
-        $client = $client = new PxUserClient(
+        $client = new PxUserClient(
             tenantCode: $tenantCode,
             domainCode: $domainCode
         );
