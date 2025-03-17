@@ -20,7 +20,7 @@ test('get new refresh token', function () {
     $driver = PxUserSession::driver();
 
     $method = new ReflectionMethod(
-        //Class , Method
+        // Class , Method
         get_class($driver), 'getNewRefreshToken'
     );
 
