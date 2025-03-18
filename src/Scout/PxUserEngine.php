@@ -198,7 +198,7 @@ class PxUserEngine extends Engine
         try {
 
             $response = $client->client([
-                'X-Context-Product-Code' => 'lms',
+                'X-Context-Product-Code' => config('px-user.scout.product_code', 'lms'),
             ])
                 ->withToken($accessTokenHelper->get('access_token'))
                 ->acceptJson()

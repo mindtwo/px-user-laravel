@@ -58,6 +58,11 @@ return [
 
     'configure_px_admin_client' => null,
 
+    'scout' => [
+        // Default product context for PX User API when searching for users
+        'product_code' => env('PX_USER_SCOUT_PRODUCT_CODE', 'lms'),
+    ],
+
     /**
      * Invokeable action class used to retrieve user model.
      * The returned model must implement Authenticatable contract.
