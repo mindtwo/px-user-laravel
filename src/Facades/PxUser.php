@@ -2,13 +2,20 @@
 
 namespace mindtwo\PxUserLaravel\Facades;
 
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Facade;
+use mindtwo\PxUserLaravel\Cache\AdminUserDataCache;
+use mindtwo\PxUserLaravel\Cache\UserDataCache;
+use mindtwo\PxUserLaravel\Driver\Contracts\SessionDriver;
 use mindtwo\PxUserLaravel\Services\FakePxUserService;
+use mindtwo\TwoTility\Cache\Data\DataCache;
 
 /**
  * TODO merge this and PxUserSession Facade
  *
- * @method static null|\mindtwo\PxUserLaravel\Driver\Contracts\SessionDriver session(?string $guard = null)
+ * @method static null|SessionDriver session(?string $guard = null)
+ * @method static class-string<DataCache> getRecommendedCacheClass(?Model $user)
+ * @method static UserDataCache|AdminUserDataCache getRecommendedCacheClassInstance(Model $user)
  */
 class PxUser extends Facade
 {

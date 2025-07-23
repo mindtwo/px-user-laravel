@@ -12,7 +12,7 @@ use mindtwo\PxUserLaravel\Cache\UserDetailDataCache;
 use mindtwo\PxUserLaravel\Driver\Contracts\SessionDriver;
 use mindtwo\TwoTility\Cache\Data\DataCache;
 
-class FakePxUserService implements Fake
+class FakePxUserService extends PxUserService implements Fake
 {
     public function __construct()
     {
