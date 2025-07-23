@@ -13,7 +13,7 @@ class ExpirationHelper implements ContractsExpirationHelper
      */
     public function accessTokenExpired(): bool
     {
-        if (PxUser::isFaking()) {
+        if (PxUser::isFake()) {
             return false;
         }
 

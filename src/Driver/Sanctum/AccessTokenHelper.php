@@ -66,7 +66,7 @@ class AccessTokenHelper implements ContractsAccessTokenHelper
      */
     public function get(string $key): mixed
     {
-        if (PxUser::isFaking()) {
+        if (PxUser::isFake()) {
             return 'fake-token';
         }
 

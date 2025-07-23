@@ -9,7 +9,6 @@ use Illuminate\Support\Facades\Validator;
 use mindtwo\PxUserLaravel\Cache\UserDataCache;
 use mindtwo\PxUserLaravel\Data\PxUserPermissionData;
 use mindtwo\PxUserLaravel\Events\PxUserLoginEvent;
-use mindtwo\PxUserLaravel\Http\Client\PxClient;
 use mindtwo\PxUserLaravel\Http\Client\PxUserClient;
 
 trait SimpleSessionDriver
@@ -27,10 +26,10 @@ trait SimpleSessionDriver
     public function login(array $tokenData): ?self
     {
         if (! $this->validateTokenData($tokenData)) {
-            return false;
+            return null;
         }
 
-        $pxClient = app()->make(PxClient::class);
+        $pxClient = app()->make('px-user-client');
 
         try {
             $userRequest = $pxClient->get(PxUserClient::USER_WITH_PERMISSIONS, [
@@ -89,6 +88,7 @@ trait SimpleSessionDriver
 
             // TODO invalidate personal access token here
 
+            // @phpstan-ignore-next-line
             if (method_exists(app('auth'), 'logout')) {
                 optional((app('auth')))->logout();
             }

@@ -10,7 +10,6 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use mindtwo\PxUserLaravel\Error\LoadUserCacheException;
 use mindtwo\PxUserLaravel\Facades\PxUserSession;
-use mindtwo\PxUserLaravel\Http\Client\PxClient;
 use mindtwo\PxUserLaravel\Http\Client\PxUserClient;
 use mindtwo\TwoTility\Cache\Data\DataCache;
 
@@ -65,23 +64,20 @@ class UserDataCache extends DataCache
             return [];
         }
 
-        $client = app()->make(PxClient::class, [
-            'tenantCode' => $this->model->tenant_code,
-            'domainCode' => $this->model->domain_code,
-        ]);
+        /** @var Authenticatable $user */
+        $user = $this->model;
 
-        $accessTokenHelper = PxUserSession::newAccessTokenHelper($this->model);
+        $accessTokenHelper = PxUserSession::newAccessTokenHelper($user);
         if (! $accessTokenHelper->get('access_token')) {
             return [];
         }
 
         // Check if the user is the same as the authenticated user.
-        if (Auth::id() !== $this->model->id) {
-            // TODO: user details?
+        if (Auth::id() !== $this->model->getKey()) {
             Log::info('UserdataCache: User is not the same as the authenticated user.', [
                 'auth_user' => Auth::id(),
-                'model_user' => $this->model->id,
-                'request_user' => request()->user()?->id,
+                'model_user' => $this->model->getKey(),
+                'request_user' => auth()->id(),
                 'entrypoint' => request()->path(),
                 'called_from' => debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 2)[1]['function'],
             ]);
@@ -89,12 +85,24 @@ class UserDataCache extends DataCache
             return array_fill_keys($this->keys(), null);
         }
 
+        $client = app()->make(PxUserClient::class);
+
+        // Get tenant and domain from the model
+        $tenantCode = property_exists($this->model, 'tenant_code') ? $this->model->tenant_code : null;
+        $domainCode = property_exists($this->model, 'domain_code') ? $this->model->domain_code : null;
+
         try {
-            $userData = $client->get(PxUserClient::USER, [
-                'headers' => [
-                    'Authorization' => 'Bearer '.$accessTokenHelper->get('access_token'),
-                ],
-            ])
+            // TODO: better
+            $userData = $client
+                ->withScope(fn () => $client, [
+                    'tenantCode' => $tenantCode,
+                    'domainCode' => $domainCode,
+                ])
+                ->get(PxUserClient::USER, [
+                    'headers' => [
+                        'Authorization' => 'Bearer '.$accessTokenHelper->get('access_token'),
+                    ],
+                ])
                 ->json('response');
         } catch (\Throwable $th) {
             if (! $th instanceof RequestException || ! in_array($th->response->status(), [401, 403])) {
@@ -120,7 +128,7 @@ class UserDataCache extends DataCache
             return false;
         }
 
-        if (! isset($this->model->{config('px-user.px_user_id')}) || ! $this->model->tenant_code || ! $this->model->domain_code) {
+        if (! isset($this->model->{config('px-user.px_user_id')}) || ! isset($this->model->tenant_code) || ! isset($this->model->domain_code)) {
             return false;
         }
 

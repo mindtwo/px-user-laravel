@@ -2,8 +2,14 @@
 
 namespace mindtwo\PxUserLaravel\Http\Client;
 
-class PxUserClient extends PxClient
+use Illuminate\Http\Client\PendingRequest;
+use mindtwo\PxApiClients\Apis\User\PxUserApiClient;
+use mindtwo\PxApiClients\Base\Traits\PxRequestContext;
+
+class PxUserClient extends PxUserApiClient
 {
+    use PxRequestContext;
+
     public const USER = 'user';
 
     public const USER_WITH_PERMISSIONS = 'user-with-permissions';
@@ -15,14 +21,26 @@ class PxUserClient extends PxClient
     public function __construct(
         ?string $tenantCode = null,
         ?string $domainCode = null,
-        ?string $baseUrl = null,
-        string $version = 'v1',
     ) {
         parent::__construct(
-            tenantCode: $tenantCode,
-            domainCode: $domainCode,
-            baseUrl: $baseUrl,
-            version: $version,
+            stage: config('px-user.stage', 'prod'),
         );
+
+        $tenantCode = $tenantCode ?: config('px-user.tenant_code');
+        $domainCode = $domainCode ?: config('px-user.domain_code');
+
+        if ($tenantCode) {
+            $this->setOption('tenantCode', $tenantCode);
+        }
+
+        if ($domainCode) {
+            $this->setOption('domainCode', $domainCode);
+        }
+    }
+
+    public function clientWithHeaders(array $headers): PendingRequest
+    {
+        return $this->client()
+            ->withHeaders($headers);
     }
 }

@@ -3,8 +3,6 @@
 namespace mindtwo\PxUserLaravel\Tests;
 
 use Illuminate\Contracts\Config\Repository;
-use mindtwo\PxUserLaravel\Facades\AccessTokenHelper;
-use mindtwo\PxUserLaravel\Facades\UserDataCache;
 use mindtwo\PxUserLaravel\Providers\PxUserProvider;
 use Orchestra\Testbench\TestCase as Orchestra;
 
@@ -36,20 +34,7 @@ class TestCase extends Orchestra
     {
         return [
             PxUserProvider::class,
-        ];
-    }
-
-    /**
-     * Override application aliases.
-     *
-     * @param  \Illuminate\Foundation\Application  $app
-     * @return array<string, class-string<\Illuminate\Support\Facades\Facade>>
-     */
-    protected function getPackageAliases($app)
-    {
-        return [
-            'UserDataCache' => UserDataCache::class,
-            'AccessTokenHelper' => AccessTokenHelper::class,
+            \mindtwo\PxApiClients\PxApiClientsServiceProvider::class,
         ];
     }
 

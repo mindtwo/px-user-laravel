@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Config;
+use mindtwo\PxUserLaravel\Facades\PxUser;
 use mindtwo\PxUserLaravel\Facades\PxUserSession;
 
 beforeEach(function () {
@@ -15,7 +16,7 @@ test('pxSession returns SanctumSessionDriver', function () {
 });
 
 test('get new refresh token', function () {
-    // fakePxUserApi();
+    PxUser::fake();
 
     $driver = PxUserSession::driver();
 

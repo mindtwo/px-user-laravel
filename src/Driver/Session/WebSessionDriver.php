@@ -9,7 +9,7 @@ use mindtwo\PxUserLaravel\Driver\Contracts\ExpirationHelper;
 use mindtwo\PxUserLaravel\Driver\Contracts\SessionDriver;
 use mindtwo\PxUserLaravel\Driver\Session\AccessTokenHelper as SessionAccessTokenHelper;
 use mindtwo\PxUserLaravel\Driver\Session\ExpirationHelper as SessionExpirationHelper;
-use mindtwo\PxUserLaravel\Http\Client\PxClient;
+use mindtwo\PxUserLaravel\Http\Client\PxUserClient;
 
 class WebSessionDriver implements SessionDriver
 {
@@ -104,8 +104,8 @@ class WebSessionDriver implements SessionDriver
      */
     private function getNewRefreshToken(string $refreshToken): ?array
     {
-        /** @var PxClient $pxClient */
-        $pxClient = app()->make(PxClient::class, [
+        /** @var PxUserClient $pxClient */
+        $pxClient = app()->make('px-user-client', [
             'tenantCode' => $this->getTenant(),
             'domainCode' => $this->getDomain(),
         ]);

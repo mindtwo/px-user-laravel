@@ -6,7 +6,7 @@ use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Support\Carbon;
 use mindtwo\PxUserLaravel\Driver\Concerns\SimpleSessionDriver;
 use mindtwo\PxUserLaravel\Driver\Contracts\SessionDriver;
-use mindtwo\PxUserLaravel\Http\Client\PxClient;
+use mindtwo\PxUserLaravel\Http\Client\PxUserClient;
 use mindtwo\PxUserLaravel\Traits\HasRefreshableApiTokens;
 
 class SanctumSessionDriver implements SessionDriver
@@ -99,7 +99,11 @@ class SanctumSessionDriver implements SessionDriver
         $expirationHelper = $this->getExpirationHelper();
 
         $refreshToken = $refreshToken ?? $accessTokenHelper->get('refresh_token');
-        $currentPlainTextToken = str_replace('Bearer ', '', request()->header('Authorization'));
+        // Check if the token is a null value
+        $authorizationHeader = request()->hasHeader('Authorization') && request()->header('Authorization') !== 'null' ? request()->header('Authorization') : null;
+
+        // Replace the "Bearer " prefix with an empty string
+        $currentPlainTextToken = $authorizationHeader ? str_replace('Bearer ', '', $authorizationHeader) : null;
 
         // check if we can return the current token and don't need to refresh
         if ($currentPlainTextToken && ! $expirationHelper->accessTokenExpired()) {
@@ -121,7 +125,9 @@ class SanctumSessionDriver implements SessionDriver
 
         return [
             'access_token' => $refreshedToken->plainTextToken,
+            // @phpstan-ignore-next-line
             'refresh_token' => $refreshedToken->accessToken->refresh_token,
+            // @phpstan-ignore-next-line
             'expires_at' => $refreshedToken->accessToken->expires_at,
         ];
     }
@@ -145,11 +151,14 @@ class SanctumSessionDriver implements SessionDriver
         $newRefreshToken = $newTokenData['refresh_token'];
 
         if ($onlyUpdate) {
+            // TODO: maybe define contract
+            // @phpstan-ignore-next-line
             $this->user()->updateCurrentAccessTokenExpiration($refreshToken, $newRefreshToken, $newExpiresAt);
 
             return null;
         }
 
+        // @phpstan-ignore-next-line
         $refreshedToken = $this->user()->refreshAccessToken($refreshToken, $newRefreshToken, $newExpiresAt);
 
         return $refreshedToken;
@@ -160,8 +169,8 @@ class SanctumSessionDriver implements SessionDriver
      */
     private function getNewRefreshToken(string $refreshToken): array
     {
-        /** @var PxClient $pxClient */
-        $pxClient = app()->make(PxClient::class, [
+        /** @var PxUserClient $pxClient */
+        $pxClient = app()->make('px-user-client', [
             'tenantCode' => $this->getTenant(),
             'domainCode' => $this->getDomain(),
         ]);

@@ -197,7 +197,7 @@ class PxUserEngine extends Engine
         // request users
         try {
 
-            $response = $client->client([
+            $response = $client->clientWithHeaders([
                 'X-Context-Product-Code' => config('px-user.scout.product_code', 'lms'),
             ])
                 ->withToken($accessTokenHelper->get('access_token'))
@@ -220,7 +220,6 @@ class PxUserEngine extends Engine
 
         $data = $response->json('response', [])['data'] ?? [];
 
-        // @phpstan-ignore-next-line
         return collect($data)->pluck('id')->toArray();
     }
 

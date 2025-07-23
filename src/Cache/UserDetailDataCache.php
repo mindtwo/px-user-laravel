@@ -61,30 +61,33 @@ class UserDetailDataCache extends DataCache
             return [];
         }
 
-        $client = $client = new PxUserClient(
-            tenantCode: $this->model->tenant_code,
-            domainCode: $this->model->domain_code
-        );
-
         $accessTokenHelper = PxUserSession::newAccessTokenHelper(auth()->user());
         if (! $accessTokenHelper->get('access_token')) {
             return [];
         }
 
         // Check if the user is the same as the authenticated user.
-        if (Auth::id() === $this->model->id) {
+        if (Auth::id() === $this->model->getKey()) {
             return array_fill_keys($this->keys(), null);
         }
 
+        $client = app()->make(PxUserClient::class);
+
+        $tenantCode = property_exists($this->model, 'tenant_code') ? $this->model->tenant_code : null;
+        $domainCode = property_exists($this->model, 'domain_code') ? $this->model->domain_code : null;
+
         try {
-            $response = $client->post('users/details', [
+            // Request user details
+            $response = $client->withScope(fn () => $client, [
+                'tenantCode' => $tenantCode,
+                'domainCode' => $domainCode,
+            ])->post('users/details', [
                 'user_ids' => [$this->model->{config('px-user.px_user_id')}],
             ], [
                 'headers' => [
                     'Authorization' => 'Bearer '.$accessTokenHelper->get('access_token'),
                 ],
-            ])
-                ->json('response');
+            ])->json('response');
         } catch (\Throwable $th) {
             if (! $th instanceof RequestException || ! in_array($th->response->status(), [401, 403, 404])) {
                 throw $th;
@@ -102,7 +105,7 @@ class UserDetailDataCache extends DataCache
 
     protected function checkModel(): bool
     {
-        if (! isset($this->model->{config('px-user.px_user_id')}) || ! $this->model->tenant_code || ! $this->model->domain_code) {
+        if (! isset($this->model->{config('px-user.px_user_id')}) || ! isset($this->model->tenant_code) || ! isset($this->model->domain_code)) {
             return false;
         }
 
@@ -115,7 +118,7 @@ class UserDetailDataCache extends DataCache
             return false;
         }
 
-        return Auth::id() !== $this->model->id;
+        return Auth::id() !== $this->model->getKey();
     }
 
     public function keys(): array

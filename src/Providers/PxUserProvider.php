@@ -7,8 +7,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\ServiceProvider;
 use Laravel\Scout\EngineManager;
 use mindtwo\PxUserLaravel\Driver\Contracts\SessionDriver;
-use mindtwo\PxUserLaravel\Http\Client\PxAdminClient;
-use mindtwo\PxUserLaravel\Http\Client\PxClient;
+use mindtwo\PxUserLaravel\Http\Client\PxUserAdminClient;
 use mindtwo\PxUserLaravel\Http\Client\PxUserClient;
 use mindtwo\PxUserLaravel\Scout\PxUserEngine;
 use mindtwo\PxUserLaravel\Services\PxUserService;
@@ -59,27 +58,32 @@ class PxUserProvider extends ServiceProvider
         $this->app->scoped(PxUserService::class, function (Application $app) {
             return new PxUserService;
         });
-        $this->app->alias(PxUserService::class, 'px-user');
 
-        $this->app->scoped(PxClient::class, function (Application $app) {
-            if (app()->runningInConsole() && ! app()->runningUnitTests()) {
-                return new PxAdminClient(
-                    tenantCode: config('px-user.tenant'),
-                    domainCode: config('px-user.domain'),
-                    baseUrl: config('px-user.base_url'),
-                );
-            }
+        $this->app->scoped(PxUserAdminClient::class, function (Application $app) {
+            return new PxUserAdminClient;
+        });
 
+        $this->app->scoped(PxUserClient::class, function (Application $app) {
             return new PxUserClient(
                 tenantCode: config('px-user.tenant'),
                 domainCode: config('px-user.domain'),
-                baseUrl: config('px-user.base_url'),
             );
+        });
+
+        $this->app->scoped('px-user-client', function (Application $app) {
+            if (app()->runningInConsole() && ! app()->runningUnitTests()) {
+                return new PxUserAdminClient(
+                    tenantCode: config('px-user.tenant'),
+                    domainCode: config('px-user.domain'),
+                );
+            }
+
+            return $app->make(PxUserClient::class);
         });
 
         $this->app->bind(SessionDriver::class, function (Application $app) {
             // session method handles the retrieval of the guard
-            return $app->make('px-user')->session();
+            return $app->make(PxUserService::class)->session();
         });
     }
 

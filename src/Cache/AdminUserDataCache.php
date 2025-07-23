@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Client\RequestException;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Log;
-use mindtwo\PxUserLaravel\Http\Client\PxAdminClient;
+use mindtwo\PxUserLaravel\Http\Client\PxUserAdminClient;
 use mindtwo\TwoTility\Cache\Data\DataCache;
 
 /**
@@ -53,7 +53,7 @@ class AdminUserDataCache extends DataCache
             return [];
         }
 
-        $pxAdmin = $this->getPxAdminClient(new PxAdminClient);
+        $pxAdmin = $this->getPxAdminClient(new PxUserAdminClient);
 
         $userId = $this->model->{config('px-user.px_user_id')};
 
@@ -84,7 +84,7 @@ class AdminUserDataCache extends DataCache
         return $this->usedKeys;
     }
 
-    protected function getPxAdminClient(PxAdminClient $pxAdminClient): PxAdminClient
+    protected function getPxAdminClient(PxUserAdminClient $pxAdminClient): PxUserAdminClient
     {
         if (! config('px-user.configure_px_admin_client')) {
             return $pxAdminClient;

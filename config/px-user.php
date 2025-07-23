@@ -18,7 +18,7 @@ return [
      *
      * Default: env('APP_ENV')
      */
-    'stage' => env('APP_ENV') === 'local' ? 'preprod' : env('APP_ENV'),
+    'stage' => env('PX_USER_STAGE', (env('APP_ENV') === 'local' ? 'preprod' : 'prod')),
 
     /**
      * Machine-to-machine credentials used for communication between backend
