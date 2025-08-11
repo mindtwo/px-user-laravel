@@ -1,7 +1,6 @@
 <?php
 
 use Illuminate\Support\Facades\Config;
-use mindtwo\PxUserLaravel\Facades\PxUser;
 use mindtwo\PxUserLaravel\Facades\PxUserSession;
 
 beforeEach(function () {
@@ -16,8 +15,6 @@ test('pxSession returns SanctumSessionDriver', function () {
 });
 
 test('get new refresh token', function () {
-    PxUser::fake();
-
     $driver = PxUserSession::driver();
 
     $method = new ReflectionMethod(
@@ -27,8 +24,52 @@ test('get new refresh token', function () {
 
     $method->setAccessible(true);
 
-    $this->assertEquals(
-        // (Object [, mixed $parameter [, mixed $... ]])
-        'blah', $method->invoke($driver, 'test')
+    $response = $method->invoke($driver, 'test');
+
+    $this->assertIsArray($response);
+    $this->assertArrayHasKey('access_token', $response);
+    $this->assertArrayHasKey('refresh_token', $response);
+});
+
+test('get refresh token', function () {
+    $user = User::factory()->create();
+
+    $driver = PxUserSession::driver();
+    $driver->setUser($user);
+
+    $user->createAccessToken('test-token', null, 'test-refresh-token');
+
+    $method = new ReflectionMethod(
+        // Class , Method
+        get_class($driver), 'refreshAccessToken'
     );
+
+    $method->setAccessible(true);
+
+    $result = $method->invoke($driver, 'test-refresh-token');
+
+    $this->assertInstanceOf(\Laravel\Sanctum\NewAccessToken::class, $result);
+    $this->assertEquals(1, $user->tokens()->count());
+});
+
+test('route /api/v1/auth/refresh', function () {
+    $user = User::factory()->create();
+    $refreshToken = 'test-refresh-token';
+
+    $user->createAccessToken('test-token', null, 'test-refresh-token');
+
+    $response = $this->postJson('/api/v1/refresh', [
+        'refreshToken' => $refreshToken,
+    ]);
+
+    $response->assertStatus(200);
+
+    $this->assertEquals(1, $user->tokens()->count());
+    $this->assertNotEquals($refreshToken, $user->tokens()->first()->refresh_token);
+
+    $this->assertNotNull($user->getPxUserToken());
+    $this->assertNotEquals('fake-token', Cache::get(cache_key(config('px-user.session_prefix') ?? 'px_user', [
+        $user->{config('px-user.px_user_id')},
+        'access_token',
+    ])->debugIf(config('px-user.debug'))->toString()));
 });
