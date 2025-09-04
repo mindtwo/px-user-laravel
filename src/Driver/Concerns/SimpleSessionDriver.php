@@ -32,7 +32,7 @@ trait SimpleSessionDriver
         $pxClient = app()->make('px-user-client');
 
         try {
-            $userRequest = $pxClient->get(PxUserClient::USER_WITH_PERMISSIONS, [
+            $userRequest = $pxClient->get(PxUserClient::USER_VALIDITY, [
                 'headers' => ['Authorization' => 'Bearer '.$tokenData['access_token']],
             ], [
                 'withExtendedProducts' => true,
