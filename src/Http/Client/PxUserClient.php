@@ -21,9 +21,11 @@ class PxUserClient extends PxUserApiClient
     public function __construct(
         ?string $tenantCode = null,
         ?string $domainCode = null,
+        ?string $version = null,
     ) {
         parent::__construct(
             stage: config('px-user.stage', 'prod'),
+            version: $version,
         );
 
         $tenantCode = $tenantCode ?: config('px-user.tenant_code');
