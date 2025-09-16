@@ -8,7 +8,8 @@ class PxEipClient extends PxUserClient
 {
     use AuthorizedUserContext;
 
-    public function __construct() {
+    public function __construct()
+    {
         parent::__construct(
             version: 'v2'
         );
