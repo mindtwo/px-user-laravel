@@ -22,16 +22,6 @@ if (! function_exists('px_user')) {
 if (! function_exists('active_guard')) {
     function active_guard(?string $default = null): ?string
     {
-        foreach (array_keys(config('auth.guards')) as $guard) {
-            if (! is_string($guard)) {
-                continue;
-            }
-
-            if (auth()->guard($guard)->check()) {
-                return $guard;
-            }
-        }
-
-        return $default;
+        return config('auth.guards.default', $default);
     }
 }
