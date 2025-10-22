@@ -59,7 +59,7 @@ class PxUserService
     {
         // If no guard is given, use the active guard, if that is not available, use the default guard.
         if ($guard === null) {
-            $guard = active_guard(config('px-user.driver.default'));
+            $guard = $this->activeGuard(config('px-user.driver.default'));
         }
 
         $driverConfig = config("px-user.driver.$guard");
@@ -72,5 +72,13 @@ class PxUserService
         $driverClass = $driverConfig['session_driver'];
 
         return app()->make($driverClass);
+    }
+
+    /**
+     * Get the active auth guard
+     */
+    public function activeGuard(?string $default = null): ?string
+    {
+        return config('auth.defaults.guard', $default);
     }
 }

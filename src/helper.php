@@ -18,10 +18,3 @@ if (! function_exists('px_user')) {
         return app(\mindtwo\PxUserLaravel\Services\PxUserService::class);
     }
 }
-
-if (! function_exists('active_guard')) {
-    function active_guard(?string $default = null): ?string
-    {
-        return config('auth.guards.default', $default);
-    }
-}
