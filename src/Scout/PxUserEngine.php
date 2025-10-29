@@ -185,18 +185,21 @@ class PxUserEngine extends Engine
             return [];
         }
 
+        // Set the tenant and domain from the builder
         $tenant = $this->getTenantFromBuilder($builder);
         $domain = $this->getDomainFromBuilder($builder);
 
-        /** @var PxUserClient */
-        $client = app()->make(PxUserClient::class, [
+        /** @var PxUserClient $client */
+        $client = app()->make(PxUserClient::class);
+
+        // Update the client with the tenant and domain
+        $client->setOptions([
             'tenantCode' => $tenant,
             'domainCode' => $domain,
         ]);
 
         // request users
         try {
-
             $response = $client->clientWithHeaders([
                 'X-Context-Product-Code' => config('px-user.scout.product_code', 'lms'),
             ])
