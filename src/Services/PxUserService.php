@@ -13,6 +13,12 @@ use mindtwo\TwoTility\Cache\Data\DataCache;
 
 class PxUserService
 {
+    protected array $config = [];
+
+    public function __construct(
+        protected string $activeGuard,
+    ) {}
+
     /**
      * Get recommended cache class. If running in console, use AdminUserDataCache, otherwise UserDataCache.
      *
@@ -57,12 +63,16 @@ class PxUserService
      */
     public function session(?string $guard = null): ?SessionDriver
     {
+        if ($guard !== null) {
+            $this->activeGuard = $guard;
+        }
+
         // If no guard is given, use the active guard, if that is not available, use the default guard.
         if ($guard === null) {
             $guard = $this->activeGuard(config('px-user.driver.default'));
         }
 
-        $driverConfig = config("px-user.driver.$guard");
+        $driverConfig = $this->getConfig($guard);
         if (! $driverConfig) {
             Log::error('PxUserLaravel: No driver found');
 
@@ -79,6 +89,23 @@ class PxUserService
      */
     public function activeGuard(?string $default = null): ?string
     {
+        if (isset($this->activeGuard)) {
+            return $this->activeGuard;
+        }
+
         return config('auth.defaults.guard', $default);
+    }
+
+    protected function getConfig(?string $guard = null): array
+    {
+        if (! empty($this->config)) {
+            return $this->config;
+        }
+
+        $guard = $this->activeGuard($guard);
+
+        $this->config = config("px-user.driver.$guard");
+
+        return $this->config;
     }
 }

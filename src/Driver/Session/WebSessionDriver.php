@@ -3,6 +3,7 @@
 namespace mindtwo\PxUserLaravel\Driver\Session;
 
 use Illuminate\Contracts\Auth\Authenticatable;
+use Illuminate\Support\Facades\Auth;
 use mindtwo\PxUserLaravel\Driver\Concerns\SimpleSessionDriver;
 use mindtwo\PxUserLaravel\Driver\Contracts\AccessTokenHelper;
 use mindtwo\PxUserLaravel\Driver\Contracts\ExpirationHelper;
@@ -13,7 +14,19 @@ use mindtwo\PxUserLaravel\Http\Client\PxUserClient;
 
 class WebSessionDriver implements SessionDriver
 {
-    use SimpleSessionDriver;
+    use SimpleSessionDriver {
+        SimpleSessionDriver::login as baseLogin;
+    }
+
+    public function login(array $tokenData): ?self
+    {
+        $this->baseLogin($tokenData);
+
+        // Login the user in the Laravel session
+        Auth::login($this->user());
+
+        return $this;
+    }
 
     public function newAccessTokenHelper(Authenticatable $user): AccessTokenHelper
     {

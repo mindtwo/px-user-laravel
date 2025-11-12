@@ -2,7 +2,6 @@
 
 namespace mindtwo\PxUserLaravel\Driver\Concerns;
 
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
@@ -60,9 +59,6 @@ trait SimpleSessionDriver
 
         // save the retrieved user data to cache
         UserDataCache::initialize($response['user']);
-
-        // login user and save token data to cache
-        Auth::login($user);
 
         PxUserLoginEvent::dispatch(
             $user,

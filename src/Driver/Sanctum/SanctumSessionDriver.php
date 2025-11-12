@@ -4,6 +4,7 @@ namespace mindtwo\PxUserLaravel\Driver\Sanctum;
 
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Auth;
 use mindtwo\PxUserLaravel\Driver\Concerns\SimpleSessionDriver;
 use mindtwo\PxUserLaravel\Driver\Contracts\SessionDriver;
 use mindtwo\PxUserLaravel\Http\Client\PxUserClient;
@@ -14,6 +15,21 @@ class SanctumSessionDriver implements SessionDriver
     use SimpleSessionDriver;
 
     private ?AccessTokenHelper $accessTokenHelper = null;
+
+    use SimpleSessionDriver {
+        SimpleSessionDriver::login as baseLogin;
+    }
+
+    public function login(array $tokenData): ?self
+    {
+        $this->baseLogin($tokenData);
+
+        // Login the user in the Laravel session
+        // TODO: replace
+        Auth::login($this->user());
+
+        return $this;
+    }
 
     public function newAccessTokenHelper(Authenticatable $authenticatable): AccessTokenHelper
     {

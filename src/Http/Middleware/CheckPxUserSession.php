@@ -15,7 +15,7 @@ class CheckPxUserSession
     public function handle(Request $request, \Closure $next, ?string $guard = null)
     {
         if (! is_null($user = $request->user())) {
-            $pxSession = px_session($guard);
+            $pxSession = px_user()->session($guard);
 
             $pxSession->setUser($user);
 
