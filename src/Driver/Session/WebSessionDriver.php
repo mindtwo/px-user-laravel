@@ -14,16 +14,11 @@ use mindtwo\PxUserLaravel\Http\Client\PxUserClient;
 
 class WebSessionDriver implements SessionDriver
 {
-    use SimpleSessionDriver {
-        SimpleSessionDriver::login as baseLogin;
-    }
+    use SimpleSessionDriver;
 
-    public function login(array $tokenData): ?self
+    public function loginUser(Authenticatable $user): ?self
     {
-        $this->baseLogin($tokenData);
-
-        // Login the user in the Laravel session
-        Auth::login($this->user());
+        Auth::login($user);
 
         return $this;
     }

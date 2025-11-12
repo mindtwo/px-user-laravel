@@ -2,6 +2,7 @@
 
 namespace mindtwo\PxUserLaravel\Driver\Concerns;
 
+use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
@@ -18,6 +19,8 @@ trait SimpleSessionDriver
     {
         return $this;
     }
+
+    abstract public function loginUser(Authenticatable $user): ?self;
 
     /**
      * Login a user.
@@ -59,6 +62,9 @@ trait SimpleSessionDriver
 
         // save the retrieved user data to cache
         UserDataCache::initialize($response['user']);
+
+        // login the user in the Laravel session
+        $this->loginUser($user);
 
         PxUserLoginEvent::dispatch(
             $user,

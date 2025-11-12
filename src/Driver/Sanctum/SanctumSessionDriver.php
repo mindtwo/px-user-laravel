@@ -16,17 +16,10 @@ class SanctumSessionDriver implements SessionDriver
 
     private ?AccessTokenHelper $accessTokenHelper = null;
 
-    use SimpleSessionDriver {
-        SimpleSessionDriver::login as baseLogin;
-    }
-
-    public function login(array $tokenData): ?self
+    public function loginUser(Authenticatable $user): ?self
     {
-        $this->baseLogin($tokenData);
-
-        // Login the user in the Laravel session
-        // TODO: replace
-        Auth::login($this->user());
+        // TODO: change handling for Sanctum
+        Auth::login($user);
 
         return $this;
     }
