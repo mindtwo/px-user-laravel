@@ -31,14 +31,14 @@ return [
      *
      * Default: env('PX_USER_TENANT')
      */
-    'tenant' => env('PX_USER_TENANT'),
+    'tenant_code' => env('PX_USER_TENANT'),
 
     /**
      * PX User domain setting
      *
      * Default: env('PX_USER_DOMAIN')
      */
-    'domain' => env('PX_USER_DOMAIN'),
+    'domain_code' => env('PX_USER_DOMAIN'),
 
     /**
      * Key from User Model for PX User ID

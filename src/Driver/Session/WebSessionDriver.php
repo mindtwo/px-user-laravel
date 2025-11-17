@@ -43,7 +43,7 @@ class WebSessionDriver implements SessionDriver
      */
     public function getTenant(): string
     {
-        return config('px-user.tenant');
+        return config('px-user.tenant_code');
     }
 
     /**
@@ -51,7 +51,7 @@ class WebSessionDriver implements SessionDriver
      */
     public function getDomain(): string
     {
-        return config('px-user.domain');
+        return config('px-user.domain_code');
     }
 
     /**

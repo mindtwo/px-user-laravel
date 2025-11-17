@@ -56,7 +56,7 @@ class SanctumSessionDriver implements SessionDriver
      */
     public function getTenant(): string
     {
-        return $this->user()->tenant_code ?? config('px-user.tenant');
+        return $this->user()->tenant_code ?? config('px-user.tenant_code');
     }
 
     /**
@@ -64,7 +64,7 @@ class SanctumSessionDriver implements SessionDriver
      */
     public function getDomain(): string
     {
-        return $this->user()->domain_code ?? config('px-user.domain');
+        return $this->user()->domain_code ?? config('px-user.domain_code');
     }
 
     /**
