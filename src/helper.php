@@ -1,8 +1,16 @@
 <?php
 
+use mindtwo\PxUserLaravel\Services\PxUserService;
+
 if (! function_exists('px_user')) {
-    function px_user(): \mindtwo\PxUserLaravel\Services\PxUserService
+
+    /**
+     * Get the PxUserService
+     *
+     * @deprecated Use the PxUserService facade instead.
+     */
+    function px_user(): PxUserService
     {
-        return app(\mindtwo\PxUserLaravel\Services\PxUserService::class);
+        return resolve(PxUserService::class);
     }
 }

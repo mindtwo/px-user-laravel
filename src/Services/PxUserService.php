@@ -15,9 +15,18 @@ class PxUserService
 {
     protected array $config = [];
 
+    protected ?string $activeDriver = null;
+
+    /**
+     * Create a new PxUserService instance.
+     */
     public function __construct(
-        protected string $activeGuard,
-    ) {}
+        ?string $driver = null,
+    ) {
+        if ($driver !== null) {
+            $this->activeDriver = $driver;
+        }
+    }
 
     /**
      * Get recommended cache class. If running in console, use AdminUserDataCache, otherwise UserDataCache.
@@ -59,20 +68,13 @@ class PxUserService
     }
 
     /**
-     * Get session driver for active auth guard.
+     * Get session driver for active auth driver.
      */
-    public function session(?string $guard = null): ?SessionDriver
+    public function session(): ?SessionDriver
     {
-        if ($guard !== null) {
-            $this->activeGuard = $guard;
-        }
+        // Get the config for the specified driver
+        $driverConfig = $this->config();
 
-        // If no guard is given, use the active guard, if that is not available, use the default guard.
-        if ($guard === null) {
-            $guard = $this->activeGuard(config('px-user.driver.default'));
-        }
-
-        $driverConfig = $this->getConfig($guard);
         if (! $driverConfig) {
             Log::error('PxUserLaravel: No driver found');
 
@@ -85,27 +87,55 @@ class PxUserService
     }
 
     /**
-     * Get the active auth guard
+     * Load configuration for the specified driver.
      */
-    public function activeGuard(?string $default = null): ?string
+    public function loadConfig(string $driver): self
     {
-        if (isset($this->activeGuard)) {
-            return $this->activeGuard;
+        // Set the active driver
+        $this->activeDriver = $driver;
+        config()->set('px-user.driver.default', $driver);
+
+        // Load the configuration for the specified driver
+        $this->config = config("px-user.driver.$driver");
+
+        if (empty($this->config)) {
+            Log::error("PxUserLaravel: No config found for driver '$driver'");
+
+            return $this;
         }
 
-        return config('auth.defaults.guard', $default);
+        return $this;
     }
 
-    protected function getConfig(?string $guard = null): array
+    /**
+     * Get the active driver
+     */
+    public function driver(?string $fallback = null): ?string
     {
-        if (! empty($this->config)) {
-            return $this->config;
+        if (isset($this->activeDriver)) {
+            // If activeDriver is set, return it
+            return $this->activeDriver;
         }
 
-        $guard = $this->activeGuard($guard);
+        return collect([
+            config('px-user.driver.default'),
+            config('auth.defaults.guard'),
+            $fallback,
+        ])->first(fn ($guard) => ! empty($guard)) ?: null;
+    }
 
-        $this->config = config("px-user.driver.$guard");
+    /**
+     * Get the configuration for the active driver.
+     */
+    public function config(): array
+    {
+        $driver = $this->driver();
+        $config = config("px-user.driver.$driver", []);
 
-        return $this->config;
+        if (empty($config)) {
+            Log::error("PxUserLaravel: No config found for driver '$driver'");
+        }
+
+        return $config;
     }
 }

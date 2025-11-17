@@ -18,8 +18,8 @@ class TestCase extends Orchestra
     {
         // Setup default database to use sqlite :memory:
         tap($app->make('config'), function (Repository $config) {
-            $config->set('px-user.domain', 'testbench');
-            $config->set('px-user.tenant', 'testbench');
+            $config->set('px-user.domain_code', 'testbench');
+            $config->set('px-user.tenant_code', 'testbench');
             $config->set('px-user.m2m_credentials', 'test:secret');
         });
     }

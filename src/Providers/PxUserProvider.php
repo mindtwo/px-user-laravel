@@ -3,7 +3,6 @@
 namespace mindtwo\PxUserLaravel\Providers;
 
 use Illuminate\Foundation\Application;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\ServiceProvider;
 use Laravel\Scout\EngineManager;
 use mindtwo\PxUserLaravel\Driver\Contracts\SessionDriver;
@@ -37,15 +36,6 @@ class PxUserProvider extends ServiceProvider
         }
     }
 
-    protected function debug(string $message, array $context = []): void
-    {
-        if (! config('px-user.debug')) {
-            return;
-        }
-
-        Log::debug('PxUserLaravel: '.$message, $context);
-    }
-
     /**
      * Register any application services.
      *
@@ -55,11 +45,11 @@ class PxUserProvider extends ServiceProvider
     {
         $this->mergeConfigFrom(__DIR__.'/../../config/px-user.php', 'px-user');
 
-        $this->app->scoped(PxUserService::class, function (Application $app) {
-            // session method handles the retrieval of the guard
-            $guard = $parameters['guard'] ?? config('px-user.driver.default');
+        $this->app->scoped(PxUserService::class, function (Application $app, array $parameters = []) {
+            // session method handles the retrieval of the driver
+            $driver = $parameters['driver'] ?? config('px-user.driver.default');
 
-            return new PxUserService($guard);
+            return new PxUserService($driver);
         });
 
         $this->app->scoped(PxUserAdminClient::class, function (Application $app) {
@@ -68,27 +58,33 @@ class PxUserProvider extends ServiceProvider
 
         $this->app->scoped(PxUserClient::class, function (Application $app) {
             return new PxUserClient(
-                tenantCode: config('px-user.tenant'),
-                domainCode: config('px-user.domain'),
+                tenantCode: config('px-user.tenant_code'),
+                domainCode: config('px-user.domain_code'),
             );
         });
 
         $this->app->scoped('px-user-client', function (Application $app) {
             if (app()->runningInConsole() && ! app()->runningUnitTests()) {
                 return new PxUserAdminClient(
-                    tenantCode: config('px-user.tenant'),
-                    domainCode: config('px-user.domain'),
+                    tenantCode: config('px-user.tenant_code'),
+                    domainCode: config('px-user.domain_code'),
                 );
             }
 
             return $app->make(PxUserClient::class);
         });
 
-        $this->app->scoped(SessionDriver::class, function (Application $app, array $parameters = []) {
-            // session method handles the retrieval of the guard
-            $guard = $parameters['guard'] ?? config('px-user.driver.default');
+        $this->app->bind(SessionDriver::class, function (Application $app, array $parameters = []) {
+            // If PxUserService has already been resolved (e.g., by LoadPxUserDriver middleware),
+            // reuse that instance to prevent overriding the driver configuration
+            if ($app->resolved(PxUserService::class)) {
+                return $app->make(PxUserService::class)->session();
+            }
 
-            return $app->make(PxUserService::class)->session($guard);
+            // Otherwise, resolve with the provided driver parameter if available
+            $driver = $parameters['driver'] ?? null;
+
+            return $app->make(PxUserService::class, $driver ? ['driver' => $driver] : [])->session();
         });
     }
 
