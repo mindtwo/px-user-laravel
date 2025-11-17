@@ -57,7 +57,7 @@ class FakePxUserService extends PxUserService implements Fake
     {
         // If no guard is given, use the active guard, if that is not available, use the default guard.
         if ($guard === null) {
-            $guard = $this->activeGuard(config('px-user.driver.default'));
+            $guard = $this->driver(config('px-user.driver.default'));
         }
 
         $driverConfig = config("px-user.driver.$guard");
