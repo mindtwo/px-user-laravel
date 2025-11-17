@@ -9,8 +9,6 @@ return [
 
     'debug' => env('PX_USER_DEBUG', false),
 
-    'base_url' => env('PX_USER_BASE_URL', 'https://user.api.preprod.pl-x.cloud'),
-
     'px_user_login_url' => env('PX_USER_LOGIN_URL', '/'),
 
     /**
@@ -70,18 +68,6 @@ return [
      * given user data.
      */
     'retrieve_user_action' => \mindtwo\PxUserLaravel\Actions\RetrieveUserOnLoginAction::class,
-
-    /**
-     * Amount of retries for http requests to px-user's api.
-     */
-    'http_request_retries' => 3,
-
-    'http_request_retry_delay' => 300,
-
-    /**
-     * Timeout for http requests to px-user's api.
-     */
-    'http_request_connect_timeout' => 10,
 
     /**
      * The drivers used to authenticate the user.
