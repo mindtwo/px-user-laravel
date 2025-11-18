@@ -3,7 +3,7 @@
 namespace mindtwo\PxUserLaravel\Http\Middleware;
 
 use Illuminate\Http\Request;
-use mindtwo\PxUserLaravel\Driver\Contracts\SessionDriver;
+use mindtwo\PxUserLaravel\Services\PxUserService;
 
 class CheckPxUserSession
 {
@@ -16,8 +16,12 @@ class CheckPxUserSession
     public function handle(Request $request, \Closure $next, ?string $driver = null)
     {
         if (! is_null($user = $request->user())) {
+            // Ensure the PxUserService is loaded with the specified driver
+            $pxUser = resolve(PxUserService::class, ['driver' => $driver]);
+            // ->loadConfig($driver);
+
             // Get the px user session for the current user
-            $pxSession = resolve(SessionDriver::class, ['driver' => $driver]);
+            $pxSession = $pxUser->session();
 
             $pxSession->setUser($user);
 
