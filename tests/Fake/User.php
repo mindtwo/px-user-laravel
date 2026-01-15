@@ -4,12 +4,13 @@ namespace mindtwo\PxUserLaravel\Tests\Fake;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as AuthUser;
-use mindtwo\PxUserLaravel\Traits\HasRefreshableApiTokens;
+use mindtwo\PxUserLaravel\Contracts\PxUser;
+use mindtwo\PxUserLaravel\Traits\HasPxUser;
 
-class User extends AuthUser
+class User extends AuthUser implements PxUser
 {
     use HasFactory,
-        HasRefreshableApiTokens;
+        HasPxUser;
 
     protected $fillable = [
         'px_user_id',

@@ -2,11 +2,13 @@
 
 namespace mindtwo\PxUserLaravel\Scout;
 
+use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Client\RequestException;
+use Illuminate\Support\Collection as SupportCollection;
 use Illuminate\Support\LazyCollection;
 use Laravel\Scout\Builder;
 use Laravel\Scout\Engines\Engine;
-use mindtwo\PxUserLaravel\Facades\PxUserSession;
 use mindtwo\PxUserLaravel\Http\Client\PxUserClient;
 
 class PxUserEngine extends Engine
@@ -14,7 +16,7 @@ class PxUserEngine extends Engine
     /**
      * Update the given model in the index.
      *
-     * @param  \Illuminate\Database\Eloquent\Collection  $models
+     * @param  Collection  $models
      * @return void
      */
     public function update($models)
@@ -25,7 +27,7 @@ class PxUserEngine extends Engine
     /**
      * Remove the given model from the index.
      *
-     * @param  \Illuminate\Database\Eloquent\Collection  $models
+     * @param  Collection  $models
      * @return void
      */
     public function delete($models)
@@ -91,14 +93,13 @@ class PxUserEngine extends Engine
      * Pluck and return the primary keys of the given results.
      *
      * @param  mixed  $results
-     * @return \Illuminate\Support\Collection
      */
-    public function mapIds($results)
+    public function mapIds($results): SupportCollection
     {
         $results = $results['results'];
 
         return count($results) > 0
-                    ? collect($results->modelKeys())
+                    ? collect($results->modelKeys()) // @phpstan-ignore-line
                     : collect();
     }
 
@@ -106,8 +107,8 @@ class PxUserEngine extends Engine
      * Map the given results to instances of the given model.
      *
      * @param  mixed  $results
-     * @param  \Illuminate\Database\Eloquent\Model  $model
-     * @return \Illuminate\Database\Eloquent\Collection
+     * @param  Model  $model
+     * @return Collection
      */
     public function map(Builder $builder, $results, $model)
     {
@@ -118,8 +119,8 @@ class PxUserEngine extends Engine
      * Map the given results to instances of the given model via a lazy collection.
      *
      * @param  mixed  $results
-     * @param  \Illuminate\Database\Eloquent\Model  $model
-     * @return \Illuminate\Support\LazyCollection
+     * @param  Model  $model
+     * @return LazyCollection
      */
     public function lazyMap(Builder $builder, $results, $model)
     {
@@ -140,7 +141,7 @@ class PxUserEngine extends Engine
     /**
      * Flush all of the model's records from the engine.
      *
-     * @param  \Illuminate\Database\Eloquent\Model  $model
+     * @param  Model  $model
      * @return void
      */
     public function flush($model)
@@ -180,50 +181,27 @@ class PxUserEngine extends Engine
             return [];
         }
 
-        $accessTokenHelper = PxUserSession::newAccessTokenHelper(auth()->user());
-        if (! $accessTokenHelper->get('access_token')) {
-            return [];
-        }
-
         // Set the tenant and domain from the builder
         $tenant = $this->getTenantFromBuilder($builder);
         $domain = $this->getDomainFromBuilder($builder);
 
         /** @var PxUserClient $client */
-        $client = app()->make(PxUserClient::class);
-
-        // Update the client with the tenant and domain
-        $client->setOptions([
-            'tenantCode' => $tenant,
-            'domainCode' => $domain,
-        ]);
+        $client = resolve(PxUserClient::class)
+            ->setDomainCode($domain)
+            ->setTenantCode($tenant);
 
         // request users
         try {
-            $response = $client->clientWithHeaders([
-                'X-Context-Product-Code' => config('px-user.scout.product_code', 'lms'),
-            ])
-                ->withToken($accessTokenHelper->get('access_token'))
-                ->acceptJson()
-                ->asJson()
-                ->get('users', [
-                    'names' => $query,
-                ]);
+            $users = $client->getUsers($query, config('px-user.scout.product_code', 'lms'));
         } catch (\Throwable $th) {
             if (! $th instanceof RequestException || $th->response->status() !== 404) {
                 throw $th;
             }
 
-            $response = $th->response;
-        }
-
-        if (! $response->successful()) {
             return [];
         }
 
-        $data = $response->json('response', [])['data'] ?? [];
-
-        return collect($data)->pluck('id')->toArray();
+        return collect($users)->pluck('id')->toArray();
     }
 
     /**

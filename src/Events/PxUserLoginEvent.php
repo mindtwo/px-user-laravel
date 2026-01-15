@@ -2,22 +2,21 @@
 
 namespace mindtwo\PxUserLaravel\Events;
 
-use Illuminate\Contracts\Auth\Authenticatable;
-use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
-use mindtwo\PxUserLaravel\Data\PxUserPermissionData;
+use mindtwo\PxUserLaravel\Contracts\PxUser;
+use mindtwo\PxUserLaravel\DataTransfer\PxUserData;
+use mindtwo\PxUserLaravel\DataTransfer\PxUserDataWithPermissions;
 
 class PxUserLoginEvent
 {
-    use Dispatchable;
     use SerializesModels;
 
     /**
      * Create a new event instance.
      */
     public function __construct(
-        public Authenticatable $user,
-        public PxUserPermissionData $userData,
-        public string $accessToken,
+        public PxUser $user,
+        public PxUserData|PxUserDataWithPermissions $userData,
+        public bool $isFirstLogin = false,
     ) {}
 }

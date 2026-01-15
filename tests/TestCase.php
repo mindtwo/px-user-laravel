@@ -3,8 +3,9 @@
 namespace mindtwo\PxUserLaravel\Tests;
 
 use Illuminate\Contracts\Config\Repository;
-use mindtwo\PxUserLaravel\Providers\PxUserProvider;
+use mindtwo\PxUserLaravel\PxUserProvider;
 use Orchestra\Testbench\TestCase as Orchestra;
+use Spatie\LaravelData\LaravelDataServiceProvider;
 
 class TestCase extends Orchestra
 {
@@ -33,8 +34,10 @@ class TestCase extends Orchestra
     protected function getPackageProviders($app)
     {
         return [
+            \Laravel\Scout\ScoutServiceProvider::class,
+            \mindtwo\TwoTility\TwoTilityProvider::class,
+            LaravelDataServiceProvider::class,
             PxUserProvider::class,
-            \mindtwo\PxApiClients\PxApiClientsServiceProvider::class,
         ];
     }
 

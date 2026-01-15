@@ -2,42 +2,57 @@
 
 namespace mindtwo\PxUserLaravel\Http\Client;
 
-use Throwable;
+use Illuminate\Http\Client\PendingRequest;
+use mindtwo\PxUserLaravel\DataTransfer\PxUserData;
+use mindtwo\TwoTility\Http\BaseApiClient;
 
-class PxUserAdminClient extends PxUserClient
+class PxUserAdminClient extends BaseApiClient
 {
-    use M2mSecretHeaderTrait;
-
     /**
-     * Machine-to-machine credentials used for communication between backend
-     * and PX User API.
-     *
-     * @var ?string
+     * Get data for px-user with m2m
      */
-    protected $m2mCredentials = null;
-
-    /**
-     * Validate the provided token against the PX User API.
-     */
-    public function validateToken(?string $token): bool
+    public function getUser(string $userId): ?PxUserData
     {
-        if (! $token) {
-            return false;
+        $userData = $this->client()->get("user/$userId")
+            ->json('response');
+
+        if (! isset($userData['user'])) {
+            return null;
         }
 
-        try {
-            $response = $this->get("validate-token/$token")->throw();
-        } catch (Throwable $e) {
-            if (config('px-user.debug')) {
-                // Log::info("Failed to login user for url: {$this->getUri()}", [
-                //     'message' => $e->getMessage(),
-                //     'url' => $this->baseUrl,
-                // ]);
-            }
+        return PxUserData::from($userData['user']);
+    }
 
-            return false;
+    public function apiName(): string
+    {
+        return 'px-user';
+    }
+
+    /**
+     * Get the config key for client configuration.
+     */
+    protected function configBaseKey(): string
+    {
+        return 'px-user.apiClient';
+    }
+
+    /**
+     * Hook before client configuration.
+     * Ensures the admin client is only used in console context.
+     */
+    protected function beforeConfigure(PendingRequest $client): void
+    {
+        if (! app()->runningInConsole() && ! app()->runningUnitTests()) {
+            throw new \RuntimeException('PxUserAdminClient can only be used in console context.');
         }
+    }
 
-        return $response->ok();
+    /**
+     * Hook called after configuration.
+     * Adds M2M authorization header.
+     */
+    protected function afterConfigure(PendingRequest $client): void
+    {
+        $client->withHeader('x-m2m-authorization', config('px-user.m2m_credentials'));
     }
 }

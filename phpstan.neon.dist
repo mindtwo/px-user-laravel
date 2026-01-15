@@ -6,7 +6,9 @@ parameters:
     paths:
         - src
 
-    level: 5
+    level: 6
 
     ignoreErrors:
+        - identifier: missingType.iterableValue
         - identifier: trait.unused
+        - identifier: missingType.generics
