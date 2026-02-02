@@ -23,26 +23,26 @@ class PxUserDataWithPermissions extends DataTransferPxUserDataWithPermissions
         }
 
         $faker = Factory::create();
-        $productCode = $attributes['productCode'] ?? $faker->word();
-        $tenantCode = $attributes['tenantCode'] ?? $faker->word();
-        $domainCode = $attributes['domainCode'] ?? $faker->word();
+        $productCode = $attributes['product_code'] ?? $faker->word();
+        $tenantCode = $attributes['tenant_code'] ?? $faker->word();
+        $domainCode = $attributes['domain_code'] ?? $faker->word();
 
         return new self(
             id: $attributes['id'] ?? $faker->uuid(),
-            correlatedId: $attributes['correlatedId'] ?? $faker->uuid(),
+            correlatedId: $attributes['correlated_id'] ?? $faker->uuid(),
             email: $attributes['email'] ?? $faker->safeEmail(),
-            preferredUsername: $attributes['preferredUsername'] ?? $faker->userName(),
+            preferredUsername: $attributes['preferred_username'] ?? $faker->userName(),
             tenantCode: $tenantCode,
             domainCode: $domainCode,
-            isEnabled: $attributes['isEnabled'] ?? true,
-            isConfirmed: $attributes['isConfirmed'] ?? true,
+            isEnabled: $attributes['is_enabled'] ?? true,
+            isConfirmed: $attributes['is_confirmed'] ?? true,
             suspended: $attributes['suspended'] ?? false,
-            isHuman: $attributes['isHuman'] ?? true,
+            isHuman: $attributes['is_human'] ?? true,
             firstname: $attributes['firstname'] ?? $faker->firstName(),
             lastname: $attributes['lastname'] ?? $faker->lastName(),
             gender: $attributes['gender'] ?? $faker->randomElement(['male', 'female', 'diverse']),
-            lastLoginAt: $attributes['lastLoginAt'] ?? CarbonImmutable::now()->subHours($faker->numberBetween(1, 24)),
-            lastActivityAt: $attributes['lastActivityAt'] ?? CarbonImmutable::now()->subMinutes($faker->numberBetween(1, 60)),
+            lastLoginAt: $attributes['last_login_at'] ?? CarbonImmutable::now()->subHours($faker->numberBetween(1, 24)),
+            lastActivityAt: $attributes['last_activity_at'] ?? CarbonImmutable::now()->subMinutes($faker->numberBetween(1, 60)),
             source: $attributes['source'] ?? 'test',
             locale: $attributes['locale'] ?? $faker->randomElement(['en', 'de', 'fr', 'es']),
             products: $attributes['products'] ?? [$productCode],
@@ -62,7 +62,7 @@ class PxUserDataWithPermissions extends DataTransferPxUserDataWithPermissions
                 ],
             ],
             roles: $attributes['roles'] ?? null,
-            productsValidity: $attributes['productsValidity'] ?? null,
+            productsValidity: $attributes['products_validity'] ?? null,
         );
     }
 }

@@ -82,7 +82,7 @@ class PxUser
      * @param  string|null  $tenant  Optional tenant code (defaults to config)
      * @return (Model&ContractsPxUser)|false Returns false if no user model is configured or validation fails
      */
-    public function login(array $tokenData, ?string $domain = null, ?string $tenant = null): (Model&ContractsPxUser)|false
+    public function login(array $tokenData): (Model&ContractsPxUser)|false
     {
         [$userData, $user] = $this->resolveByToken($tokenData);
 
@@ -102,30 +102,35 @@ class PxUser
         return $user;
     }
 
+    public function refresh(string $refreshToken): array
+    {
+        $tokenRepository = resolve(ExternalApiTokens::class)->repository('px-user');
+        $result = $tokenRepository->refresh($refreshToken);
+
+        throw_if(! $result, new RuntimeException('Could not refresh tokens'));
+
+        $user = auth()->user();
+
+        return $tokenRepository->current($user);
+    }
+
     /**
      * Resolve user by token without logging in.
      *
      * @param  array  $tokenData  The token data array
-     * @param  string|null  $domain  Optional domain code (defaults to config)
-     * @param  string|null  $tenant  Optional tenant code (defaults to config)
      * @return array{0: PxUserDataWithPermissions, 1: (Model&ContractsPxUser)|false}
      */
-    public function resolveByToken(array $tokenData, ?string $domain = null, ?string $tenant = null): array
+    public function resolveByToken(array $tokenData): array
     {
         // Validate token data
         if (! $this->validateToken($tokenData)) {
             throw new RuntimeException('Invalid token data provided.');
         }
 
-        // $domain = $domain ?? config('px-user.domain');
-        // $tenant = $tenant ?? config('px-user.tenant');
-
         // Fetch user data from PX User API
         /** @var PxUserClient $client */
         $client = app(PxUserClient::class);
         $client->setAccessToken($tokenData['access_token']);
-        // ->setDomainCode($domain)
-        // ->setTenantCode($tenant);
 
         $userData = $client->getUserWithPermissions();
 

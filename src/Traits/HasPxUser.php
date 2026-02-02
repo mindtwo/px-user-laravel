@@ -3,13 +3,16 @@
 namespace mindtwo\PxUserLaravel\Traits;
 
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Log;
 use mindtwo\PxUserLaravel\Services\PxUserCachedApiService;
 use mindtwo\TwoTility\Cache\Models\HasCachedAttributes;
 use mindtwo\TwoTility\ExternalApiTokens\ExternalApiTokens;
 
 trait HasPxUser
 {
-    use HasCachedAttributes;
+    use HasCachedAttributes {
+        HasCachedAttributes::cachedAttributeKey as parentCachedAttributes;
+    }
 
     /**
      * List of cachable attributes.
@@ -18,9 +21,7 @@ trait HasPxUser
         'email',
         'firstname',
         'lastname',
-        'roles',
-        'products',
-        'preferred_username',
+        'preferredUsername',
     ];
 
     /**
@@ -97,6 +98,7 @@ trait HasPxUser
             $service = resolve(PxUserCachedApiService::class);
             $service->getUser();
         } catch (\Throwable $e) {
+            Log::debug('PX-User: '.$e->getMessage());
             abort(401, 'Unauthenticated');
         }
     }

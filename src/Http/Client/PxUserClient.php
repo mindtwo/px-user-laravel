@@ -71,7 +71,7 @@ class PxUserClient extends BaseApiClient
      */
     public function getUserWithPermissions(bool $withExtendedProducts = false): PxUserDataWithPermissions
     {
-        $response = $this->client()->get('v1/user', [
+        $response = $this->client()->get('v1/user-with-permissions', [
             'withExtendedProducts' => $withExtendedProducts,
         ])->json('response');
 
@@ -174,9 +174,9 @@ class PxUserClient extends BaseApiClient
     protected function afterConfigure(PendingRequest $client): void
     {
         // Determine if we need to get the authenticated user
-        $needsUser = $this->accessTokenOverride === null
-            || $this->tenantCodeOverride === null
-            || $this->domainCodeOverride === null;
+        $needsUser = $this->accessTokenOverride === null;
+        // || $this->tenantCodeOverride === null
+        // || $this->domainCodeOverride === null;
 
         $user = null;
         if ($needsUser) {

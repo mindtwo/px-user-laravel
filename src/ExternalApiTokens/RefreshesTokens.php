@@ -23,6 +23,8 @@ trait RefreshesTokens
         // Save the tokens
         $this->save($user, $newTokens);
 
+        auth()->login($user);
+
         return true;
     }
 }

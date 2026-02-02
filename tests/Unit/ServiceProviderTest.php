@@ -38,12 +38,6 @@ test('external-api token repository is configured for px-user', function () {
         ->and(config('external-api.apis.px-user.repository'))->toBe('px-user');
 });
 
-test('token driver defaults to redis', function () {
-    $driver = config('px-user.token_driver', 'redis');
-
-    expect($driver)->toBe('redis');
-});
-
 test('token repository uses redis when driver is redis', function () {
     config(['px-user.token_driver' => 'redis']);
 

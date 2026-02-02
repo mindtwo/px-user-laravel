@@ -76,9 +76,7 @@ test('cachableAttributes contains expected fields', function () {
     expect($cachableAttributes)->toContain('email')
         ->and($cachableAttributes)->toContain('firstname')
         ->and($cachableAttributes)->toContain('lastname')
-        ->and($cachableAttributes)->toContain('roles')
-        ->and($cachableAttributes)->toContain('products')
-        ->and($cachableAttributes)->toContain('preferred_username');
+        ->and($cachableAttributes)->toContain('preferredUsername');
 });
 
 test('beforeCachedAttributeLoad fetches and caches user data when cache is empty', function () {

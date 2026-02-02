@@ -60,7 +60,6 @@ class PxUserDataWithPermissions extends Data
         if ($this->productsValidity !== null) {
             return;
         }
-
         // if the first element is not indexed by 0, we assume the products are extended.
         // We got a map of product code to validity.
         $isExtended = is_null(Arr::get($this->products, '0'));

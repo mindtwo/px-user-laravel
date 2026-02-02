@@ -29,4 +29,25 @@ class PxUserData extends Data
         public string $source,
         public string $locale,
     ) {}
+
+    public static function fromExtendedData(PxUserDataWithPermissions $data): self
+    {
+        return new self(
+            id: $data->id,
+            email: $data->email,
+            preferredUsername: $data->preferredUsername,
+            tenantCode: $data->tenantCode,
+            domainCode: $data->domainCode,
+            isEnabled: $data->isEnabled,
+            isConfirmed: $data->isConfirmed,
+            firstname: $data->firstname,
+            lastname: $data->lastname,
+            activatedAt: null,
+            lastLoginAt: $data->lastLoginAt,
+            roles: $data->roles,
+            products: $data->products,
+            source: $data->source,
+            locale: $data->locale,
+        );
+    }
 }
