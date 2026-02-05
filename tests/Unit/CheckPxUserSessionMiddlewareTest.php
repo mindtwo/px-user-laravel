@@ -3,6 +3,7 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use mindtwo\PxUserLaravel\Http\Middleware\CheckPxUserSession;
+use mindtwo\PxUserLaravel\Testing\FakePxUser;
 use mindtwo\PxUserLaravel\Tests\Fake\User;
 
 beforeEach(function () {
@@ -24,6 +25,7 @@ test('middleware allows request to pass through', function () {
 test('middleware handles authenticated PxUser', function () {
     $user = User::factory()->create(['px_user_id' => 'test-user-123']);
     Auth::login($user);
+    FakePxUser::actAs($user);
 
     $middleware = new CheckPxUserSession;
     $request = Request::create('/test', 'GET');

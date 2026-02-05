@@ -9,6 +9,7 @@ use mindtwo\PxUserLaravel\DataTransfer\PxUserData;
 use mindtwo\PxUserLaravel\DataTransfer\PxUserDataWithPermissions as DataTransferPxUserDataWithPermissions;
 use mindtwo\PxUserLaravel\PxUser;
 use mindtwo\PxUserLaravel\Services\PxUserCachedApiService;
+use mindtwo\TwoTility\ExternalApiTokens\ExternalApiTokens;
 use Mockery;
 use RuntimeException;
 
@@ -48,10 +49,11 @@ class FakePxUser extends PxUser
             'refresh_token_expiration_utc' => now()->addWeek()->toIso8601String(),
         ];
 
-        $user = resolve(PxUser::class)->login($fakeTokenData);
+        [$userData, $user] = resolve(PxUser::class)->resolveByToken($fakeTokenData);
 
-        // Clear overrides after use
-        app()->forgetInstance('px-user.fake.overrides');
+        // Store the access token in the repository
+        $tokenRepository = resolve(ExternalApiTokens::class)->repository('px-user');
+        $tokenRepository->save($user, $fakeTokenData);
 
         return $user ?: null;
     }
@@ -181,6 +183,8 @@ class FakePxUser extends PxUser
         Cache::flush();
         Mockery::close();
 
-        app()->bind(PxUser::class, new PxUser);
+        app()->bind(PxUser::class, function () {
+            return new PxUser;
+        });
     }
 }

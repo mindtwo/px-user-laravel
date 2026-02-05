@@ -18,9 +18,8 @@ class PxUserRedisTokenRepository extends RedisExternalApiTokenRepository
             keyMapping: [
                 'access_token' => 'access_token',
                 'refresh_token' => 'refresh_token',
-                'expires_at' => 'expires_at',
-                'expires_in' => 'expires_in',
-                'refresh_token_valid_until' => 'refresh_token_valid_until',
+                'expires_at' => 'access_token_expiration_utc',
+                'refresh_token_valid_until' => 'refresh_token_expiration_utc',
             ],
         );
     }
