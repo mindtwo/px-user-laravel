@@ -87,9 +87,8 @@ trait HasPxUser
     protected function beforeCachedAttributeLoad(): void
     {
         $cacheKey = $this->cachedAttributeKey();
-
         // Check if cache already exists
-        if (Cache::store()->has($cacheKey)) {
+        if (Cache::has($cacheKey)) {
             return;
         }
 

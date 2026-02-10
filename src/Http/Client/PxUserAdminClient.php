@@ -42,7 +42,7 @@ class PxUserAdminClient extends BaseApiClient
      */
     protected function beforeConfigure(PendingRequest $client): void
     {
-        if (! app()->runningInConsole() && ! app()->runningUnitTests()) {
+        if (! app()->runningInConsole()) {
             throw new \RuntimeException('PxUserAdminClient can only be used in console context.');
         }
     }
