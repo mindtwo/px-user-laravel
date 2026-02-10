@@ -5,9 +5,15 @@ namespace mindtwo\PxUserLaravel\Http\Client;
 use Illuminate\Http\Client\PendingRequest;
 use mindtwo\PxUserLaravel\DataTransfer\PxUserData;
 use mindtwo\TwoTility\Http\BaseApiClient;
+use RuntimeException;
 
 class PxUserAdminClient extends BaseApiClient
 {
+    public function __construct()
+    {
+        throw_if(! app()->runningInConsole(), new RuntimeException('PxUserAdminClient can only be used in console context.'));
+    }
+
     /**
      * Get data for px-user with m2m
      */
