@@ -4,8 +4,8 @@ namespace mindtwo\PxUserLaravel\Helper;
 
 use mindtwo\PxUserLaravel\Contracts\PxUser;
 
-readonly class Utils {
-
+readonly class Utils
+{
     public static function getPxUserCacheKey(string|PxUser $user, string $name = 'px-user'): string
     {
         $userId = $user instanceof PxUser ? $user->getPxUserId() : $user;
@@ -15,5 +15,4 @@ readonly class Utils {
             'key' => $userId,
         ])->toString();
     }
-
 }
