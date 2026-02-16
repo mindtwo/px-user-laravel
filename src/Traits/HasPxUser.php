@@ -4,6 +4,7 @@ namespace mindtwo\PxUserLaravel\Traits;
 
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
+use mindtwo\PxUserLaravel\Services\PxUserAdminCachedApiService;
 use mindtwo\PxUserLaravel\Services\PxUserCachedApiService;
 use mindtwo\TwoTility\Cache\Models\HasCachedAttributes;
 use mindtwo\TwoTility\ExternalApiTokens\ExternalApiTokens;
@@ -89,6 +90,13 @@ trait HasPxUser
         $cacheKey = $this->cachedAttributeKey();
         // Check if cache already exists
         if (Cache::has($cacheKey)) {
+            return;
+        }
+
+        if (app()->runningInConsole() && ! app()->runningUnitTests()) {
+            //
+            resolve(PxUserAdminCachedApiService::class)->getUser($this->getPxUserId());
+
             return;
         }
 

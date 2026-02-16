@@ -9,9 +9,25 @@ use RuntimeException;
 
 class PxUserAdminClient extends BaseApiClient
 {
+    /**
+     * Custom M2M credentials to override config value.
+     */
+    protected ?string $m2mCredentials = null;
+
     public function __construct()
     {
         throw_if(! app()->runningInConsole(), new RuntimeException('PxUserAdminClient can only be used in console context.'));
+    }
+
+    /**
+     * Set custom M2M credentials.
+     * Allows consuming applications to override the default config credentials.
+     */
+    public function withM2mCredentials(string $credentials): static
+    {
+        $this->m2mCredentials = $credentials;
+
+        return $this;
     }
 
     /**
@@ -59,6 +75,8 @@ class PxUserAdminClient extends BaseApiClient
      */
     protected function afterConfigure(PendingRequest $client): void
     {
-        $client->withHeader('x-m2m-authorization', config('px-user.m2m_credentials'));
+        $credentials = $this->m2mCredentials ?? config('px-user.m2m_credentials');
+
+        $client->withHeader('x-m2m-authorization', $credentials);
     }
 }

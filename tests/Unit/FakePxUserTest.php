@@ -26,6 +26,7 @@ test('fake can login user', function () {
         'firstname' => 'Actor',
         'lastname' => 'As',
     ]);
+    $this->actingAs($user);
 
     expect(auth()->user()->firstname)->toBe('Actor')
         ->and(auth()->user()->lastname)->toBe('As');

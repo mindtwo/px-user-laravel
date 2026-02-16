@@ -27,12 +27,6 @@ test('PxUserCachedApiService is registered in service container', function () {
     expect($service)->toBeInstanceOf(PxUserCachedApiService::class);
 });
 
-test('px-user-client alias resolves to PxUserClient in non-console context', function () {
-    $client = app('px-user-client');
-
-    expect($client)->toBeInstanceOf(PxUserClient::class);
-});
-
 test('external-api token repository is configured for px-user', function () {
     expect(config('external-api.apis.px-user'))->not->toBeNull()
         ->and(config('external-api.apis.px-user.repository'))->toBe('px-user');

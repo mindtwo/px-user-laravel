@@ -3,15 +3,11 @@
 namespace mindtwo\PxUserLaravel;
 
 use Exception;
-use Illuminate\Foundation\Application;
 use Illuminate\Support\ServiceProvider;
 use Laravel\Scout\EngineManager;
 use mindtwo\PxUserLaravel\ExternalApiTokens\PxUserEloquentTokenRepository;
 use mindtwo\PxUserLaravel\ExternalApiTokens\PxUserRedisTokenRepository;
-use mindtwo\PxUserLaravel\Http\Client\PxUserAdminClient;
-use mindtwo\PxUserLaravel\Http\Client\PxUserClient;
 use mindtwo\PxUserLaravel\Scout\PxUserEngine;
-use mindtwo\PxUserLaravel\Services\PxUserCachedApiService;
 
 class PxUserProvider extends ServiceProvider
 {
@@ -40,26 +36,6 @@ class PxUserProvider extends ServiceProvider
 
         // Configure external API token repository for PxUser
         $this->configureExternalApiTokens();
-
-        $this->app->scoped(PxUserAdminClient::class, function (Application $app) {
-            return new PxUserAdminClient;
-        });
-
-        $this->app->scoped(PxUserClient::class, function (Application $app) {
-            return new PxUserClient;
-        });
-
-        $this->app->scoped(PxUserCachedApiService::class, function (Application $app) {
-            return new PxUserCachedApiService($app['cache.store']);
-        });
-
-        $this->app->scoped('px-user-client', function (Application $app) {
-            if (app()->runningInConsole() && ! app()->runningUnitTests()) {
-                return $app->make(PxUserAdminClient::class);
-            }
-
-            return $app->make(PxUserClient::class);
-        });
     }
 
     /**

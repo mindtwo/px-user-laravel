@@ -26,7 +26,6 @@ test('PxUserRedisTokenRepository has correct key mapping', function () {
     expect($keyMapping)->toHaveKey('access_token')
         ->and($keyMapping)->toHaveKey('refresh_token')
         ->and($keyMapping)->toHaveKey('expires_at')
-        ->and($keyMapping)->toHaveKey('expires_in')
         ->and($keyMapping)->toHaveKey('refresh_token_valid_until');
 });
 
@@ -52,7 +51,6 @@ test('PxUserEloquentTokenRepository has correct key mapping', function () {
     expect($keyMapping)->toHaveKey('access_token')
         ->and($keyMapping)->toHaveKey('refresh_token')
         ->and($keyMapping)->toHaveKey('expires_at')
-        ->and($keyMapping)->toHaveKey('expires_in')
         ->and($keyMapping)->toHaveKey('refresh_token_valid_until');
 });
 

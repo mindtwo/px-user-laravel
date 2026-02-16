@@ -5,6 +5,7 @@ namespace mindtwo\PxUserLaravel\Services;
 use mindtwo\PxUserLaravel\Contracts\PxUser;
 use mindtwo\PxUserLaravel\DataTransfer\PxUserData;
 use mindtwo\PxUserLaravel\DataTransfer\PxUserDataWithPermissions;
+use mindtwo\PxUserLaravel\Helper\Utils;
 use mindtwo\PxUserLaravel\Http\Client\PxUserClient;
 use mindtwo\TwoTility\Http\CachedApiService;
 
@@ -25,7 +26,7 @@ class PxUserCachedApiService extends CachedApiService
         throw_if(! $user instanceof PxUser, 'Current authenticatable does not implement PxUser contract');
 
         return $this->cache->remember(
-            $this->getCacheKey('px-user', $user),
+            Utils::getPxUserCacheKey($user),
             now()->addMinutes($ttl),
             fn () => $this->client()->getUser()
         );
@@ -43,7 +44,7 @@ class PxUserCachedApiService extends CachedApiService
         throw_if(! $user instanceof PxUser, 'Current authenticatable does not implement PxUser contract');
 
         return $this->cache->remember(
-            $this->getCacheKey('px-user', $user),
+            Utils::getPxUserCacheKey($user),
             now()->addMinutes($ttl),
             fn () => $this->client()->getUserWithPermissions($withExtendedProducts)
         );
@@ -70,7 +71,7 @@ class PxUserCachedApiService extends CachedApiService
 
         // Check cache for each user
         foreach ($userIds as $userId) {
-            $cacheKey = cache_key('px-user-details', ['id' => $userId])->toString();
+            $cacheKey = Utils::getPxUserCacheKey($userId);
             $cachedUser = $this->cache->get($cacheKey);
 
             if ($cachedUser instanceof PxUserData) {
@@ -86,7 +87,7 @@ class PxUserCachedApiService extends CachedApiService
 
             // Cache each fetched user individually
             foreach ($fetchedUsers as $userData) {
-                $cacheKey = cache_key('px-user-details', ['id' => $userData->id])->toString();
+                $cacheKey = Utils::getPxUserCacheKey($userData->id);
                 $this->cache->put($cacheKey, $userData, now()->addMinutes($ttl));
                 $cachedUsers[$userData->id] = $userData;
             }
@@ -108,13 +109,5 @@ class PxUserCachedApiService extends CachedApiService
     protected function getClientClass(): string
     {
         return PxUserClient::class;
-    }
-
-    public function getCacheKey(string $name, PxUser $pxUser): string
-    {
-        return cache_key($name, [
-            'class' => config('px-user.user_model'),
-            'key' => $pxUser->getPxUserId(),
-        ])->toString();
     }
 }
