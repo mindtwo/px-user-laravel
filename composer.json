@@ -20,7 +20,7 @@
     "require": {
         "php": "^8.4",
         "laravel/framework": "^12.0",
-        "mindtwo/two-tility": "@dev",
+        "mindtwo/two-tility": "^1.0",
         "mindtwo/laravel-decorator": "^3.0",
         "laravel/scout": "^10.13",
         "spatie/laravel-data": "^4.18"
@@ -97,10 +97,6 @@
         }
     },
     "repositories": [
-        {
-            "type": "path",
-            "url": "/Users/andy/Development/Packages/two-tility"
-        },
         {
             "type": "composer",
             "url": "https://repo.packagist.com/mindtwo/"
