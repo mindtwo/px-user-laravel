@@ -2,8 +2,10 @@
 
 namespace mindtwo\PxUserLaravel\Http\Middleware;
 
+use Closure;
 use Illuminate\Http\Request;
-use mindtwo\PxUserLaravel\Services\PxUserService;
+use mindtwo\PxUserLaravel\Contracts\PxUser;
+use Symfony\Component\HttpFoundation\Response;
 
 class CheckPxUserSession
 {
@@ -12,26 +14,20 @@ class CheckPxUserSession
      *
      * @param  Closure(Request): (Response)  $next
      * @param  string|null  $driver  - The driver to load
+     * @return mixed
      */
-    public function handle(Request $request, \Closure $next, ?string $driver = null)
+    public function handle(Request $request, Closure $next, ?string $driver = null)
     {
-        if (! is_null($user = $request->user())) {
-            // Ensure the PxUserService is loaded with the specified driver
-            $pxUser = resolve(PxUserService::class, ['driver' => $driver]);
-            // ->loadConfig($driver);
+        if ($request->user() instanceof PxUser) {
+            $hasValidToken = false;
+            try {
+                $hasValidToken = $request->user()->hasValidPxUserToken();
+            } catch (\Throwable $th) {
+                // throw $th;
+            }
 
-            // Get the px user session for the current user
-            $pxSession = $pxUser->session();
-
-            $pxSession->setUser($user);
-
-            if (! $pxSession->validate()) {
-                $pxSession->logout();
-
-                $redirectTo = config('px-user.px_user_login_url', '/');
-
-                return response()->redirectTo($redirectTo);
-
+            if (! $hasValidToken) {
+                abort(401);
             }
         }
 
