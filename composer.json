@@ -18,8 +18,8 @@
         }
     ],
     "require": {
-        "php": "^8.4",
-        "laravel/framework": "^12.0",
+        "php": "^8.4|^8.5",
+        "laravel/framework": "^12.0|^13.0",
         "mindtwo/two-tility": "^1.0",
         "mindtwo/laravel-decorator": "^3.0",
         "laravel/scout": "^10.13",
@@ -29,7 +29,7 @@
         "laravel/pint": "^1.14",
         "laravel/sanctum": "^4.0",
         "nunomaduro/collision": "^8.1.1",
-        "orchestra/testbench": "^10.0.0",
+        "orchestra/testbench": "^10.0.0||^11.0",
         "pestphp/pest": "^4.0",
         "pestphp/pest-plugin-arch": "^4.0",
         "pestphp/pest-plugin-laravel": "^4.0",
