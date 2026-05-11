@@ -2,6 +2,7 @@
 
 namespace mindtwo\PxUserLaravel\Tests\Fake;
 
+use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as AuthUser;
 use mindtwo\PxUserLaravel\Contracts\PxUser;
@@ -19,7 +20,7 @@ class User extends AuthUser implements PxUser
     /**
      * Create a new factory instance for the model.
      *
-     * @return \Illuminate\Database\Eloquent\Factories\Factory<static>
+     * @return Factory<static>
      */
     protected static function newFactory()
     {

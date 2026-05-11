@@ -3,7 +3,11 @@
 namespace mindtwo\PxUserLaravel\Tests;
 
 use Illuminate\Contracts\Config\Repository;
+use Illuminate\Foundation\Application;
+use Illuminate\Support\ServiceProvider;
+use Laravel\Scout\ScoutServiceProvider;
 use mindtwo\PxUserLaravel\PxUserProvider;
+use mindtwo\TwoTility\TwoTilityProvider;
 use Orchestra\Testbench\TestCase as Orchestra;
 use Spatie\LaravelData\LaravelDataServiceProvider;
 
@@ -12,7 +16,7 @@ class TestCase extends Orchestra
     /**
      * Define environment setup.
      *
-     * @param  \Illuminate\Foundation\Application  $app
+     * @param  Application  $app
      * @return void
      */
     protected function defineEnvironment($app)
@@ -28,14 +32,14 @@ class TestCase extends Orchestra
     /**
      * Get package providers.
      *
-     * @param  \Illuminate\Foundation\Application  $app
-     * @return array<int, class-string<\Illuminate\Support\ServiceProvider>>
+     * @param  Application  $app
+     * @return array<int, class-string<ServiceProvider>>
      */
     protected function getPackageProviders($app)
     {
         return [
-            \Laravel\Scout\ScoutServiceProvider::class,
-            \mindtwo\TwoTility\TwoTilityProvider::class,
+            ScoutServiceProvider::class,
+            TwoTilityProvider::class,
             LaravelDataServiceProvider::class,
             PxUserProvider::class,
         ];

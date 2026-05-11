@@ -7,7 +7,7 @@ use mindtwo\TwoTility\ExternalApiTokens\Contracts\ExternalApiTokenRepository;
 test('PxUserRedisTokenRepository has correct api name', function () {
     $repo = new PxUserRedisTokenRepository;
 
-    $reflection = new \ReflectionClass($repo);
+    $reflection = new ReflectionClass($repo);
     $property = $reflection->getProperty('apiName');
     $property->setAccessible(true);
 
@@ -17,7 +17,7 @@ test('PxUserRedisTokenRepository has correct api name', function () {
 test('PxUserRedisTokenRepository has correct key mapping', function () {
     $repo = new PxUserRedisTokenRepository;
 
-    $reflection = new \ReflectionClass($repo);
+    $reflection = new ReflectionClass($repo);
     $property = $reflection->getProperty('keyMapping');
     $property->setAccessible(true);
 
@@ -32,7 +32,7 @@ test('PxUserRedisTokenRepository has correct key mapping', function () {
 test('PxUserEloquentTokenRepository has correct api name', function () {
     $repo = new PxUserEloquentTokenRepository;
 
-    $reflection = new \ReflectionClass($repo);
+    $reflection = new ReflectionClass($repo);
     $property = $reflection->getProperty('apiName');
     $property->setAccessible(true);
 
@@ -42,7 +42,7 @@ test('PxUserEloquentTokenRepository has correct api name', function () {
 test('PxUserEloquentTokenRepository has correct key mapping', function () {
     $repo = new PxUserEloquentTokenRepository;
 
-    $reflection = new \ReflectionClass($repo);
+    $reflection = new ReflectionClass($repo);
     $property = $reflection->getProperty('keyMapping');
     $property->setAccessible(true);
 

@@ -68,7 +68,7 @@ test('cachableAttributes contains expected fields', function () {
     $user = User::factory()->create(['px_user_id' => 'test-user-123']);
 
     // Access protected property via reflection
-    $reflection = new \ReflectionClass($user);
+    $reflection = new ReflectionClass($user);
     $property = $reflection->getProperty('cachableAttributes');
     $property->setAccessible(true);
     $cachableAttributes = $property->getValue($user);
@@ -115,7 +115,7 @@ test('beforeCachedAttributeLoad fetches and caches user data when cache is empty
     Cache::forget($detailsCacheKey);
 
     // Trigger the beforeCachedAttributeLoad hook via accessing a cached attribute
-    $reflection = new \ReflectionClass($user);
+    $reflection = new ReflectionClass($user);
     $method = $reflection->getMethod('beforeCachedAttributeLoad');
     $method->setAccessible(true);
     $method->invoke($user);
@@ -134,7 +134,7 @@ test('beforeCachedAttributeLoad does not fetch when cache exists', function () {
     Http::fake();
 
     // Trigger the beforeCachedAttributeLoad hook
-    $reflection = new \ReflectionClass($user);
+    $reflection = new ReflectionClass($user);
     $method = $reflection->getMethod('beforeCachedAttributeLoad');
     $method->setAccessible(true);
     $method->invoke($user);
@@ -155,7 +155,7 @@ test('beforeCachedAttributeLoad handles API errors gracefully', function () {
     Cache::forget($cacheKey);
 
     // Trigger the beforeCachedAttributeLoad hook - should not throw
-    $reflection = new \ReflectionClass($user);
+    $reflection = new ReflectionClass($user);
     $method = $reflection->getMethod('beforeCachedAttributeLoad');
     $method->setAccessible(true);
 
