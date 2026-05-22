@@ -1,13 +1,11 @@
 <?php
 
 use Laravel\Scout\EngineManager;
-use mindtwo\PxUserLaravel\ExternalApiTokens\PxUserEloquentTokenRepository;
-use mindtwo\PxUserLaravel\ExternalApiTokens\PxUserRedisTokenRepository;
 use mindtwo\PxUserLaravel\Http\Client\PxUserAdminClient;
 use mindtwo\PxUserLaravel\Http\Client\PxUserClient;
-use mindtwo\PxUserLaravel\PxUserProvider;
 use mindtwo\PxUserLaravel\Scout\PxUserEngine;
 use mindtwo\PxUserLaravel\Services\PxUserCachedApiService;
+use mindtwo\PxUserLaravel\Services\PxUserTokens;
 
 test('PxUserClient is registered in service container', function () {
     $client = app(PxUserClient::class);
@@ -27,31 +25,10 @@ test('PxUserCachedApiService is registered in service container', function () {
     expect($service)->toBeInstanceOf(PxUserCachedApiService::class);
 });
 
-test('external-api token repository is configured for px-user', function () {
-    expect(config('external-api.apis.px-user'))->not->toBeNull()
-        ->and(config('external-api.apis.px-user.repository'))->toBe('px-user');
-});
+test('PxUserTokens service is resolvable from container', function () {
+    $service = app(PxUserTokens::class);
 
-test('token repository uses redis when driver is redis', function () {
-    config(['px-user.token_driver' => 'redis']);
-
-    // Re-bootstrap the provider to apply config change
-    $this->app->register(PxUserProvider::class, true);
-
-    $repositoryClass = config('external-api.alias.px-user');
-
-    expect($repositoryClass)->toBe(PxUserRedisTokenRepository::class);
-});
-
-test('token repository uses eloquent when driver is eloquent', function () {
-    config(['px-user.token_driver' => 'eloquent']);
-
-    // Re-bootstrap the provider to apply config change
-    $this->app->register(PxUserProvider::class, true);
-
-    $repositoryClass = config('external-api.alias.px-user');
-
-    expect($repositoryClass)->toBe(PxUserEloquentTokenRepository::class);
+    expect($service)->toBeInstanceOf(PxUserTokens::class);
 });
 
 test('scout engine is registered', function () {

@@ -175,8 +175,6 @@ class PxUserClient extends BaseApiClient
     {
         // Determine if we need to get the authenticated user
         $needsUser = $this->accessTokenOverride === null;
-        // || $this->tenantCodeOverride === null
-        // || $this->domainCodeOverride === null;
 
         $user = null;
         if ($needsUser) {
@@ -185,7 +183,7 @@ class PxUserClient extends BaseApiClient
         }
 
         // Add bearer token
-        $accessToken = $this->accessTokenOverride ?? $user?->getPxUserAccessToken();
+        $accessToken = $this->accessTokenOverride ?? $user->getPxUserAccessToken();
         if ($accessToken) {
             $client->withToken($accessToken);
         }

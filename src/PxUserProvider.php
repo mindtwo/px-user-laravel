@@ -2,11 +2,8 @@
 
 namespace mindtwo\PxUserLaravel;
 
-use Exception;
 use Illuminate\Support\ServiceProvider;
 use Laravel\Scout\EngineManager;
-use mindtwo\PxUserLaravel\ExternalApiTokens\PxUserEloquentTokenRepository;
-use mindtwo\PxUserLaravel\ExternalApiTokens\PxUserRedisTokenRepository;
 use mindtwo\PxUserLaravel\Scout\PxUserEngine;
 
 class PxUserProvider extends ServiceProvider
@@ -19,6 +16,7 @@ class PxUserProvider extends ServiceProvider
     public function boot()
     {
         $this->publishConfig();
+        $this->publishMigrations();
 
         resolve(EngineManager::class)->extend('px-user', function () {
             return new PxUserEngine;
@@ -33,9 +31,6 @@ class PxUserProvider extends ServiceProvider
     public function register()
     {
         $this->mergeConfigFrom(__DIR__.'/../config/px-user.php', 'px-user');
-
-        // Configure external API token repository for PxUser
-        $this->configureExternalApiTokens();
     }
 
     /**
@@ -55,30 +50,12 @@ class PxUserProvider extends ServiceProvider
     }
 
     /**
-     * Configure external API token repository for PxUser.
-     *
-     * @return void
+     * Publish the package migrations.
      */
-    protected function configureExternalApiTokens()
+    protected function publishMigrations(): void
     {
-        $driver = config('px-user.token_driver', 'redis');
-
-        // Merge PxUser API configuration into external-api config
-        config([
-            'external-api.apis.px-user' => [
-                'repository' => 'px-user',
-            ],
-        ]);
-
-        // Register appropriate repository based on driver
-        $repositoryClass = match ($driver) {
-            'eloquent' => PxUserEloquentTokenRepository::class,
-            'redis' => PxUserRedisTokenRepository::class,
-            default => throw new Exception('Invalid driver for px user.', 1),
-        };
-
-        config([
-            'external-api.alias.px-user' => $repositoryClass,
-        ]);
+        $this->publishesMigrations([
+            __DIR__.'/../database/migrations' => database_path('migrations'),
+        ], 'px-user-migrations');
     }
 }
