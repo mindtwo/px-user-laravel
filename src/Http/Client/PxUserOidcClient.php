@@ -11,6 +11,7 @@ class PxUserOidcClient extends BaseApiClient
     private string $clientId;
 
     private ?string $pxUserTenant = null;
+
     private ?string $pxUserDomain = null;
 
     /**
@@ -71,5 +72,4 @@ class PxUserOidcClient extends BaseApiClient
 
         return "$tenant:$domain";
     }
-
 }

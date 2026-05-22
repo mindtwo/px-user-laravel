@@ -21,7 +21,7 @@ return [
      */
     'stage' => env('PX_USER_STAGE', (env('APP_ENV') === 'local' ? 'preprod' : 'prod')),
 
-        /**
+    /**
      * PX User tenant setting
      *
      * Default: env('PX_USER_TENANT')
