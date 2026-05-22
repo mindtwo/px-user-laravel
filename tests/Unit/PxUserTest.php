@@ -13,7 +13,7 @@ beforeEach(function () {
 });
 
 test('validateToken returns true for valid token data', function () {
-    $pxUser = new PxUser;
+    $pxUser = resolve(PxUser::class);
 
     $validTokenData = [
         'access_token' => 'valid-token',
@@ -24,7 +24,7 @@ test('validateToken returns true for valid token data', function () {
 });
 
 test('validateToken returns false when access_token is missing', function () {
-    $pxUser = new PxUser;
+    $pxUser = resolve(PxUser::class);
 
     $invalidTokenData = [
         'access_token_expiration_utc' => '2026-12-31T23:59:59Z',
@@ -34,7 +34,7 @@ test('validateToken returns false when access_token is missing', function () {
 });
 
 test('validateToken returns false when access_token_expiration_utc is missing', function () {
-    $pxUser = new PxUser;
+    $pxUser = resolve(PxUser::class);
 
     $invalidTokenData = [
         'access_token' => 'valid-token',
@@ -44,7 +44,7 @@ test('validateToken returns false when access_token_expiration_utc is missing', 
 });
 
 test('validateToken accepts optional refresh_token fields', function () {
-    $pxUser = new PxUser;
+    $pxUser = resolve(PxUser::class);
 
     $validTokenData = [
         'access_token' => 'valid-token',
@@ -59,7 +59,7 @@ test('validateToken accepts optional refresh_token fields', function () {
 test('find returns user by px_user_id', function () {
     $user = User::factory()->create(['px_user_id' => 'test-user-123']);
 
-    $pxUser = new PxUser;
+    $pxUser = resolve(PxUser::class);
     $foundUser = $pxUser->find('test-user-123');
 
     expect($foundUser)->not->toBeNull()
@@ -67,7 +67,7 @@ test('find returns user by px_user_id', function () {
 });
 
 test('find returns null when user not found', function () {
-    $pxUser = new PxUser;
+    $pxUser = resolve(PxUser::class);
     $foundUser = $pxUser->find('non-existent-user');
 
     expect($foundUser)->toBeNull();
@@ -76,7 +76,7 @@ test('find returns null when user not found', function () {
 test('find returns null when no user model configured', function () {
     config(['px-user.user_model' => null]);
 
-    $pxUser = new PxUser;
+    $pxUser = resolve(PxUser::class);
     $foundUser = $pxUser->find('test-user-123');
 
     expect($foundUser)->toBeNull();
@@ -105,7 +105,7 @@ test('retrieve creates new user when not exists', function () {
         ]),
     ]);
 
-    $pxUser = new PxUser;
+    $pxUser = resolve(PxUser::class);
 
     // Create mock PxUserData
     $userData = PxUserData::from([
@@ -136,7 +136,7 @@ test('retrieve creates new user when not exists', function () {
 test('retrieve returns existing user when already exists', function () {
     $existingUser = User::factory()->create(['px_user_id' => 'existing-user-123']);
 
-    $pxUser = new PxUser;
+    $pxUser = resolve(PxUser::class);
 
     // Create mock PxUserData
     $userData = PxUserData::from([
@@ -167,7 +167,7 @@ test('retrieve returns existing user when already exists', function () {
 test('retrieve returns false when no user model configured', function () {
     config(['px-user.user_model' => null]);
 
-    $pxUser = new PxUser;
+    $pxUser = resolve(PxUser::class);
 
     $userData = PxUserData::from([
         'id' => 'test-user-123',

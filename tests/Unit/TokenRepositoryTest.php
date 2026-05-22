@@ -1,63 +1,108 @@
 <?php
 
-use mindtwo\PxUserLaravel\ExternalApiTokens\PxUserEloquentTokenRepository;
-use mindtwo\PxUserLaravel\ExternalApiTokens\PxUserRedisTokenRepository;
-use mindtwo\TwoTility\ExternalApiTokens\Contracts\ExternalApiTokenRepository;
+use Illuminate\Support\Carbon;
+use mindtwo\PxUserLaravel\Models\PxUserToken;
+use mindtwo\PxUserLaravel\Services\PxUserTokens;
+use mindtwo\PxUserLaravel\Tests\Fake\User;
 
-test('PxUserRedisTokenRepository has correct api name', function () {
-    $repo = new PxUserRedisTokenRepository;
-
-    $reflection = new ReflectionClass($repo);
-    $property = $reflection->getProperty('apiName');
-    $property->setAccessible(true);
-
-    expect($property->getValue($repo))->toBe('px-user');
+beforeEach(function () {
+    config(['px-user.user_model' => User::class]);
+    config(['px-user.px_user_id' => 'px_user_id']);
 });
 
-test('PxUserRedisTokenRepository has correct key mapping', function () {
-    $repo = new PxUserRedisTokenRepository;
+function makeTokenData(array $overrides = []): array
+{
+    return array_merge([
+        'access_token' => 'access-token-'.uniqid(),
+        'access_token_expiration_utc' => now()->addHour()->toIso8601String(),
+        'refresh_token' => 'refresh-token-'.uniqid(),
+        'refresh_token_expiration_utc' => now()->addWeek()->toIso8601String(),
+    ], $overrides);
+}
 
-    $reflection = new ReflectionClass($repo);
-    $property = $reflection->getProperty('keyMapping');
-    $property->setAccessible(true);
+test('save persists token data for the authenticatable', function () {
+    $user = User::factory()->create(['px_user_id' => 'user-123']);
+    $tokens = app(PxUserTokens::class);
 
-    $keyMapping = $property->getValue($repo);
+    $token = $tokens->save($user, makeTokenData(['access_token' => 'abc']));
 
-    expect($keyMapping)->toHaveKey('access_token')
-        ->and($keyMapping)->toHaveKey('refresh_token')
-        ->and($keyMapping)->toHaveKey('expires_at')
-        ->and($keyMapping)->toHaveKey('refresh_token_valid_until');
+    expect($token)->toBeInstanceOf(PxUserToken::class)
+        ->and($token->authenticatable_id)->toBe($user->getAuthIdentifier())
+        ->and($token->authenticatable_type)->toBe(get_class($user))
+        ->and($token->token('access_token'))->toBe('abc')
+        ->and($token->valid_until)->toBeInstanceOf(Carbon::class);
 });
 
-test('PxUserEloquentTokenRepository has correct api name', function () {
-    $repo = new PxUserEloquentTokenRepository;
+test('accessToken returns the latest saved access token', function () {
+    $user = User::factory()->create(['px_user_id' => 'user-123']);
+    $tokens = app(PxUserTokens::class);
 
-    $reflection = new ReflectionClass($repo);
-    $property = $reflection->getProperty('apiName');
-    $property->setAccessible(true);
+    $tokens->save($user, makeTokenData(['access_token' => 'latest-token']));
 
-    expect($property->getValue($repo))->toBe('px-user');
+    expect($tokens->accessToken($user))->toBe('latest-token');
 });
 
-test('PxUserEloquentTokenRepository has correct key mapping', function () {
-    $repo = new PxUserEloquentTokenRepository;
+test('accessToken throws when no token exists', function () {
+    $user = User::factory()->create(['px_user_id' => 'user-123']);
+    $tokens = app(PxUserTokens::class);
 
-    $reflection = new ReflectionClass($repo);
-    $property = $reflection->getProperty('keyMapping');
-    $property->setAccessible(true);
-
-    $keyMapping = $property->getValue($repo);
-
-    expect($keyMapping)->toHaveKey('access_token')
-        ->and($keyMapping)->toHaveKey('refresh_token')
-        ->and($keyMapping)->toHaveKey('expires_at')
-        ->and($keyMapping)->toHaveKey('refresh_token_valid_until');
+    expect(fn () => $tokens->accessToken($user))->toThrow(RuntimeException::class);
 });
 
-test('both repositories implement ExternalApiTokenRepository contract', function () {
-    $redisRepo = new PxUserRedisTokenRepository;
-    $eloquentRepo = new PxUserEloquentTokenRepository;
+test('isCurrentTokenValid returns true for fresh token', function () {
+    $user = User::factory()->create(['px_user_id' => 'user-123']);
+    $tokens = app(PxUserTokens::class);
 
-    expect($redisRepo)->toBeInstanceOf(ExternalApiTokenRepository::class)
-        ->and($eloquentRepo)->toBeInstanceOf(ExternalApiTokenRepository::class);
+    $tokens->save($user, makeTokenData());
+
+    expect($tokens->isCurrentTokenValid($user))->toBeTrue();
+});
+
+test('isCurrentTokenValid returns false when no token exists', function () {
+    $user = User::factory()->create(['px_user_id' => 'user-123']);
+    $tokens = app(PxUserTokens::class);
+
+    expect($tokens->isCurrentTokenValid($user))->toBeFalse();
+});
+
+test('invalidate marks existing tokens as expired', function () {
+    $user = User::factory()->create(['px_user_id' => 'user-123']);
+    $tokens = app(PxUserTokens::class);
+
+    $tokens->save($user, makeTokenData());
+
+    expect($tokens->invalidate($user))->toBeTrue();
+
+    $stored = PxUserToken::query()->forAuthenticatable($user)->valid()->first();
+    expect($stored)->toBeNull();
+});
+
+test('save invalidates previous tokens before storing a new one', function () {
+    $user = User::factory()->create(['px_user_id' => 'user-123']);
+    $tokens = app(PxUserTokens::class);
+
+    $tokens->save($user, makeTokenData(['access_token' => 'first']));
+    $tokens->save($user, makeTokenData(['access_token' => 'second']));
+
+    $validTokens = PxUserToken::query()->forAuthenticatable($user)->valid()->get();
+    expect($validTokens)->toHaveCount(1)
+        ->and($validTokens->first()->token('access_token'))->toBe('second');
+});
+
+test('refreshToken returns the stored refresh token', function () {
+    $user = User::factory()->create(['px_user_id' => 'user-123']);
+    $tokens = app(PxUserTokens::class);
+
+    $tokens->save($user, makeTokenData(['refresh_token' => 'refresh-abc']));
+
+    expect($tokens->refreshToken($user))->toBe('refresh-abc');
+});
+
+test('canRefreshCurrentToken reflects refresh token presence', function () {
+    $user = User::factory()->create(['px_user_id' => 'user-123']);
+    $tokens = app(PxUserTokens::class);
+
+    $tokens->save($user, makeTokenData(['refresh_token' => 'refresh-abc']));
+
+    expect($tokens->canRefreshCurrentToken($user))->toBeTrue();
 });

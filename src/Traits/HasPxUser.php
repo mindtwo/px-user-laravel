@@ -6,8 +6,8 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use mindtwo\PxUserLaravel\Services\PxUserAdminCachedApiService;
 use mindtwo\PxUserLaravel\Services\PxUserCachedApiService;
+use mindtwo\PxUserLaravel\Services\PxUserTokens;
 use mindtwo\TwoTility\Cache\Models\HasCachedAttributes;
-use mindtwo\TwoTility\ExternalApiTokens\ExternalApiTokens;
 
 trait HasPxUser
 {
@@ -67,9 +67,7 @@ trait HasPxUser
      */
     public function getPxUserAccessToken(): string
     {
-        $repo = resolve(ExternalApiTokens::class)->repository('px-user');
-
-        return $repo->accessToken($this);
+        return resolve(PxUserTokens::class)->accessToken($this);
     }
 
     /**
@@ -77,9 +75,7 @@ trait HasPxUser
      */
     public function hasValidPxUserToken(): bool
     {
-        $repo = resolve(ExternalApiTokens::class)->repository('px-user');
-
-        return $repo->isCurrentTokenValid($this);
+        return resolve(PxUserTokens::class)->isCurrentTokenValid($this);
     }
 
     /**

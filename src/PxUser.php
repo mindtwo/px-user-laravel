@@ -10,11 +10,22 @@ use mindtwo\PxUserLaravel\DataTransfer\PxUserData;
 use mindtwo\PxUserLaravel\DataTransfer\PxUserDataWithPermissions;
 use mindtwo\PxUserLaravel\Events\PxUserLoginEvent;
 use mindtwo\PxUserLaravel\Http\Client\PxUserClient;
-use mindtwo\TwoTility\ExternalApiTokens\ExternalApiTokens;
+use mindtwo\PxUserLaravel\Http\Client\PxUserOidcClient;
+use mindtwo\PxUserLaravel\Services\PxUserTokens;
 use RuntimeException;
 
 class PxUser
 {
+
+    public function __construct(
+        private readonly PxUserClient $client,
+        private readonly PxUserOidcClient $oidcClient,
+        private readonly PxUserTokens $pxUserTokens,
+    )
+    {
+
+    }
+
     /**
      * Retrieve or create a user model from PxUserData.
      *
@@ -75,11 +86,24 @@ class PxUser
     }
 
     /**
+     * Login user over oidc.
+     *
+     * @param string $code
+     * @param string $codeVerifier
+     * @return (Model&ContractsPxUser)|false Returns false if no user model is configured or validation fails
+     */
+    public function oidcLogin(string $code, string $codeVerifier): (Model&ContractsPxUser)|false
+    {
+        // TOKEN Data from oidc exchange
+        $tokenData = $this->oidcClient->exchangeToken($code, $codeVerifier);
+
+        return $this->login($tokenData);
+    }
+
+    /**
      * Login a user with PX User access token.
      *
      * @param  array  $tokenData  The token data array
-     * @param  string|null  $domain  Optional domain code (defaults to config)
-     * @param  string|null  $tenant  Optional tenant code (defaults to config)
      * @return (Model&ContractsPxUser)|false Returns false if no user model is configured or validation fails
      */
     public function login(array $tokenData): (Model&ContractsPxUser)|false
@@ -91,8 +115,7 @@ class PxUser
         }
 
         // Store the access token in the repository
-        $tokenRepository = resolve(ExternalApiTokens::class)->repository('px-user');
-        $tokenRepository->save($user, $tokenData);
+        $this->pxUserTokens->save($user, $tokenData);
 
         // Authenticate the user
         auth()->login($user);
@@ -104,14 +127,18 @@ class PxUser
 
     public function refresh(string $refreshToken): array
     {
-        $tokenRepository = resolve(ExternalApiTokens::class)->repository('px-user');
-        $result = $tokenRepository->refresh($refreshToken);
+        // Refresh tokens
+        $newTokens = $this->client->refreshTokens($refreshToken);
 
-        throw_if(! $result, new RuntimeException('Could not refresh tokens'));
+        // Get user by token
+        /** @var Authenticatable $user */
+        [$userData, $user] = $this->resolveByToken($newTokens);
 
-        $user = auth()->user();
+        // Save the tokens
+        $this->pxUserTokens->save($user, $newTokens);
 
-        return $tokenRepository->current($user);
+        auth()->login($user);
+        return $this->pxUserTokens->current($user);
     }
 
     /**

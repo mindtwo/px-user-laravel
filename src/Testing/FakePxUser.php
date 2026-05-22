@@ -9,7 +9,7 @@ use mindtwo\PxUserLaravel\DataTransfer\PxUserData;
 use mindtwo\PxUserLaravel\DataTransfer\PxUserDataWithPermissions as DataTransferPxUserDataWithPermissions;
 use mindtwo\PxUserLaravel\PxUser;
 use mindtwo\PxUserLaravel\Services\PxUserCachedApiService;
-use mindtwo\TwoTility\ExternalApiTokens\ExternalApiTokens;
+use mindtwo\PxUserLaravel\Services\PxUserTokens;
 use Mockery;
 use RuntimeException;
 
@@ -52,8 +52,7 @@ class FakePxUser extends PxUser
         [$userData, $user] = resolve(PxUser::class)->resolveByToken($fakeTokenData);
 
         // Store the access token in the repository
-        $tokenRepository = resolve(ExternalApiTokens::class)->repository('px-user');
-        $tokenRepository->save($user, $fakeTokenData);
+        resolve(PxUserTokens::class)->save($user, $fakeTokenData);
 
         return $user ?: null;
     }
@@ -83,8 +82,7 @@ class FakePxUser extends PxUser
         app()->instance('px-user.fake.enabled', true);
 
         // Replace PxUser service in container to intercept login
-        // Bind the mock to the container
-        app()->instance(PxUser::class, new self);
+        app()->instance(PxUser::class, app(self::class));
 
         // Mock the PxUserCachedApiService as well
         self::mockApiService();
@@ -183,8 +181,6 @@ class FakePxUser extends PxUser
         Cache::flush();
         Mockery::close();
 
-        app()->bind(PxUser::class, function () {
-            return new PxUser;
-        });
+        app()->forgetInstance(PxUser::class);
     }
 }

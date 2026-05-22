@@ -14,10 +14,10 @@ class PxUserAdminCachedApiService extends CachedApiService
 {
     public function getUser(string $userId): ?PxUserData
     {
-        $ttl = $ttl ?? config('px-user.px_user_cache_time', 120);
+        $ttl = config('px-user.px_user_cache_time', 120);
 
         return $this->cache->remember(
-            Utils::getPxUserCacheKey($userId, 'px-user:admin'),
+            Utils::getPxUserCacheKey($userId),
             now()->addMinutes($ttl),
             fn () => $this->client()->getUser($userId)
         );
