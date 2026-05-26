@@ -16,15 +16,11 @@ use RuntimeException;
 
 class PxUser
 {
-
     public function __construct(
         private readonly PxUserClient $client,
         private readonly PxUserOidcClient $oidcClient,
         private readonly PxUserTokens $pxUserTokens,
-    )
-    {
-
-    }
+    ) {}
 
     /**
      * Retrieve or create a user model from PxUserData.
@@ -88,8 +84,6 @@ class PxUser
     /**
      * Login user over oidc.
      *
-     * @param string $code
-     * @param string $codeVerifier
      * @return (Model&ContractsPxUser)|false Returns false if no user model is configured or validation fails
      */
     public function oidcLogin(string $code, string $codeVerifier): (Model&ContractsPxUser)|false

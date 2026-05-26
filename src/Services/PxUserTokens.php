@@ -11,9 +11,6 @@ class PxUserTokens
 {
     private PxUserToken $currentToken;
 
-    /**
-     * {@inheritDoc}
-     */
     public function current(Authenticatable $authenticatable): array
     {
         $token = $this->getToken($authenticatable);
@@ -39,9 +36,6 @@ class PxUserTokens
             ]);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public function invalidate(Authenticatable $authenticatable): bool
     {
         return PxUserToken::query()
@@ -51,9 +45,6 @@ class PxUserTokens
             ]) > 0;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public function isCurrentTokenValid(Authenticatable $authenticatable): bool
     {
         try {
@@ -65,17 +56,11 @@ class PxUserTokens
         }
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public function canRefreshCurrentToken(Authenticatable $authenticatable): bool
     {
-        return !empty($this->refreshToken($authenticatable));
+        return ! empty($this->refreshToken($authenticatable));
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public function accessToken(Authenticatable $authenticatable): string
     {
         $token = $this->getToken($authenticatable);
@@ -85,9 +70,6 @@ class PxUserTokens
         return $token->token('access_token');
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public function expiresAt(Authenticatable $authenticatable): ?Carbon
     {
         $token = $this->getToken($authenticatable);
@@ -97,9 +79,6 @@ class PxUserTokens
         return $token->valid_until;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public function refreshToken(Authenticatable $authenticatable): ?string
     {
         $token = $this->getToken($authenticatable);
@@ -107,9 +86,6 @@ class PxUserTokens
         return $token?->token('refresh_token');
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public function refreshTokenValidUntil(Authenticatable $authenticatable): ?Carbon
     {
         $token = $this->getToken($authenticatable);

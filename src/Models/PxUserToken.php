@@ -87,5 +87,4 @@ class PxUserToken extends Model
                 ->orWhere('valid_until', '>', now());
         });
     }
-
 }
