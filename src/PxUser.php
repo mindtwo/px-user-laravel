@@ -132,6 +132,7 @@ class PxUser
         $this->pxUserTokens->save($user, $newTokens);
 
         auth()->login($user);
+
         return $this->pxUserTokens->current($user);
     }
 
