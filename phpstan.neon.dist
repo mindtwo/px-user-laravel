@@ -12,3 +12,4 @@ parameters:
         - identifier: missingType.iterableValue
         - identifier: trait.unused
         - identifier: missingType.generics
+        - '#Mockery\\ExpectationInterface\|Mockery\\HigherOrderMessage::andReturnUsing#'
