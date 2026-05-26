@@ -21,6 +21,35 @@ return [
      */
     'stage' => env('PX_USER_STAGE', (env('APP_ENV') === 'local' ? 'preprod' : 'prod')),
 
+        /**
+     * PX User tenant setting
+     *
+     * Default: env('PX_USER_TENANT')
+     */
+    'tenant' => env('PX_USER_TENANT'),
+
+    /**
+     * PX User domain setting
+     *
+     * Default: env('PX_USER_DOMAIN')
+     */
+    'domain' => env('PX_USER_DOMAIN'),
+
+    /**
+     * Machine-to-machine credentials used for communication between backend
+     * and PX User API
+     *
+     * Default: env('PX_USER_M2M')
+     */
+    'm2m_credentials' => env('PX_USER_M2M'),
+
+    /**
+     * Cache time for user data retrieved via PX User client in minutes
+     *
+     * Default: 120 (mins)
+     */
+    'px_user_cache_time' => env('PX_USER_CACHE_TIME', 120),
+
     /**
      * PX User tenant setting
      *

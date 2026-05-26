@@ -5,6 +5,7 @@ namespace mindtwo\PxUserLaravel\Testing;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Cache;
+use mindtwo\PxUserLaravel\Contracts\PxUser as ContractsPxUser;
 use mindtwo\PxUserLaravel\DataTransfer\PxUserData;
 use mindtwo\PxUserLaravel\DataTransfer\PxUserDataWithPermissions as DataTransferPxUserDataWithPermissions;
 use mindtwo\PxUserLaravel\PxUser;
@@ -32,6 +33,10 @@ class FakePxUser extends PxUser
      */
     public static function actAs(Authenticatable $user, DataTransferPxUserDataWithPermissions|array $data = []): ?Model
     {
+        if (! $user instanceof ContractsPxUser) {
+            return null;
+        }
+
         self::fake();
 
         // Set data id to px_user_id
@@ -52,6 +57,7 @@ class FakePxUser extends PxUser
         [$userData, $user] = resolve(PxUser::class)->resolveByToken($fakeTokenData);
 
         // Store the access token in the repository
+        // @phpstan-ignore-next-line
         resolve(PxUserTokens::class)->save($user, $fakeTokenData);
 
         return $user ?: null;
