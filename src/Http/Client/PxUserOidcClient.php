@@ -22,7 +22,7 @@ class PxUserOidcClient extends BaseApiClient
     public function exchangeToken(string $code, string $codeVerifier): array
     {
         return $this->client()
-            ->post(rtrim($this->getIssuer(), '/').'/oidc/v1.0/token/jwt', [
+            ->post(rtrim($this->getIssuer(), '/').'/oidc/v1.0/token/token', [
                 'grant_type' => 'authorization_code',
                 'code' => $code,
                 'code_verifier' => $codeVerifier,
