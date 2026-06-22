@@ -121,7 +121,15 @@ class PxUser
 
     public function logout(): array
     {
-        return $this->client->logout();
+        $user = auth()->user();
+        if (! $user) {
+            return [];
+        }
+
+        $response = $this->client->logout();
+        $this->pxUserTokens->invalidate($user);
+
+        return $response;
     }
 
     public function refresh(string $refreshToken): array
