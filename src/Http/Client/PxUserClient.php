@@ -108,6 +108,12 @@ class PxUserClient extends BaseApiClient
         return $response->json('response');
     }
 
+    public function logout(): array
+    {
+        return $this->client()->get('v1/user')
+            ->json();
+    }
+
     /**
      * Check eip connection for currently authed user.
      */

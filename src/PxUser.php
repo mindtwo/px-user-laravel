@@ -119,6 +119,11 @@ class PxUser
         return $user;
     }
 
+    public function logout(): array
+    {
+        return $this->client->logout();
+    }
+
     public function refresh(string $refreshToken): array
     {
         // Refresh tokens
