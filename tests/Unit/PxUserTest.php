@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Http;
 use mindtwo\PxUserLaravel\DataTransfer\PxUserData;
+use mindtwo\PxUserLaravel\Http\Client\PxUserOidcClient;
 use mindtwo\PxUserLaravel\PxUser;
 use mindtwo\PxUserLaravel\Tests\Fake\User;
 
@@ -236,8 +237,8 @@ test('oidcLogin transforms expires_in to expiration_utc format', function () {
     ]);
 
     // Configure the OIDC client and bind it to the container
-    app()->singleton(\mindtwo\PxUserLaravel\Http\Client\PxUserOidcClient::class, function () {
-        $oidcClient = new \mindtwo\PxUserLaravel\Http\Client\PxUserOidcClient;
+    app()->singleton(PxUserOidcClient::class, function () {
+        $oidcClient = new PxUserOidcClient;
         $oidcClient->setClientId('test-client-id');
         $oidcClient->setRedirectUri('https://example.com/callback');
 

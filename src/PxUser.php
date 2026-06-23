@@ -2,6 +2,7 @@
 
 namespace mindtwo\PxUserLaravel;
 
+use Carbon\Carbon;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Validator;
@@ -13,7 +14,6 @@ use mindtwo\PxUserLaravel\Http\Client\PxUserClient;
 use mindtwo\PxUserLaravel\Http\Client\PxUserOidcClient;
 use mindtwo\PxUserLaravel\Services\PxUserTokens;
 use RuntimeException;
-use Carbon\Carbon;
 
 class PxUser
 {
