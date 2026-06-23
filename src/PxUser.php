@@ -13,6 +13,7 @@ use mindtwo\PxUserLaravel\Http\Client\PxUserClient;
 use mindtwo\PxUserLaravel\Http\Client\PxUserOidcClient;
 use mindtwo\PxUserLaravel\Services\PxUserTokens;
 use RuntimeException;
+use Carbon\Carbon;
 
 class PxUser
 {
@@ -90,6 +91,13 @@ class PxUser
     {
         // TOKEN Data from oidc exchange
         $tokenData = $this->oidcClient->exchangeToken($code, $codeVerifier);
+
+        // Transform expires_in to expiration_utc format expected by login
+        $tokenData['access_token_expiration_utc'] = Carbon::now()->addSeconds($tokenData['expires_in'])->toIso8601String();
+
+        if (isset($tokenData['refresh_token_expires_in'])) {
+            $tokenData['refresh_token_expiration_utc'] = Carbon::now()->addSeconds($tokenData['refresh_token_expires_in'])->toIso8601String();
+        }
 
         return $this->login($tokenData);
     }
