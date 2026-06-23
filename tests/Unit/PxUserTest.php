@@ -191,3 +191,63 @@ test('retrieve returns false when no user model configured', function () {
 
     expect($user)->toBeFalse();
 });
+
+test('oidcLogin transforms expires_in to expiration_utc format', function () {
+    config(['px-user.apiClient.baseUrl' => 'https://api.example.com']);
+
+    Http::fake([
+        // OIDC token exchange response
+        '*/oidc/v1.0/token' => Http::response([
+            'access_token' => 'oidc-access-token',
+            'token_type' => 'Bearer',
+            'expires_in' => 7200,
+            'refresh_token' => 'oidc-refresh-token',
+            'refresh_token_expires_in' => 2592000,
+            'id_token' => 'id-token-value',
+            'scope' => 'context::: email openid permissions profile roles',
+        ]),
+        // User with permissions response
+        '*/v1/user-with-permissions*' => Http::response([
+            'response' => [
+                'user' => [
+                    'id' => 'oidc-user-123',
+                    'correlated_id' => 'correlated-123',
+                    'email' => 'oidc@example.com',
+                    'preferred_username' => 'oidcuser',
+                    'tenant_code' => 'test-tenant',
+                    'domain_code' => 'test-domain',
+                    'is_enabled' => true,
+                    'is_confirmed' => true,
+                    'suspended' => false,
+                    'is_human' => true,
+                    'firstname' => 'OIDC',
+                    'lastname' => 'User',
+                    'gender' => 'unknown',
+                    'last_login_at' => null,
+                    'last_activity_at' => null,
+                    'source' => 'oidc',
+                    'locale' => 'en',
+                    'products' => [],
+                    'capabilities' => null,
+                    'roles' => [],
+                ],
+            ],
+        ]),
+    ]);
+
+    // Configure the OIDC client and bind it to the container
+    app()->singleton(\mindtwo\PxUserLaravel\Http\Client\PxUserOidcClient::class, function () {
+        $oidcClient = new \mindtwo\PxUserLaravel\Http\Client\PxUserOidcClient;
+        $oidcClient->setClientId('test-client-id');
+        $oidcClient->setRedirectUri('https://example.com/callback');
+
+        return $oidcClient;
+    });
+
+    $pxUser = resolve(PxUser::class);
+    $user = $pxUser->oidcLogin('auth-code', 'code-verifier');
+
+    expect($user)->not->toBeFalse()
+        ->and($user->px_user_id)->toBe('oidc-user-123')
+        ->and(auth()->check())->toBeTrue();
+});
