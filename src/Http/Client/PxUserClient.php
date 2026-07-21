@@ -110,7 +110,7 @@ class PxUserClient extends BaseApiClient
 
     public function logout(): array
     {
-        return $this->client()->get('v1/user')
+        return $this->client()->get('v1/logout')
             ->json();
     }
 
