@@ -32,3 +32,49 @@ test('fake can login user', function () {
         ->and(auth()->user()->lastname)->toBe('As');
 
 });
+
+test('fakePxUserData seeds attributes for a non-authenticated user', function () {
+    $actor = FakePxUser::actAs(User::factory()->create(['px_user_id' => 'actor-1']));
+    $this->actingAs($actor);
+
+    $recipient = User::factory()->create(['px_user_id' => 'recipient-1']);
+
+    // Without seeding, the recipient's proxied attributes resolve to null.
+    expect($recipient->email)->toBeNull();
+
+    FakePxUser::fakePxUserData($recipient);
+
+    $recipient = User::query()->find($recipient->getKey());
+
+    expect($recipient->email)->toBe('recipient-1@example.com')
+        ->and($recipient->firstname)->toBe('Test')
+        ->and($recipient->lastname)->toBe('User')
+        ->and($recipient->preferredUsername)->toBe('recipient-1');
+});
+
+test('fakePxUserData applies overrides', function () {
+    $actor = FakePxUser::actAs(User::factory()->create(['px_user_id' => 'actor-1']));
+    $this->actingAs($actor);
+
+    $recipient = User::factory()->create(['px_user_id' => 'recipient-1']);
+
+    FakePxUser::fakePxUserData($recipient, [
+        'email' => 'custom@example.com',
+        'firstname' => 'Custom',
+    ]);
+
+    $recipient = User::query()->find($recipient->getKey());
+
+    expect($recipient->email)->toBe('custom@example.com')
+        ->and($recipient->firstname)->toBe('Custom')
+        ->and($recipient->lastname)->toBe('User');
+});
+
+test('fakePxUserData writes to the same cache key actAs uses', function () {
+    $user = User::factory()->create(['px_user_id' => 'user-1']);
+
+    FakePxUser::fakePxUserData($user, ['email' => 'seeded@example.com']);
+
+    expect(Cache::get($user->cachedAttributeKey()))
+        ->toMatchArray(['email' => 'seeded@example.com']);
+});
