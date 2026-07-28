@@ -64,6 +64,28 @@ class FakePxUser extends PxUser
     }
 
     /**
+     * Seed the px-user attribute cache for a user that is not the authenticated one.
+     *
+     * Only the acting user's px-user data is faked by login()/FakePxUser::actAs(). Tests that
+     * assert on a non-authenticated user's proxied attributes (e.g. a mail recipient's
+     * verified_email) must seed that user's cache explicitly, otherwise the attributes resolve
+     * to null.
+     *
+     * @param  array<string, string|null>  $overrides  Overrides for email/firstname/lastname/preferredUsername
+     */
+    public static function fakePxUserData(ContractsPxUser $user, array $overrides = []): void
+    {
+        $pxUserId = $user->getPxUserId();
+
+        Cache::put(self::cacheKeyFor($pxUserId), array_merge([
+            'email' => "{$pxUserId}@example.com",
+            'firstname' => 'Test',
+            'lastname' => 'User',
+            'preferredUsername' => $pxUserId,
+        ], $overrides), now()->addMinutes(config('px-user.px_user_cache_time', 120)));
+    }
+
+    /**
      * Initialize fake PX User services for testing.
      *
      * This method mocks the PxUser service so that when login() or resolveByToken()
@@ -166,17 +188,22 @@ class FakePxUser extends PxUser
             'preferredUsername' => $fakeDto->preferredUsername,
         ];
 
-        // Cache with the standard key format
-        $cacheKey = cache_key('px-user', [
-            'class' => config('px-user.user_model'),
-            'key' => $fakeDto->id,
-        ])->toString();
-
-        Cache::put($cacheKey, $cachedData, now()->addMinutes($cacheTime));
+        Cache::put(self::cacheKeyFor($fakeDto->id), $cachedData, now()->addMinutes($cacheTime));
 
         // Also cache the full user details
         $detailsCacheKey = cache_key('px-user-details', ['id' => $fakeDto->id])->toString();
         Cache::put($detailsCacheKey, $fakeDto->toArray(), now()->addMinutes($cacheTime));
+    }
+
+    /**
+     * Build the px-user attribute cache key, mirroring HasPxUser::cachedAttributeKey().
+     */
+    private static function cacheKeyFor(string $pxUserId): string
+    {
+        return cache_key('px-user', [
+            'class' => config('px-user.user_model'),
+            'key' => $pxUserId,
+        ])->toString();
     }
 
     /**

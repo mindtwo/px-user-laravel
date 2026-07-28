@@ -5,6 +5,7 @@ namespace mindtwo\PxUserLaravel\Models;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Prunable;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Support\Carbon;
 
@@ -22,11 +23,16 @@ use Illuminate\Support\Carbon;
  * @property Carbon $created_at
  * @property Carbon $updated_at
  *
- * @method static Builder forAuthenticatable(Authenticatable $authenticatable)
- * @method static Builder valid()
+ * @method static Builder<static>|PxUserToken newModelQuery()
+ * @method static Builder<static>|PxUserToken newQuery()
+ * @method static Builder<static>|PxUserToken query()
+ * @method static Builder<static>|PxUserToken forAuthenticatable(Authenticatable $authenticatable)
+ * @method static Builder<static>|PxUserToken valid()
  */
 class PxUserToken extends Model
 {
+    use Prunable;
+
     /**
      * {@inheritDoc}
      */
@@ -58,6 +64,20 @@ class PxUserToken extends Model
     public function isValid(): bool
     {
         return $this->valid_until === null || $this->valid_until->isFuture();
+    }
+
+    /**
+     * Get the prunable model query.
+     *
+     * Removes tokens that have been expired or revoked for longer than the
+     * configured retention period. Tokens without a `valid_until` never expire
+     * and are therefore never pruned.
+     */
+    public function prunable(): Builder
+    {
+        $retentionDays = (int) config('px-user.token_retention_days', 30);
+
+        return static::query()->where('valid_until', '<=', now()->subDays($retentionDays));
     }
 
     /**

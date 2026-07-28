@@ -81,7 +81,7 @@ class PxUserTokens
 
     public function refreshToken(Authenticatable $authenticatable): ?string
     {
-        $token = $this->getToken($authenticatable);
+        $token = $this->getToken($authenticatable, true);
 
         return $token?->token('refresh_token');
     }
@@ -105,7 +105,7 @@ class PxUserTokens
     /**
      * Get the token model for the authenticatable.
      */
-    protected function getToken(Authenticatable $authenticatable): ?PxUserToken
+    protected function getToken(Authenticatable $authenticatable, bool $includeInvalid = false): ?PxUserToken
     {
         if (isset($this->currentToken)) {
             return $this->currentToken;
@@ -113,6 +113,7 @@ class PxUserTokens
 
         $token = PxUserToken::query()
             ->forAuthenticatable($authenticatable)
+            ->when(! $includeInvalid, fn ($q) => $q->valid())
             ->latest()
             ->first();
 

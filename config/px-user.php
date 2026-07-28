@@ -15,6 +15,14 @@ return [
     'px_user_id' => env('PX_USER_ID') ?? 'px_user_id',
 
     /**
+     * Days to keep expired or revoked tokens before they are pruned
+     * by `model:prune`. Tokens without a `valid_until` are never pruned.
+     *
+     * Default: 30 (days)
+     */
+    'token_retention_days' => env('PX_USER_TOKEN_RETENTION_DAYS', 30),
+
+    /**
      * The stage the app runs in
      *
      * Default: env('APP_ENV')
