@@ -6,6 +6,7 @@ use Carbon\CarbonImmutable;
 use Spatie\LaravelData\Attributes\MapInputName;
 use Spatie\LaravelData\Data;
 use Spatie\LaravelData\Mappers\SnakeCaseMapper;
+use Spatie\LaravelData\Optional;
 
 #[MapInputName(SnakeCaseMapper::class)]
 class PxUserData extends Data
@@ -16,8 +17,8 @@ class PxUserData extends Data
         public string $preferredUsername,
         public string $tenantCode,
         public string $domainCode,
-        public bool $isEnabled,
-        public bool $isConfirmed,
+        public bool|Optional $isEnabled,
+        public bool|Optional $isConfirmed,
         public string $firstname,
         public string $lastname,
         public ?CarbonImmutable $activatedAt,
@@ -26,7 +27,7 @@ class PxUserData extends Data
         public array $roles,
         /** @var array<int, string> */
         public array $products,
-        public string $source,
+        public string|Optional $source,
         public string $locale,
     ) {}
 
