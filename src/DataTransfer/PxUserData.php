@@ -3,7 +3,9 @@
 namespace mindtwo\PxUserLaravel\DataTransfer;
 
 use Carbon\CarbonImmutable;
+use mindtwo\PxUserLaravel\Casts\NullableDateTimeCast;
 use Spatie\LaravelData\Attributes\MapInputName;
+use Spatie\LaravelData\Attributes\WithCast;
 use Spatie\LaravelData\Data;
 use Spatie\LaravelData\Mappers\SnakeCaseMapper;
 use Spatie\LaravelData\Optional;
@@ -21,7 +23,9 @@ class PxUserData extends Data
         public bool|Optional $isConfirmed,
         public string $firstname,
         public string $lastname,
+        #[WithCast(NullableDateTimeCast::class)]
         public ?CarbonImmutable $activatedAt,
+        #[WithCast(NullableDateTimeCast::class)]
         public ?CarbonImmutable $lastLoginAt,
         /** @var array<string, array<int, string>> */
         public array $roles,

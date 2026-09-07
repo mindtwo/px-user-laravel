@@ -4,9 +4,9 @@ namespace mindtwo\PxUserLaravel\DataTransfer;
 
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Arr;
+use mindtwo\PxUserLaravel\Casts\NullableDateTimeCast;
 use Spatie\LaravelData\Attributes\MapInputName;
 use Spatie\LaravelData\Attributes\WithCast;
-use Spatie\LaravelData\Casts\DateTimeInterfaceCast;
 use Spatie\LaravelData\Data;
 use Spatie\LaravelData\Mappers\SnakeCaseMapper;
 
@@ -33,9 +33,9 @@ class PxUserDataWithPermissions extends Data
         public string $firstname,
         public string $lastname,
         public string $gender,
-        #[WithCast(DateTimeInterfaceCast::class)]
+        #[WithCast(NullableDateTimeCast::class)]
         public ?CarbonImmutable $lastLoginAt,
-        #[WithCast(DateTimeInterfaceCast::class)]
+        #[WithCast(NullableDateTimeCast::class)]
         public ?CarbonImmutable $lastActivityAt,
         public string $source,
         public ?string $locale,
