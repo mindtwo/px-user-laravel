@@ -61,3 +61,23 @@ test('provided values are still hydrated and serialized', function () {
             'source' => 'oidc',
         ]);
 });
+
+test('blank timestamps hydrate as null', function () {
+    $data = PxUserData::from(pxUserDataPayload([
+        'activated_at' => '',
+        'last_login_at' => '',
+    ]));
+
+    expect($data->activatedAt)->toBeNull()
+        ->and($data->lastLoginAt)->toBeNull();
+});
+
+test('supplied timestamps are still hydrated', function () {
+    $data = PxUserData::from(pxUserDataPayload([
+        'activated_at' => '2024-02-19T08:08:25+00:00',
+        'last_login_at' => '2026-09-07T14:33:39+00:00',
+    ]));
+
+    expect($data->activatedAt->toIso8601String())->toBe('2024-02-19T08:08:25+00:00')
+        ->and($data->lastLoginAt->toIso8601String())->toBe('2026-09-07T14:33:39+00:00');
+});
