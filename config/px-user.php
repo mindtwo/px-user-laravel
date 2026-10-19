@@ -88,6 +88,14 @@ return [
     'px_user_cache_time' => env('PX_USER_CACHE_TIME', 120),
 
     /**
+     * Request the user's extended products (e.g. products_validity) when resolving
+     * the user on login and token refresh
+     *
+     * Default: false
+     */
+    'extended_products_on_login' => env('PX_USER_EXTENDED_PRODUCTS_ON_LOGIN', false),
+
+    /**
      * Api Client config
      */
     'apiClient' => [

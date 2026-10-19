@@ -7,7 +7,7 @@ Updates should follow the [Keep a CHANGELOG](http://keepachangelog.com/) princip
 ## NEXT - YYYY-MM-DD
 
 ### Added
-- Nothing
+- `extended_products_on_login` config option (`PX_USER_EXTENDED_PRODUCTS_ON_LOGIN`) to fetch the user with extended products on login and token refresh
 
 ### Deprecated
 - Nothing

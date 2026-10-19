@@ -1,5 +1,6 @@
 <?php
 
+use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Http;
 use mindtwo\PxUserLaravel\DataTransfer\PxUserData;
 use mindtwo\PxUserLaravel\Http\Client\PxUserOidcClient;
@@ -252,3 +253,47 @@ test('oidcLogin transforms expires_in to expiration_utc format', function () {
         ->and($user->px_user_id)->toBe('oidc-user-123')
         ->and(auth()->check())->toBeTrue();
 });
+
+test('resolveByToken requests extended products only when configured', function (bool $enabled, string $expected) {
+    config(['px-user.apiClient.baseUrl' => 'https://api.example.com']);
+    config(['px-user.extended_products_on_login' => $enabled]);
+
+    Http::fake([
+        '*/v1/user-with-permissions*' => Http::response([
+            'response' => [
+                'user' => [
+                    'id' => 'user-123',
+                    'correlated_id' => 'correlated-123',
+                    'email' => 'user@example.com',
+                    'preferred_username' => 'user',
+                    'tenant_code' => 'test-tenant',
+                    'domain_code' => 'test-domain',
+                    'is_enabled' => true,
+                    'is_confirmed' => true,
+                    'suspended' => false,
+                    'is_human' => true,
+                    'firstname' => 'Test',
+                    'lastname' => 'User',
+                    'gender' => 'unknown',
+                    'last_login_at' => null,
+                    'last_activity_at' => null,
+                    'source' => 'test',
+                    'locale' => 'en',
+                    'products' => [],
+                    'capabilities' => null,
+                    'roles' => [],
+                ],
+            ],
+        ]),
+    ]);
+
+    resolve(PxUser::class)->resolveByToken([
+        'access_token' => 'valid-token',
+        'access_token_expiration_utc' => '2026-12-31T23:59:59Z',
+    ]);
+
+    Http::assertSent(fn (Request $request) => str_contains($request->url(), 'withExtendedProducts='.$expected));
+})->with([
+    'enabled' => [true, '1'],
+    'disabled' => [false, '0'],
+]);
