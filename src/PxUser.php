@@ -175,7 +175,9 @@ class PxUser
         $client = app(PxUserClient::class);
         $client->setAccessToken($tokenData['access_token']);
 
-        $userData = $client->getUserWithPermissions();
+        $userData = $client->getUserWithPermissions(
+            (bool) config('px-user.extended_products_on_login', false),
+        );
 
         // Retrieve or create user model
         return [$userData, $this->retrieve($userData)];

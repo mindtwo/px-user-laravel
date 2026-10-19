@@ -39,6 +39,10 @@ Inside your configuration you will also find the keys:
 simply determines for how long the package is allowed to cache the user data in
 minutes.
 
+Set `PX_USER_EXTENDED_PRODUCTS_ON_LOGIN=true` (config key `extended_products_on_login`)
+to request the user's extended products, e.g. `products_validity`, when the user is
+resolved on login and token refresh. By default PX User returns the products without them.
+
 ### Prepare the User model
 
 First you will need to add a column `px_user_id` to your users table. This value is
