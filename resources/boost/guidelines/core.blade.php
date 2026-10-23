@@ -40,9 +40,10 @@ All flows go through the `mindtwo\PxUserLaravel\PxUser` service (constructor inj
 
 ### HTTP clients
 
-- `Http\Client\PxUserClient` — user-context client (bearer access token of the current user): `getUser()`, `getUsersDetails()`, `getUserWithPermissions()`, `getUsers($names, $productContext)`, `refreshTokens()`, `logout()`, `checkEipConnection()`; configurable via `setTenantCode()`, `setDomainCode()`, `setAccessToken()`.
+- `Http\Client\PxUserClient` — user-context client (bearer access token of the current user): `getUser()`, `getUsersDetails($userIds, $productCode = null)`, `getUserWithPermissions()`, `getUsers($names, $productContext = null)`, `refreshTokens()`, `logout()`, `checkEipConnection()`; configurable via `setTenantCode()`, `setDomainCode()`, `setAccessToken()`.
 - `Http\Client\PxUserAdminClient` — machine-to-machine client. `withM2mCredentials('clientId:clientSecret')` sets the `x-m2m-authorization` header; `getUser(string $pxUserId)` fetches any user. Credentials default to `px-user.m2m_credentials`.
 - `Http\Client\PxUserOidcClient` — token exchange (`exchangeToken($code, $codeVerifier)`) with `setTenantCode()`, `setDomainCode()`, `setClientId()`, `setRedirectUri()`.
+- `getUsers()` and `getUsersDetails()` send `X-Context-Product-Code`, taken from `px-user.product_code` (`PX_USER_PRODUCT_CODE`, default `lms`) unless a product code is passed. Read the configured value through `Helper\Utils::productCode()`, which still honours a deprecated `scout.product_code` other than `lms` left in a published config.
 - Prefer the cached wrappers over direct client calls when reading user data: `Services\PxUserCachedApiService` (current user context) and `Services\PxUserAdminCachedApiService` (M2M). TTL comes from `px-user.px_user_cache_time` (minutes).
 - Multi-tenant apps: inject per-tenant credentials via container `resolving()` hooks instead of hardcoding config:
 
@@ -74,7 +75,7 @@ public function searchableUsing(): Engine
 }
 ```
 
-- Search users with `User::search('name')` — never with `whereLike` on local columns (names are not stored locally). The product context for searches is `px-user.scout.product_code`.
+- Search users with `User::search('name')` — never with `whereLike` on local columns (names are not stored locally). The product context for searches is `px-user.product_code`.
 
 ### Testing with FakePxUser
 
@@ -94,5 +95,5 @@ $this->actingAs($user->fresh());
 
 ### Configuration
 
-- Key config values (`config/px-user.php`): `user_model`, `px_user_id`, `stage`, `tenant`, `domain`, `m2m_credentials` (`clientId:clientSecret`), `px_user_cache_time` (minutes), `token_retention_days`, `apiClient.baseUrl` / `timeout` / `connectTimeout` / `retries` / `retryDelay`, `scout.product_code`.
-- Env keys: `PX_USER_API_URL`, `PX_USER_TENANT`, `PX_USER_DOMAIN`, `PX_USER_M2M`, `PX_USER_STAGE`, `PX_USER_CACHE_TIME`, `PX_USER_SCOUT_PRODUCT_CODE`. Never commit or log M2M credentials or tokens.
+- Key config values (`config/px-user.php`): `user_model`, `px_user_id`, `stage`, `tenant`, `domain`, `m2m_credentials` (`clientId:clientSecret`), `px_user_cache_time` (minutes), `token_retention_days`, `apiClient.baseUrl` / `timeout` / `connectTimeout` / `retries` / `retryDelay`, `product_code`.
+- Env keys: `PX_USER_API_URL`, `PX_USER_TENANT`, `PX_USER_DOMAIN`, `PX_USER_M2M`, `PX_USER_STAGE`, `PX_USER_CACHE_TIME`, `PX_USER_PRODUCT_CODE`. Never commit or log M2M credentials or tokens.
