@@ -96,6 +96,14 @@ return [
     'extended_products_on_login' => env('PX_USER_EXTENDED_PRODUCTS_ON_LOGIN', false),
 
     /**
+     * Seconds before expiry at which an access token is refreshed by
+     * PxUser::refreshSession() and the RefreshPxUserSession middleware
+     *
+     * Default: 60 (seconds)
+     */
+    'refresh_leeway' => env('PX_USER_REFRESH_LEEWAY', 60),
+
+    /**
      * Api Client config
      */
     'apiClient' => [

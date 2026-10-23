@@ -114,6 +114,28 @@ class LoginController extends Controller
 If the value for `$result` is true you can now access authenticated user
 via Laravel's `Auth` facade.
 
+### Keep the session alive
+
+PX access tokens are short-lived. On stateful web routes (admin panels, Nova) add the
+`RefreshPxUserSession` middleware. It refreshes the authenticated user's PX tokens once
+they expire within `refresh_leeway` seconds (`PX_USER_REFRESH_LEEWAY`, default 60) and
+aborts with 401 only when the user is left without a valid token:
+
+```php
+use mindtwo\PxUserLaravel\Http\Middleware\RefreshPxUserSession;
+
+Route::middleware(['web', 'auth', RefreshPxUserSession::class])->group(function () {
+    // ...
+});
+```
+
+Concurrent requests refresh only once, and the user is not logged in again, so the
+session id stays the same. Each refresh dispatches `PxUserTokenRefreshEvent`.
+
+Keep `CheckPxUserSession` instead where a client holds its own PX refresh token (e.g. an
+SPA calling a token-based API): a server-side refresh rotates that token and leaves the
+client's copy unusable. `CheckPxUserSession` only checks the token and never refreshes it.
+
 ### Changelog
 
 Please see [CHANGELOG](CHANGELOG.md) for more information what has changed recently.
