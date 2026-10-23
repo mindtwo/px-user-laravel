@@ -10,16 +10,6 @@ beforeEach(function () {
     config(['px-user.px_user_id' => 'px_user_id']);
 });
 
-function makeTokenData(array $overrides = []): array
-{
-    return array_merge([
-        'access_token' => 'access-token-'.uniqid(),
-        'access_token_expiration_utc' => now()->addHour()->toIso8601String(),
-        'refresh_token' => 'refresh-token-'.uniqid(),
-        'refresh_token_expiration_utc' => now()->addWeek()->toIso8601String(),
-    ], $overrides);
-}
-
 test('save persists token data for the authenticatable', function () {
     $user = User::factory()->create(['px_user_id' => 'user-123']);
     $tokens = app(PxUserTokens::class);
@@ -105,4 +95,68 @@ test('canRefreshCurrentToken reflects refresh token presence', function () {
     $tokens->save($user, makeTokenData(['refresh_token' => 'refresh-abc']));
 
     expect($tokens->canRefreshCurrentToken($user))->toBeTrue();
+});
+
+test('reports the newly saved token as current on the same instance', function () {
+    $user = User::factory()->create(['px_user_id' => 'user-123']);
+    $tokens = new PxUserTokens;
+
+    $tokens->save($user, makeTokenData([
+        'access_token' => 'old',
+        'access_token_expiration_utc' => now()->addMinute()->toIso8601String(),
+    ]));
+    expect($tokens->accessToken($user))->toBe('old');
+
+    $tokens->save($user, makeTokenData(['access_token' => 'new']));
+
+    expect($tokens->accessToken($user))->toBe('new')
+        ->and($tokens->expiresAt($user)->isAfter(now()->addMinutes(30)))->toBeTrue();
+});
+
+test('does not serve an expired token loaded by refreshToken to valid-only reads', function () {
+    $user = User::factory()->create(['px_user_id' => 'user-123']);
+    $tokens = new PxUserTokens;
+
+    $tokens->save($user, makeTokenData([
+        'access_token_expiration_utc' => now()->subMinute()->toIso8601String(),
+    ]));
+
+    expect($tokens->refreshToken($user))->not->toBeNull()
+        ->and(fn () => $tokens->accessToken($user))->toThrow(RuntimeException::class);
+});
+
+test('forgets the current token after invalidate on the same instance', function () {
+    $user = User::factory()->create(['px_user_id' => 'user-123']);
+    $tokens = new PxUserTokens;
+
+    $tokens->save($user, makeTokenData());
+    expect($tokens->isCurrentTokenValid($user))->toBeTrue();
+
+    $tokens->invalidate($user);
+
+    expect($tokens->isCurrentTokenValid($user))->toBeFalse();
+});
+
+test('keeps tokens of different authenticatables apart on the same instance', function () {
+    $first = User::factory()->create(['px_user_id' => 'user-1']);
+    $second = User::factory()->create(['px_user_id' => 'user-2']);
+    $tokens = new PxUserTokens;
+
+    $tokens->save($first, makeTokenData(['access_token' => 'first-token']));
+    $tokens->save($second, makeTokenData(['access_token' => 'second-token']));
+
+    expect($tokens->accessToken($first))->toBe('first-token')
+        ->and($tokens->accessToken($second))->toBe('second-token');
+});
+
+test('refreshTokenValidUntil reads the refresh expiry after the access token expired', function () {
+    $user = User::factory()->create(['px_user_id' => 'user-123']);
+    $tokens = new PxUserTokens;
+
+    $tokens->save($user, makeTokenData([
+        'access_token_expiration_utc' => now()->subMinute()->toIso8601String(),
+        'refresh_token_expiration_utc' => '2030-01-01T00:00:00Z',
+    ]));
+
+    expect($tokens->refreshTokenValidUntil($user)?->toIso8601String())->toBe('2030-01-01T00:00:00+00:00');
 });
