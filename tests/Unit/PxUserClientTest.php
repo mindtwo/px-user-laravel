@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use mindtwo\PxUserLaravel\DataTransfer\PxUserData;
 use mindtwo\PxUserLaravel\Http\Client\PxUserClient;
 use mindtwo\PxUserLaravel\Tests\Fake\User;
@@ -146,4 +147,42 @@ test('getUsersDetails returns array when array provided', function () {
         ->and($result)->toHaveCount(2)
         ->and($result[0]->id)->toBe('user-123')
         ->and($result[1]->id)->toBe('user-456');
+});
+
+test('getUsersDetails skips and logs records that do not hydrate', function () {
+    Log::spy();
+    $record = [
+        'id' => 'user-123',
+        'email' => 'test@example.com',
+        'preferred_username' => 'testuser',
+        'tenant_code' => 'test-tenant',
+        'domain_code' => 'test-domain',
+        'firstname' => 'Test',
+        'lastname' => 'User',
+        'activated_at' => null,
+        'last_login_at' => null,
+        'roles' => [],
+        'products' => [],
+        'locale' => 'en',
+    ];
+    Http::fake([
+        '*/v1/users/details' => Http::response([
+            'response' => [$record, [...$record, 'id' => 'user-456', 'locale' => null]],
+        ]),
+    ]);
+
+    $user = User::factory()->create(['px_user_id' => 'test-user-123']);
+    Auth::login($user);
+
+    $client = app(PxUserClient::class);
+    $client->setAccessToken('test-token');
+
+    $result = $client->getUsersDetails(['user-123', 'user-456']);
+
+    expect($result)->toHaveCount(1)
+        ->and($result[0]->id)->toBe('user-123');
+
+    Log::shouldHaveReceived('warning')
+        ->withArgs(fn (string $message, array $context): bool => $context['px_user_id'] === 'user-456')
+        ->once();
 });

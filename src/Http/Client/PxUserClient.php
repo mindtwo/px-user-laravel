@@ -3,11 +3,13 @@
 namespace mindtwo\PxUserLaravel\Http\Client;
 
 use Illuminate\Http\Client\PendingRequest;
+use Illuminate\Support\Facades\Log;
 use mindtwo\PxUserLaravel\Contracts\PxUser;
 use mindtwo\PxUserLaravel\DataTransfer\PxUserData;
 use mindtwo\PxUserLaravel\DataTransfer\PxUserDataWithPermissions;
 use mindtwo\TwoTility\Http\BaseApiClient;
 use RuntimeException;
+use Throwable;
 
 class PxUserClient extends BaseApiClient
 {
@@ -63,7 +65,20 @@ class PxUserClient extends BaseApiClient
             return PxUserData::from($response[0]);
         }
 
-        return PxUserData::collect($response, 'array');
+        // One record that does not hydrate must not drop the rest of the batch
+        $users = [];
+        foreach ($response as $user) {
+            try {
+                $users[] = PxUserData::from($user);
+            } catch (Throwable $exception) {
+                Log::warning('PX-User: skipped user details that do not hydrate.', [
+                    'px_user_id' => $user['id'] ?? null,
+                    'message' => $exception->getMessage(),
+                ]);
+            }
+        }
+
+        return $users;
     }
 
     /**

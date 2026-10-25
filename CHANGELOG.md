@@ -13,7 +13,7 @@ Updates should follow the [Keep a CHANGELOG](http://keepachangelog.com/) princip
 - Nothing
 
 ### Fixed
-- Nothing
+- `PxUserClient::getUsersDetails()` skips and logs records that do not hydrate instead of failing the whole batch, so the other users are still returned and cached
 
 ### Removed
 - Nothing
