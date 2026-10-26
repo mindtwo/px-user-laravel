@@ -38,75 +38,49 @@ class PxUserEngine extends Engine
     /**
      * Perform the given search on the engine.
      *
-     * @return mixed
+     * @return array{results: Collection<int, Model>, total: int}
      */
     public function search(Builder $builder)
     {
-        $query = $builder->query;
-
-        if (blank($query)) {
-            $query = $builder->model->newQuery();
-        }
-
-        $pxUserIds = $this->queryPxUserSearch($builder);
-        if (empty($pxUserIds)) {
-            return [
-                'results' => collect(),
-                'total' => 0,
-            ];
-        }
+        $models = $this->searchModels($builder);
 
         return [
-            'results' => $builder->model->whereIn(
-                config('px-user.px_user_id', 'px_user_id'), $pxUserIds
-            )
-                ->get(),
-            'total' => count($pxUserIds),
+            'results' => $builder->limit === null ? $models : $models->take($builder->limit)->values(),
+            'total' => $models->count(),
         ];
     }
 
-    //     /**
-    //      * Paginate the given search on the engine.
-    //      *
-    //      * @param  \Laravel\Scout\Builder  $builder
-    //      * @param  int  $perPage
-    //      * @param  int  $page
-    //      * @return \Illuminate\Contracts\Pagination\LengthAwarePaginator
-    //      */
-    //     public function paginate(Builder $builder, $perPage, $page)
-    //     {
-    //         return $this->paginateUsingDatabase($builder, $perPage, 'page', $page);
-    //     }
     /**
-     * Perform the given search on the engine.
+     * Perform the given search on the engine and return one page of the local users.
      *
      * @param  int  $perPage
      * @param  int  $page
-     * @return mixed
+     * @return array{results: Collection<int, Model>, total: int}
      */
     public function paginate(Builder $builder, $perPage, $page)
     {
-        // TODO dump('paginate', $page);
+        $models = $this->searchModels($builder);
+
+        return [
+            'results' => $models->forPage($page, $perPage)->values(),
+            'total' => $models->count(),
+        ];
     }
 
     /**
      * Pluck and return the primary keys of the given results.
      *
-     * @param  mixed  $results
+     * @param  array{results: Collection<int, Model>, total: int}  $results
      */
     public function mapIds($results): SupportCollection
     {
-        $results = $results['results'];
-
-        return count($results) > 0
-                    ? collect($results->modelKeys()) // @phpstan-ignore-line
-                    : collect();
+        return collect($results['results']->modelKeys());
     }
 
     /**
      * Map the given results to instances of the given model.
      *
-     * @param  mixed  $results
+     * @param  array{results: Collection<int, Model>, total: int}  $results
      * @param  Model  $model
      * @return Collection
      */
@@ -118,7 +92,7 @@ class PxUserEngine extends Engine
     /**
      * Map the given results to instances of the given model via a lazy collection.
      *
-     * @param  mixed  $results
+     * @param  array{results: Collection<int, Model>, total: int}  $results
      * @param  Model  $model
      * @return LazyCollection
      */
@@ -130,7 +104,7 @@ class PxUserEngine extends Engine
     /**
      * Get the total count from a raw result returned by the engine.
      *
-     * @param  mixed  $results
+     * @param  array{results: Collection<int, Model>, total: int}  $results
      * @return int
      */
     public function getTotalCount($results)
@@ -172,7 +146,34 @@ class PxUserEngine extends Engine
     }
 
     /**
-     * Perform the given search on the engine.
+     * Get all local users matching the PX search, in the order PX returns them.
+     *
+     * @return Collection<int, Model>
+     */
+    protected function searchModels(Builder $builder): Collection
+    {
+        $pxUserIds = $this->queryPxUserSearch($builder);
+        if (empty($pxUserIds)) {
+            return $builder->model->newCollection();
+        }
+
+        $pxUserIdColumn = config('px-user.px_user_id', 'px_user_id');
+        $positions = array_flip($pxUserIds);
+
+        $query = $builder->model->newQuery()->whereIn($pxUserIdColumn, $pxUserIds);
+        if ($builder->queryCallback) {
+            call_user_func($builder->queryCallback, $query);
+        }
+
+        return $query->get()
+            ->sortBy(fn (Model $model) => $positions[$model->getAttribute($pxUserIdColumn)])
+            ->values();
+    }
+
+    /**
+     * Search PX users by name and return their PX user ids.
+     *
+     * @return array<int, string>
      */
     protected function queryPxUserSearch(Builder $builder): array
     {
@@ -190,12 +191,12 @@ class PxUserEngine extends Engine
             ->setDomainCode($domain)
             ->setTenantCode($tenant);
 
-        // request users
+        // PX answers a search without matches with 404
         try {
             $users = $client->getUsers($query);
-        } catch (\Throwable $th) {
-            if (! $th instanceof RequestException || $th->response->status() !== 404) {
-                throw $th;
+        } catch (RequestException $e) {
+            if ($e->response->status() !== 404) {
+                throw $e;
             }
 
             return [];

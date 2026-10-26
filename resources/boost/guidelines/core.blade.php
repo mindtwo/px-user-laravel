@@ -78,6 +78,9 @@ public function searchableUsing(): Engine
 ```
 
 - Search users with `User::search('name')` — never with `whereLike` on local columns (names are not stored locally). The product context for searches is `px-user.product_code`.
+- Set the PX context with `->where('tenant', …)->where('domain', …)`; all other local filters go into `->query(fn ($query) => …)`, which the engine applies to the local users.
+- `get()`, `take()`, `paginate()`, `simplePaginate()`, `keys()` and `cursor()` all work. Results keep the PX order and include only users stored locally, and the total counts only those.
+- A PX 404 means no matches; other PX errors are rethrown. The search needs an authenticated PX user — in tests, `Http::fake(['*/v1/users*' => …])` and log a user in with a valid `PxUserToken`.
 
 ### Testing with FakePxUser
 
