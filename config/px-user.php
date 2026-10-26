@@ -152,8 +152,10 @@ return [
         'logLevel' => env('PX_USER_API_LOG_LEVEL', 'error'),
     ],
 
-    'scout' => [
-        // Default product context for PX User API when searching for users
-        'product_code' => env('PX_USER_SCOUT_PRODUCT_CODE', 'lms'),
-    ],
+    /**
+     * Product code sent as X-Context-Product-Code on user search and user details
+     *
+     * Default: env('PX_USER_PRODUCT_CODE'), then the deprecated env('PX_USER_SCOUT_PRODUCT_CODE'), then 'lms'
+     */
+    'product_code' => env('PX_USER_PRODUCT_CODE', env('PX_USER_SCOUT_PRODUCT_CODE', 'lms')),
 ];

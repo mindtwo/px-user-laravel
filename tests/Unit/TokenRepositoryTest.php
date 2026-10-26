@@ -67,6 +67,18 @@ test('invalidate marks existing tokens as expired', function () {
     expect($stored)->toBeNull();
 });
 
+test('invalidate keeps the expiry of tokens that already expired so they stay prunable', function () {
+    $user = User::factory()->create(['px_user_id' => 'user-123']);
+    $tokens = app(PxUserTokens::class);
+
+    $tokens->save($user, makeTokenData(['access_token' => 'old']));
+    $this->travel(31)->days();
+    $tokens->save($user, makeTokenData(['access_token' => 'new']));
+
+    $prunable = (new PxUserToken)->prunable()->get()->map->token('access_token');
+    expect($prunable->all())->toBe(['old']);
+});
+
 test('save invalidates previous tokens before storing a new one', function () {
     $user = User::factory()->create(['px_user_id' => 'user-123']);
     $tokens = app(PxUserTokens::class);

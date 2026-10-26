@@ -56,8 +56,10 @@ class PxUserTokens
             $this->tokens[$this->tokenKey($authenticatable, false)],
         );
 
+        // Only valid tokens: re-stamping expired ones would keep them from ever being pruned
         return PxUserToken::query()
             ->forAuthenticatable($authenticatable)
+            ->valid()
             ->update([
                 'valid_until' => now(),
             ]) > 0;
