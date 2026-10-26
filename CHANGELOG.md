@@ -18,8 +18,6 @@ Updates should follow the [Keep a CHANGELOG](http://keepachangelog.com/) princip
 - `scout.product_code` config / `PX_USER_SCOUT_PRODUCT_CODE`, replaced by `product_code` / `PX_USER_PRODUCT_CODE`. Both are still honoured; a `scout.product_code` other than `lms` left in a published config takes precedence, so remove the `scout` block
 
 ### Fixed
-- `PxUserTokens` no longer serves a stale token after `save()`/`invalidate()`, an expired token to valid-only reads, or another user's token from the same instance
-- `PxUserTokens::refreshTokenValidUntil()` no longer throws once the access token has expired
 - `PxUserTokens::invalidate()` only expires valid tokens, so a login, refresh or logout no longer re-stamps `valid_until` on old rows and keeps them from ever being pruned
 
 ### Removed

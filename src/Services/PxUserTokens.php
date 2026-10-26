@@ -9,12 +9,7 @@ use RuntimeException;
 
 class PxUserTokens
 {
-    /**
-     * Loaded tokens, keyed per authenticatable and validity scope.
-     *
-     * @var array<string, PxUserToken>
-     */
-    private array $tokens = [];
+    private PxUserToken $currentToken;
 
     public function current(Authenticatable $authenticatable): array
     {
@@ -32,30 +27,17 @@ class PxUserTokens
 
         $validUntil = $this->parseValidUntil($token);
 
-        $saved = PxUserToken::query()
+        return PxUserToken::query()
             ->create([
                 'authenticatable_type' => get_class($authenticatable),
                 'authenticatable_id' => $authenticatable->getAuthIdentifier(),
                 'token_data' => $token,
                 'valid_until' => $validUntil,
             ]);
-
-        $this->tokens[$this->tokenKey($authenticatable, true)] = $saved;
-
-        if ($saved->isValid()) {
-            $this->tokens[$this->tokenKey($authenticatable, false)] = $saved;
-        }
-
-        return $saved;
     }
 
     public function invalidate(Authenticatable $authenticatable): bool
     {
-        unset(
-            $this->tokens[$this->tokenKey($authenticatable, true)],
-            $this->tokens[$this->tokenKey($authenticatable, false)],
-        );
-
         // Only valid tokens: re-stamping expired ones would keep them from ever being pruned
         return PxUserToken::query()
             ->forAuthenticatable($authenticatable)
@@ -108,7 +90,7 @@ class PxUserTokens
 
     public function refreshTokenValidUntil(Authenticatable $authenticatable): ?Carbon
     {
-        $token = $this->getToken($authenticatable, true);
+        $token = $this->getToken($authenticatable);
         $validUntil = $token?->token('refresh_token_expiration_utc');
 
         if ($validUntil instanceof Carbon) {
@@ -127,10 +109,8 @@ class PxUserTokens
      */
     protected function getToken(Authenticatable $authenticatable, bool $includeInvalid = false): ?PxUserToken
     {
-        $key = $this->tokenKey($authenticatable, $includeInvalid);
-
-        if (isset($this->tokens[$key])) {
-            return $this->tokens[$key];
+        if (isset($this->currentToken)) {
+            return $this->currentToken;
         }
 
         $token = PxUserToken::query()
@@ -141,15 +121,9 @@ class PxUserTokens
 
         throw_if(! $token, new RuntimeException('No token found for authenticatable'));
 
-        return $this->tokens[$key] = $token;
-    }
+        $this->currentToken = $token;
 
-    /**
-     * Get the key a loaded token is kept under.
-     */
-    protected function tokenKey(Authenticatable $authenticatable, bool $includeInvalid): string
-    {
-        return get_class($authenticatable).':'.$authenticatable->getAuthIdentifier().':'.($includeInvalid ? 'any' : 'valid');
+        return $this->currentToken;
     }
 
     /**

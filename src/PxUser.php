@@ -209,6 +209,7 @@ class PxUser
         $tokens = app(PxUserTokens::class);
 
         try {
+            // refreshToken() first: it also loads an expired row, which refreshTokenValidUntil() then reads.
             $refreshToken = $tokens->refreshToken($user);
             $refreshValidUntil = $tokens->refreshTokenValidUntil($user);
 
