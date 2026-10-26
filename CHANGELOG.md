@@ -7,6 +7,23 @@ Updates should follow the [Keep a CHANGELOG](http://keepachangelog.com/) princip
 ## NEXT - YYYY-MM-DD
 
 ### Added
+- Nothing
+
+### Deprecated
+- Nothing
+
+### Fixed
+- Nothing
+
+### Removed
+- `scout.product_code` config and `PX_USER_SCOUT_PRODUCT_CODE`, deprecated in 4.2.0. Set `PX_USER_PRODUCT_CODE` (config `product_code`) instead and remove a `scout` block from your published config
+
+### Security
+- Nothing
+
+## 4.2.0 - 2026-10-26
+
+### Added
 - `extended_products_on_login` config option (`PX_USER_EXTENDED_PRODUCTS_ON_LOGIN`) to fetch the user with extended products on login and token refresh
 - `PxUser::refreshSession()` refreshes an expiring PX token behind a per-user lock, without logging the user in, and dispatches `PxUserTokenRefreshEvent`
 - `refresh_leeway` config option (`PX_USER_REFRESH_LEEWAY`, seconds before expiry a token is refreshed, default 60)

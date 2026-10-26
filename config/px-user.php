@@ -155,7 +155,7 @@ return [
     /**
      * Product code sent as X-Context-Product-Code on user search and user details
      *
-     * Default: env('PX_USER_PRODUCT_CODE'), then the deprecated env('PX_USER_SCOUT_PRODUCT_CODE'), then 'lms'
+     * Default: 'lms'
      */
-    'product_code' => env('PX_USER_PRODUCT_CODE', env('PX_USER_SCOUT_PRODUCT_CODE', 'lms')),
+    'product_code' => env('PX_USER_PRODUCT_CODE', 'lms'),
 ];

@@ -44,10 +44,7 @@ to request the user's extended products, e.g. `products_validity`, when the user
 resolved on login and token refresh. By default PX User returns the products without them.
 
 `PX_USER_PRODUCT_CODE` (config key `product_code`, default `lms`) is sent as the
-`X-Context-Product-Code` header on user search and user details requests. It replaces
-`PX_USER_SCOUT_PRODUCT_CODE` / `scout.product_code`, which still work but are deprecated:
-a `scout.product_code` other than `lms` left in your published config wins over
-`PX_USER_PRODUCT_CODE`, so remove the `scout` block.
+`X-Context-Product-Code` header on user search and user details requests.
 
 ### Prepare the User model
 
