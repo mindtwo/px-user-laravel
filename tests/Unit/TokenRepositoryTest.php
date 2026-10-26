@@ -10,16 +10,6 @@ beforeEach(function () {
     config(['px-user.px_user_id' => 'px_user_id']);
 });
 
-function makeTokenData(array $overrides = []): array
-{
-    return array_merge([
-        'access_token' => 'access-token-'.uniqid(),
-        'access_token_expiration_utc' => now()->addHour()->toIso8601String(),
-        'refresh_token' => 'refresh-token-'.uniqid(),
-        'refresh_token_expiration_utc' => now()->addWeek()->toIso8601String(),
-    ], $overrides);
-}
-
 test('save persists token data for the authenticatable', function () {
     $user = User::factory()->create(['px_user_id' => 'user-123']);
     $tokens = app(PxUserTokens::class);

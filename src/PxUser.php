@@ -4,16 +4,21 @@ namespace mindtwo\PxUserLaravel;
 
 use Carbon\Carbon;
 use Illuminate\Contracts\Auth\Authenticatable;
+use Illuminate\Contracts\Cache\LockTimeoutException;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 use mindtwo\PxUserLaravel\Contracts\PxUser as ContractsPxUser;
 use mindtwo\PxUserLaravel\DataTransfer\PxUserData;
 use mindtwo\PxUserLaravel\DataTransfer\PxUserDataWithPermissions;
 use mindtwo\PxUserLaravel\Events\PxUserLoginEvent;
+use mindtwo\PxUserLaravel\Events\PxUserTokenRefreshEvent;
 use mindtwo\PxUserLaravel\Http\Client\PxUserClient;
 use mindtwo\PxUserLaravel\Http\Client\PxUserOidcClient;
 use mindtwo\PxUserLaravel\Services\PxUserTokens;
 use RuntimeException;
+use Throwable;
 
 class PxUser
 {
@@ -155,6 +160,94 @@ class PxUser
         auth()->login($user);
 
         return $this->pxUserTokens->current($user);
+    }
+
+    /**
+     * Refresh the user's PX tokens when they expire within the refresh leeway.
+     *
+     * Returns whether the user holds a valid token afterwards. Does not log the user in.
+     */
+    public function refreshSession(Authenticatable $user): bool
+    {
+        if ($this->hasFreshToken($user)) {
+            return true;
+        }
+
+        $lockKey = 'px-user:refresh:'.md5(get_class($user)).':'.$user->getAuthIdentifier();
+
+        try {
+            $refreshed = Cache::lock($lockKey, $this->refreshLockSeconds())
+                ->block(10, fn () => $this->refreshUnlessFresh($user));
+        } catch (LockTimeoutException) {
+            $refreshed = false;
+        }
+
+        return $refreshed || app(PxUserTokens::class)->isCurrentTokenValid($user);
+    }
+
+    /**
+     * Get how long a refresh may hold its lock: the client's slowest call plus a buffer.
+     */
+    protected function refreshLockSeconds(): int
+    {
+        $timeout = (int) config('px-user.apiClient.timeout', 30);
+        $attempts = max(1, (int) config('px-user.apiClient.retries', 3));
+
+        return $timeout * $attempts + 30;
+    }
+
+    /**
+     * Refresh the user's PX tokens unless another request already did.
+     */
+    protected function refreshUnlessFresh(Authenticatable $user): bool
+    {
+        if ($this->hasFreshToken($user)) {
+            return true;
+        }
+
+        // A new instance each time, since PxUserTokens keeps the rows it loaded.
+        $tokens = app(PxUserTokens::class);
+
+        try {
+            // refreshToken() first: it also loads an expired row, which refreshTokenValidUntil() then reads.
+            $refreshToken = $tokens->refreshToken($user);
+            $refreshValidUntil = $tokens->refreshTokenValidUntil($user);
+
+            if (empty($refreshToken) || $refreshValidUntil?->isPast()) {
+                return false;
+            }
+
+            $newTokens = app(PxUserClient::class)->refreshTokens($refreshToken);
+
+            if (! $this->validateToken($newTokens)) {
+                return false;
+            }
+
+            $tokens->save($user, $newTokens);
+        } catch (Throwable $e) {
+            Log::debug('PX-User: '.$e->getMessage());
+
+            return false;
+        }
+
+        event(new PxUserTokenRefreshEvent($user, $newTokens['access_token']));
+
+        return true;
+    }
+
+    /**
+     * Check whether the user's token stays valid beyond the refresh leeway.
+     */
+    protected function hasFreshToken(Authenticatable $user): bool
+    {
+        try {
+            $expiresAt = app(PxUserTokens::class)->expiresAt($user);
+        } catch (RuntimeException) {
+            return false;
+        }
+
+        return $expiresAt === null
+            || $expiresAt->isAfter(now()->addSeconds((int) config('px-user.refresh_leeway', 60)));
     }
 
     /**

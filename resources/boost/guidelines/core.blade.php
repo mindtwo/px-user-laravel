@@ -21,6 +21,7 @@ All flows go through the `mindtwo\PxUserLaravel\PxUser` service (constructor inj
 - `login(array $tokenData)` — token-based login. Expects `access_token` + `access_token_expiration_utc` (and optionally `refresh_token` + `refresh_token_expiration_utc`), typically posted by the `@mindtwo/px-user-widgets` frontend widget. Validates the data, fetches the remote user with permissions, `firstOrCreate`s the local user, persists a `PxUserToken` row, calls `auth()->login()` and fires `PxUserLoginEvent`. Returns the user model or `false`; throws on invalid token data.
 - `oidcLogin(string $code, string $codeVerifier)` — OIDC Authorization Code + PKCE flow. Exchanges the code via `PxUserOidcClient`, then delegates to `login()`. A failed exchange throws an `Illuminate\Http\Client\RequestException` (map to 422); `false` means no user could be resolved (map to 401).
 - `refresh(string $refreshToken)` — refreshes the PX tokens, saves them and logs the user in as a side effect. It returns the raw token array, NOT the user — read `auth()->user()` afterwards.
+- `refreshSession(Authenticatable $user)` — refreshes the user's stored PX tokens when they expire within `px-user.refresh_leeway` seconds, behind a per-user cache lock so concurrent requests refresh once. Does not log the user in. Returns whether the user holds a valid token afterwards (a failed refresh keeps a not yet expired token usable) and dispatches `PxUserTokenRefreshEvent` on refresh.
 - `logout()` — invalidates the remote PX session and the local token row for `auth()->user()`. Treat the remote call as best-effort (wrap in try/catch) and always delete the app's own session/API tokens afterwards.
 - `resolveByToken(array $tokenData)` — resolves `[PxUserDataWithPermissions, user|false]` without logging in.
 - Common consumer pattern: after `login()`/`oidcLogin()`, mint an app token (e.g. Sanctum) with `expiresAt: Carbon::parse($tokenData['access_token_expiration_utc'])` so the app session tracks the PX session.
@@ -62,7 +63,8 @@ $this->app->resolving(PxUserOidcClient::class, function (PxUserOidcClient $clien
 
 ### Middleware
 
-- `Http\Middleware\CheckPxUserSession` aborts with 401 when the authenticated user no longer has a valid PX User token. Append it to route groups that must stay in sync with the PX session (e.g. admin panels). It passes through unauthenticated requests and non-PxUser users.
+- `Http\Middleware\RefreshPxUserSession` calls `PxUser::refreshSession()` for the authenticated user and aborts with 401 only when the user is left without a valid token. Use it on stateful web route groups (e.g. admin panels, Nova). It passes through unauthenticated requests and non-PxUser users.
+- `Http\Middleware\CheckPxUserSession` aborts with 401 when the authenticated user no longer has a valid PX User token and never refreshes. Use it where a client holds its own PX refresh token (token-based APIs), since a server-side refresh would rotate that token.
 
 ### Scout user search
 
@@ -95,5 +97,5 @@ $this->actingAs($user->fresh());
 
 ### Configuration
 
-- Key config values (`config/px-user.php`): `user_model`, `px_user_id`, `stage`, `tenant`, `domain`, `m2m_credentials` (`clientId:clientSecret`), `px_user_cache_time` (minutes), `token_retention_days`, `apiClient.baseUrl` / `timeout` / `connectTimeout` / `retries` / `retryDelay`, `product_code`.
-- Env keys: `PX_USER_API_URL`, `PX_USER_TENANT`, `PX_USER_DOMAIN`, `PX_USER_M2M`, `PX_USER_STAGE`, `PX_USER_CACHE_TIME`, `PX_USER_PRODUCT_CODE`. Never commit or log M2M credentials or tokens.
+- Key config values (`config/px-user.php`): `user_model`, `px_user_id`, `stage`, `tenant`, `domain`, `m2m_credentials` (`clientId:clientSecret`), `px_user_cache_time` (minutes), `token_retention_days`, `refresh_leeway` (seconds), `apiClient.baseUrl` / `timeout` / `connectTimeout` / `retries` / `retryDelay`, `product_code`.
+- Env keys: `PX_USER_API_URL`, `PX_USER_TENANT`, `PX_USER_DOMAIN`, `PX_USER_M2M`, `PX_USER_STAGE`, `PX_USER_CACHE_TIME`, `PX_USER_PRODUCT_CODE`, `PX_USER_REFRESH_LEEWAY`. Never commit or log M2M credentials or tokens.
