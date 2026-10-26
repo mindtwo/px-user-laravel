@@ -13,7 +13,7 @@ Updates should follow the [Keep a CHANGELOG](http://keepachangelog.com/) princip
 - Nothing
 
 ### Fixed
-- Nothing
+- `PxUserTokens::invalidate()` only expires valid tokens, so a login, refresh or logout no longer re-stamps `valid_until` on old rows and keeps them from ever being pruned
 
 ### Removed
 - Nothing
