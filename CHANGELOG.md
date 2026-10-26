@@ -13,7 +13,9 @@ Updates should follow the [Keep a CHANGELOG](http://keepachangelog.com/) princip
 - Nothing
 
 ### Fixed
-- Nothing
+- `PxUserEngine` implements `paginate()`, so `search()->paginate()` and `search()->simplePaginate()` return the requested page instead of failing
+- `PxUserEngine` returns users in the order PX returns them, honours `take()` and applies `query()` callbacks to the local users
+- `PxUserEngine` counts only the users stored locally in its total, not every user PX returns
 
 ### Removed
 - `scout.product_code` config and `PX_USER_SCOUT_PRODUCT_CODE`, deprecated in 4.2.0. Set `PX_USER_PRODUCT_CODE` (config `product_code`) instead and remove a `scout` block from your published config

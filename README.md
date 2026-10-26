@@ -139,6 +139,35 @@ Keep `CheckPxUserSession` instead where a client holds its own PX refresh token 
 SPA calling a token-based API): a server-side refresh rotates that token and leaves the
 client's copy unusable. `CheckPxUserSession` only checks the token and never refreshes it.
 
+### Search users with Scout
+
+The package registers a Scout engine named `px-user` that searches users by name through
+the PX User API. Route your searchable model to it:
+
+```php
+use Laravel\Scout\EngineManager;
+use Laravel\Scout\Engines\Engine;
+
+public function searchableUsing(): Engine
+{
+    return app(EngineManager::class)->engine('px-user');
+}
+```
+
+The `tenant` and `domain` wheres set the PX context of the search:
+
+```php
+User::search('jane')->where('tenant', $tenant)->where('domain', $domain)->get();
+User::search('jane')->take(10)->get();
+User::search('jane')->query(fn ($query) => $query->whereNotNull('email_verified_at'))->paginate(20);
+```
+
+The engine requests all matching users from PX once, then loads the matching local users
+by `px_user_id` in the order PX returns them. Users PX finds but your database lacks are
+skipped and not counted. `get()` honours `take()`, `paginate()` and `simplePaginate()` page
+over the local users. A PX 404 means no matches; other PX errors are rethrown. Searches
+need an authenticated PX user.
+
 ### Changelog
 
 Please see [CHANGELOG](CHANGELOG.md) for more information what has changed recently.
