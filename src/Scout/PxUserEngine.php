@@ -192,7 +192,7 @@ class PxUserEngine extends Engine
 
         // request users
         try {
-            $users = $client->getUsers($query, config('px-user.scout.product_code', 'lms'));
+            $users = $client->getUsers($query);
         } catch (\Throwable $th) {
             if (! $th instanceof RequestException || $th->response->status() !== 404) {
                 throw $th;

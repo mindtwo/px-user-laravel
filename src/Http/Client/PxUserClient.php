@@ -6,6 +6,7 @@ use Illuminate\Http\Client\PendingRequest;
 use mindtwo\PxUserLaravel\Contracts\PxUser;
 use mindtwo\PxUserLaravel\DataTransfer\PxUserData;
 use mindtwo\PxUserLaravel\DataTransfer\PxUserDataWithPermissions;
+use mindtwo\PxUserLaravel\Helper\Utils;
 use mindtwo\TwoTility\Http\BaseApiClient;
 use RuntimeException;
 
@@ -45,9 +46,10 @@ class PxUserClient extends BaseApiClient
      * Get the details for a user or list of users.
      *
      * @param  string|array<int, string>  $userIds  Single user ID or array of user IDs
+     * @param  string|null  $productCode  Product context, defaults to the configured product code
      * @return ($userIds is string ? PxUserData : array<int, PxUserData>)
      */
-    public function getUsersDetails(string|array $userIds): PxUserData|array
+    public function getUsersDetails(string|array $userIds, ?string $productCode = null): PxUserData|array
     {
         $single = is_string($userIds);
 
@@ -55,9 +57,11 @@ class PxUserClient extends BaseApiClient
             $userIds = [$userIds];
         }
 
-        $response = $this->client()->post('v1/users/details', [
-            'user_ids' => $userIds,
-        ])->json('response');
+        $response = $this->client()
+            ->withHeader('X-Context-Product-Code', $productCode ?? Utils::productCode())
+            ->post('v1/users/details', [
+                'user_ids' => $userIds,
+            ])->json('response');
 
         if ($single) {
             return PxUserData::from($response[0]);
@@ -85,10 +89,10 @@ class PxUserClient extends BaseApiClient
     /**
      * Get users list with search.
      */
-    public function getUsers(string $names, string $productContext): array
+    public function getUsers(string $names, ?string $productContext = null): array
     {
         $response = $this->client()
-            ->withHeader('X-Context-Product-Code', $productContext)
+            ->withHeader('X-Context-Product-Code', $productContext ?? Utils::productCode())
             ->get('v1/users', [
                 'names' => $names,
             ]);

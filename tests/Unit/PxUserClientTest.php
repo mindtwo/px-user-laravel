@@ -1,5 +1,6 @@
 <?php
 
+use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Http;
 use mindtwo\PxUserLaravel\DataTransfer\PxUserData;
@@ -146,4 +147,57 @@ test('getUsersDetails returns array when array provided', function () {
         ->and($result)->toHaveCount(2)
         ->and($result[0]->id)->toBe('user-123')
         ->and($result[1]->id)->toBe('user-456');
+});
+
+function fakeUsersDetailsResponse(): void
+{
+    Http::fake([
+        '*/v1/users/details' => Http::response([
+            'response' => [[
+                'id' => 'user-123',
+                'email' => 'test@example.com',
+                'preferred_username' => 'testuser',
+                'tenant_code' => 'test-tenant',
+                'domain_code' => 'test-domain',
+                'is_enabled' => true,
+                'is_confirmed' => true,
+                'firstname' => 'Test',
+                'lastname' => 'User',
+                'activated_at' => null,
+                'last_login_at' => null,
+                'roles' => [],
+                'products' => [],
+                'source' => 'test',
+                'locale' => 'en',
+            ]],
+        ]),
+        '*/v1/users?*' => Http::response(['response' => ['data' => []]]),
+    ]);
+}
+
+test('getUsersDetails sends the configured product code', function () {
+    config(['px-user.product_code' => 'crm']);
+    fakeUsersDetailsResponse();
+
+    app(PxUserClient::class)->setAccessToken('test-token')->getUsersDetails('user-123');
+
+    Http::assertSent(fn (Request $request) => $request->hasHeader('X-Context-Product-Code', 'crm'));
+});
+
+test('getUsersDetails sends an explicit product code over the configured one', function () {
+    config(['px-user.product_code' => 'crm']);
+    fakeUsersDetailsResponse();
+
+    app(PxUserClient::class)->setAccessToken('test-token')->getUsersDetails('user-123', 'lms');
+
+    Http::assertSent(fn (Request $request) => $request->hasHeader('X-Context-Product-Code', 'lms'));
+});
+
+test('getUsers sends the configured product code when none is given', function () {
+    config(['px-user.product_code' => 'crm']);
+    fakeUsersDetailsResponse();
+
+    app(PxUserClient::class)->setAccessToken('test-token')->getUsers('jane');
+
+    Http::assertSent(fn (Request $request) => $request->hasHeader('X-Context-Product-Code', 'crm'));
 });

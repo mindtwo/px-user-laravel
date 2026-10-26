@@ -8,9 +8,11 @@ Updates should follow the [Keep a CHANGELOG](http://keepachangelog.com/) princip
 
 ### Added
 - `extended_products_on_login` config option (`PX_USER_EXTENDED_PRODUCTS_ON_LOGIN`) to fetch the user with extended products on login and token refresh
+- `PxUserClient::getUsersDetails()` sends `X-Context-Product-Code`, from the new `product_code` config option (`PX_USER_PRODUCT_CODE`, default `lms`) or an optional `$productCode` argument
+- `PxUserClient::getUsers()` defaults its product context to `product_code`
 
 ### Deprecated
-- Nothing
+- `scout.product_code` config / `PX_USER_SCOUT_PRODUCT_CODE`, replaced by `product_code` / `PX_USER_PRODUCT_CODE`. Both are still honoured; a `scout.product_code` other than `lms` left in a published config takes precedence, so remove the `scout` block
 
 ### Fixed
 - `PxUserTokens::invalidate()` only expires valid tokens, so a login, refresh or logout no longer re-stamps `valid_until` on old rows and keeps them from ever being pruned
