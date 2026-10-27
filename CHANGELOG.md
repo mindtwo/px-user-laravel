@@ -7,12 +7,14 @@ Updates should follow the [Keep a CHANGELOG](http://keepachangelog.com/) princip
 ## NEXT - YYYY-MM-DD
 
 ### Added
-- Nothing
+- `RefreshPxUserSession::failedRefresh()`, a no-op hook that runs after a failed refresh has ended the session; override it to add handling
 
 ### Deprecated
 - Nothing
 
 ### Fixed
+- `RefreshPxUserSession` logs the user out and ends the session when the PX session cannot be refreshed, and passes the request on to the authentication middleware as a guest. Its 401 kept the user logged in, so guest-only login routes redirected straight back into it. It takes the guard as an optional parameter
+- `RefreshPxUserSession` is added to the middleware priority before `AuthenticatesRequests`, so it always runs before the authentication middleware
 - `PxUserEngine` implements `paginate()`, so `search()->paginate()` and `search()->simplePaginate()` return the requested page instead of failing
 - `PxUserEngine` returns users in the order PX returns them, honours `take()` and applies `query()` callbacks to the local users
 - `PxUserEngine` counts only the users stored locally in its total, not every user PX returns

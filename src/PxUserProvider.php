@@ -2,8 +2,12 @@
 
 namespace mindtwo\PxUserLaravel;
 
+use Illuminate\Contracts\Auth\Middleware\AuthenticatesRequests;
+use Illuminate\Contracts\Http\Kernel as HttpKernelContract;
+use Illuminate\Foundation\Http\Kernel as HttpKernel;
 use Illuminate\Support\ServiceProvider;
 use Laravel\Scout\EngineManager;
+use mindtwo\PxUserLaravel\Http\Middleware\RefreshPxUserSession;
 use mindtwo\PxUserLaravel\Scout\PxUserEngine;
 
 class PxUserProvider extends ServiceProvider
@@ -20,6 +24,23 @@ class PxUserProvider extends ServiceProvider
 
         resolve(EngineManager::class)->extend('px-user', function () {
             return new PxUserEngine;
+        });
+
+        $this->prioritizeRefreshMiddleware();
+    }
+
+    /**
+     * Run RefreshPxUserSession before the authentication middleware wherever it is listed.
+     *
+     * Laravel sorts the authentication middleware ahead of SubstituteBindings in the web group,
+     * so without this it would pass a route group's `auth` before the session ends.
+     */
+    protected function prioritizeRefreshMiddleware(): void
+    {
+        $this->callAfterResolving(HttpKernelContract::class, function (HttpKernelContract $kernel) {
+            if ($kernel instanceof HttpKernel) {
+                $kernel->addToMiddlewarePriorityBefore(AuthenticatesRequests::class, RefreshPxUserSession::class);
+            }
         });
     }
 
