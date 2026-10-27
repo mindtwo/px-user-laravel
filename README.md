@@ -121,15 +121,43 @@ via Laravel's `Auth` facade.
 
 PX access tokens are short-lived. On stateful web routes (admin panels, Nova) add the
 `RefreshPxUserSession` middleware. It refreshes the authenticated user's PX tokens once
-they expire within `refresh_leeway` seconds (`PX_USER_REFRESH_LEEWAY`, default 60) and
-aborts with 401 only when the user is left without a valid token:
+they expire within `refresh_leeway` seconds (`PX_USER_REFRESH_LEEWAY`, default 60).
+
+When the user is left without a valid token, it logs them out and ends the session, then
+passes the request on as a guest, so the authentication middleware answers the guest the
+way it always does (redirect to the login page, 401 for JSON requests). The package adds
+the middleware to the middleware priority right before `AuthenticatesRequests`, so it runs
+before `auth` wherever it is listed; Laravel would otherwise move `auth` ahead of it in the
+`web` group:
 
 ```php
 use mindtwo\PxUserLaravel\Http\Middleware\RefreshPxUserSession;
 
-Route::middleware(['web', 'auth', RefreshPxUserSession::class])->group(function () {
+Route::middleware(['web', RefreshPxUserSession::class, 'auth'])->group(function () {
     // ...
 });
+```
+
+It uses the default guard; pass another one as a parameter (`RefreshPxUserSession::class.':admin'`).
+On a guard without a session to end, it aborts with 401 instead.
+
+To add handling for a failed refresh, extend the middleware and override `failedRefresh()`.
+It runs after the session has ended and does nothing by default; throw from it to answer
+the request yourself instead of passing it on. Add the subclass to the middleware priority
+before `AuthenticatesRequests` too, since the package only prioritizes its own class:
+
+```php
+use Illuminate\Http\Request;
+use mindtwo\PxUserLaravel\Contracts\PxUser;
+use mindtwo\PxUserLaravel\Http\Middleware\RefreshPxUserSession;
+
+class RefreshAdminSession extends RefreshPxUserSession
+{
+    protected function failedRefresh(Request $request, PxUser $user, ?string $guard): void
+    {
+        logger()->info('PX session ended', ['user' => $user->getKey()]);
+    }
+}
 ```
 
 Concurrent requests refresh only once, and the user is not logged in again, so the
