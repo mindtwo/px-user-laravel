@@ -81,3 +81,13 @@ test('supplied timestamps are still hydrated', function () {
     expect($data->activatedAt->toIso8601String())->toBe('2024-02-19T08:08:25+00:00')
         ->and($data->lastLoginAt->toIso8601String())->toBe('2026-09-07T14:33:39+00:00');
 });
+
+test('a missing locale hydrates as null', function () {
+    $data = PxUserData::from(pxUserDataPayload([
+        'locale' => null,
+    ]));
+
+    expect($data->locale)->toBeNull()
+        ->and($data->firstname)->toBe('Test')
+        ->and($data->lastname)->toBe('User');
+});

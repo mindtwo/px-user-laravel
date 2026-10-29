@@ -18,6 +18,7 @@ Updates should follow the [Keep a CHANGELOG](http://keepachangelog.com/) princip
 - `PxUserEngine` implements `paginate()`, so `search()->paginate()` and `search()->simplePaginate()` return the requested page instead of failing
 - `PxUserEngine` returns users in the order PX returns them, honours `take()` and applies `query()` callbacks to the local users
 - `PxUserEngine` counts only the users stored locally in its total, not every user PX returns
+- `PxUserData::$locale` is nullable, like `PxUserDataWithPermissions::$locale`. A user without a locale in PX failed to hydrate, so `PxUserCachedApiService::getUser()` threw and the user's cached attributes could not be loaded, and `PxUserData::fromExtendedData()` threw for the same users
 
 ### Removed
 - `scout.product_code` config and `PX_USER_SCOUT_PRODUCT_CODE`, deprecated in 4.2.0. Set `PX_USER_PRODUCT_CODE` (config `product_code`) instead and remove a `scout` block from your published config
