@@ -32,7 +32,7 @@ class PxUserData extends Data
         /** @var array<int, string> */
         public array $products,
         public string|Optional $source,
-        public string $locale,
+        public ?string $locale,
     ) {}
 
     public static function fromExtendedData(PxUserDataWithPermissions $data): self

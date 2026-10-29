@@ -1,5 +1,6 @@
 <?php
 
+use mindtwo\PxUserLaravel\DataTransfer\PxUserData;
 use mindtwo\PxUserLaravel\DataTransfer\PxUserDataWithPermissions;
 
 /**
@@ -71,4 +72,13 @@ test('a user that never logged in resolves its roles from capabilities', functio
 
     expect($data->lastLoginAt)->toBeNull()
         ->and($data->roles)->toBe(['test-product' => ['standard']]);
+});
+
+test('a user without a locale converts to PxUserData', function () {
+    $data = PxUserData::fromExtendedData(PxUserDataWithPermissions::from(pxUserDataWithPermissionsPayload([
+        'locale' => null,
+    ])));
+
+    expect($data->locale)->toBeNull()
+        ->and($data->id)->toBe('user-123');
 });
