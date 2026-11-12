@@ -40,7 +40,7 @@ class PxUserAdminClient extends BaseApiClient
                 'x-context-tenant-code' => $tenantCode,
                 'x-context-domain-code' => $domainCode,
             ])
-            ->get("user/$userId")
+            ->get("v1/user/$userId")
             ->json('response');
 
         if (! isset($userData['user'])) {

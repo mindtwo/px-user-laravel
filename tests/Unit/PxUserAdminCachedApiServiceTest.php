@@ -44,21 +44,21 @@ function adminUserResponse(string $userId): array
 }
 
 test('looks the user up in the given tenant and domain', function () {
-    Http::fake(['*/user/user-1' => Http::response(adminUserResponse('user-1'))]);
+    Http::fake(['*/v1/user/user-1' => Http::response(adminUserResponse('user-1'))]);
 
     $userData = app(PxUserAdminCachedApiService::class)->getUser('user-1', 'other-tenant', 'other-domain');
 
     expect($userData)->toBeInstanceOf(PxUserData::class)
         ->and($userData->email)->toBe('jane@example.com');
 
-    Http::assertSent(fn (Request $request): bool => $request->url() === 'https://user.api.example.com/user/user-1'
+    Http::assertSent(fn (Request $request): bool => $request->url() === 'https://user.api.example.com/v1/user/user-1'
         && $request->hasHeader('x-m2m-authorization', 'm2m-secret')
         && $request->hasHeader('x-context-tenant-code', 'other-tenant')
         && $request->hasHeader('x-context-domain-code', 'other-domain'));
 });
 
 test('caches the user data under the px-user cache key', function () {
-    Http::fake(['*/user/user-1' => Http::response(adminUserResponse('user-1'))]);
+    Http::fake(['*/v1/user/user-1' => Http::response(adminUserResponse('user-1'))]);
 
     $user = User::factory()->make(['px_user_id' => 'user-1']);
     $service = app(PxUserAdminCachedApiService::class);
@@ -71,7 +71,7 @@ test('caches the user data under the px-user cache key', function () {
 });
 
 test('throws PX errors without caching them', function () {
-    Http::fake(['*/user/user-1' => Http::sequence()
+    Http::fake(['*/v1/user/user-1' => Http::sequence()
         ->push(['success' => false, 'code' => 404], 404)
         ->push(adminUserResponse('user-1')),
     ]);
@@ -83,7 +83,7 @@ test('throws PX errors without caching them', function () {
 });
 
 test('HasPxUser looks the user up in their own tenant and domain in console context', function () {
-    Http::fake(['*/user/user-1' => Http::response(adminUserResponse('user-1'))]);
+    Http::fake(['*/v1/user/user-1' => Http::response(adminUserResponse('user-1'))]);
 
     $user = User::factory()->make(['px_user_id' => 'user-1']);
     $user->px_user_tenant_code = 'other-tenant';
