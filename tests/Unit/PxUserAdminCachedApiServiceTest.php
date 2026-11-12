@@ -43,14 +43,10 @@ function adminUserResponse(string $userId): array
     ];
 }
 
-test('looks a PxUser up in their own tenant and domain', function () {
+test('looks the user up in the given tenant and domain', function () {
     Http::fake(['*/user/user-1' => Http::response(adminUserResponse('user-1'))]);
 
-    $user = User::factory()->make(['px_user_id' => 'user-1']);
-    $user->px_user_tenant_code = 'other-tenant';
-    $user->px_user_domain_code = 'other-domain';
-
-    $userData = app(PxUserAdminCachedApiService::class)->getUser($user);
+    $userData = app(PxUserAdminCachedApiService::class)->getUser('user-1', 'other-tenant', 'other-domain');
 
     expect($userData)->toBeInstanceOf(PxUserData::class)
         ->and($userData->email)->toBe('jane@example.com');
@@ -61,23 +57,14 @@ test('looks a PxUser up in their own tenant and domain', function () {
         && $request->hasHeader('x-context-domain-code', 'other-domain'));
 });
 
-test('looks a plain user id up without context', function () {
-    Http::fake(['*/user/user-1' => Http::response(adminUserResponse('user-1'))]);
-
-    app(PxUserAdminCachedApiService::class)->getUser('user-1');
-
-    Http::assertSent(fn (Request $request): bool => ! $request->hasHeader('x-context-tenant-code')
-        && ! $request->hasHeader('x-context-domain-code'));
-});
-
 test('caches the user data under the px-user cache key', function () {
     Http::fake(['*/user/user-1' => Http::response(adminUserResponse('user-1'))]);
 
     $user = User::factory()->make(['px_user_id' => 'user-1']);
     $service = app(PxUserAdminCachedApiService::class);
 
-    $service->getUser($user);
-    $service->getUser($user);
+    $service->getUser('user-1', 'other-tenant', 'other-domain');
+    $service->getUser('user-1', 'other-tenant', 'other-domain');
 
     Http::assertSentCount(1);
     expect(Cache::get($user->cachedAttributeKey()))->toBeInstanceOf(PxUserData::class);
@@ -91,6 +78,27 @@ test('throws PX errors without caching them', function () {
 
     $service = app(PxUserAdminCachedApiService::class);
 
-    expect(fn () => $service->getUser('user-1'))->toThrow(RequestException::class)
-        ->and($service->getUser('user-1'))->toBeInstanceOf(PxUserData::class);
+    expect(fn () => $service->getUser('user-1', 'other-tenant', 'other-domain'))->toThrow(RequestException::class)
+        ->and($service->getUser('user-1', 'other-tenant', 'other-domain'))->toBeInstanceOf(PxUserData::class);
+});
+
+test('HasPxUser looks the user up in their own tenant and domain in console context', function () {
+    Http::fake(['*/user/user-1' => Http::response(adminUserResponse('user-1'))]);
+
+    $user = User::factory()->make(['px_user_id' => 'user-1']);
+    $user->px_user_tenant_code = 'other-tenant';
+    $user->px_user_domain_code = 'other-domain';
+
+    // Outside the test environment the console lookup runs through the admin service;
+    // restored right after, since the migration rollback on teardown asks for confirmation in production
+    app()->detectEnvironment(fn (): string => 'production');
+
+    try {
+        expect($user->email)->toBe('jane@example.com');
+    } finally {
+        app()->detectEnvironment(fn (): string => 'testing');
+    }
+
+    Http::assertSent(fn (Request $request): bool => $request->hasHeader('x-context-tenant-code', 'other-tenant')
+        && $request->hasHeader('x-context-domain-code', 'other-domain'));
 });
