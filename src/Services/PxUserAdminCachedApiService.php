@@ -12,14 +12,17 @@ use mindtwo\TwoTility\Http\CachedApiService;
  */
 class PxUserAdminCachedApiService extends CachedApiService
 {
-    public function getUser(string $userId): ?PxUserData
+    /**
+     * Get a user's data with m2m and caching, looked up in the user's own tenant and domain.
+     */
+    public function getUser(string $userId, string $tenantCode, string $domainCode): ?PxUserData
     {
         $ttl = config('px-user.px_user_cache_time', 120);
 
         return $this->cache->remember(
             Utils::getPxUserCacheKey($userId),
             now()->addMinutes($ttl),
-            fn () => $this->client()->getUser($userId)
+            fn () => $this->client()->getUser($userId, $tenantCode, $domainCode)
         );
     }
 

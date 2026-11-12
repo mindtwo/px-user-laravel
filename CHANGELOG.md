@@ -13,6 +13,7 @@ Updates should follow the [Keep a CHANGELOG](http://keepachangelog.com/) princip
 - Nothing
 
 ### Fixed
+- The console lookup of `HasPxUser` attributes sends the user's tenant and domain (`x-context-tenant-code`, `x-context-domain-code`). Without them PX answered 404 for users outside the default tenant, so their attributes (e.g. `email`) resolved empty in queue workers. `PxUserAdminClient::getUser()` and `PxUserAdminCachedApiService::getUser()` now take `($userId, $tenantCode, $domainCode)`, all required, and `HasPxUser` passes `getPxUserTenantCode()` and `getPxUserDomainCode()`. Direct callers of either method must pass both codes now
 - `RefreshPxUserSession` logs the user out and ends the session when the PX session cannot be refreshed, and passes the request on to the authentication middleware as a guest. Its 401 kept the user logged in, so guest-only login routes redirected straight back into it. It takes the guard as an optional parameter
 - `RefreshPxUserSession` is added to the middleware priority before `AuthenticatesRequests`, so it always runs before the authentication middleware
 - `PxUserEngine` implements `paginate()`, so `search()->paginate()` and `search()->simplePaginate()` return the requested page instead of failing

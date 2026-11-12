@@ -90,8 +90,11 @@ trait HasPxUser
         }
 
         if (app()->runningInConsole() && ! app()->runningUnitTests()) {
-            //
-            resolve(PxUserAdminCachedApiService::class)->getUser($this->getPxUserId());
+            resolve(PxUserAdminCachedApiService::class)->getUser(
+                $this->getPxUserId(),
+                $this->getPxUserTenantCode(),
+                $this->getPxUserDomainCode(),
+            );
 
             return;
         }
