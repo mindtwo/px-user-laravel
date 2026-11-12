@@ -83,38 +83,9 @@ test('caches the user data under the px-user cache key', function () {
     expect(Cache::get($user->cachedAttributeKey()))->toBeInstanceOf(PxUserData::class);
 });
 
-test('resolves a user unknown to PX to null and remembers the miss', function () {
-    Http::fake(['*/user/user-1' => Http::response(['success' => false, 'code' => 404], 404)]);
-
-    $user = User::factory()->make(['px_user_id' => 'user-1']);
-    $service = app(PxUserAdminCachedApiService::class);
-
-    expect($service->getUser($user))->toBeNull()
-        ->and($service->getUser($user))->toBeNull();
-
-    Http::assertSentCount(1);
-});
-
-test('looks a missing user up again once the miss expired', function () {
-    config(['px-user.px_user_miss_cache_time' => 5]);
+test('throws PX errors without caching them', function () {
     Http::fake(['*/user/user-1' => Http::sequence()
         ->push(['success' => false, 'code' => 404], 404)
-        ->push(adminUserResponse('user-1')),
-    ]);
-
-    $service = app(PxUserAdminCachedApiService::class);
-
-    expect($service->getUser('user-1'))->toBeNull();
-
-    $this->travel(6)->minutes();
-
-    expect($service->getUser('user-1'))->toBeInstanceOf(PxUserData::class);
-    Http::assertSentCount(2);
-});
-
-test('rethrows PX errors other than 404 without remembering a miss', function () {
-    Http::fake(['*/user/user-1' => Http::sequence()
-        ->push(['success' => false], 500)
         ->push(adminUserResponse('user-1')),
     ]);
 

@@ -88,14 +88,6 @@ return [
     'px_user_cache_time' => env('PX_USER_CACHE_TIME', 120),
 
     /**
-     * Minutes a user unknown to PX (404 on the m2m lookup) is remembered as
-     * missing, so it isn't looked up again on every attribute access
-     *
-     * Default: 5 (mins)
-     */
-    'px_user_miss_cache_time' => (int) env('PX_USER_MISS_CACHE_TIME', 5),
-
-    /**
      * Request the user's extended products (e.g. products_validity) when resolving
      * the user on login and token refresh
      *
