@@ -31,11 +31,21 @@ class PxUserAdminClient extends BaseApiClient
     }
 
     /**
-     * Get data for px-user with m2m
+     * Get data for px-user with m2m.
+     *
+     * PX resolves a user within a tenant and domain, so pass the user's own
+     * codes for users outside the default tenant.
      */
-    public function getUser(string $userId): ?PxUserData
+    public function getUser(string $userId, ?string $tenantCode = null, ?string $domainCode = null): ?PxUserData
     {
-        $userData = $this->client()->get("user/$userId")
+        $context = array_filter([
+            'x-context-tenant-code' => $tenantCode,
+            'x-context-domain-code' => $domainCode,
+        ]);
+
+        $userData = $this->client()
+            ->withHeaders($context)
+            ->get("user/$userId")
             ->json('response');
 
         if (! isset($userData['user'])) {

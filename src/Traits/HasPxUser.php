@@ -4,6 +4,7 @@ namespace mindtwo\PxUserLaravel\Traits;
 
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
+use mindtwo\PxUserLaravel\Contracts\PxUser;
 use mindtwo\PxUserLaravel\Services\PxUserAdminCachedApiService;
 use mindtwo\PxUserLaravel\Services\PxUserCachedApiService;
 use mindtwo\PxUserLaravel\Services\PxUserTokens;
@@ -90,8 +91,8 @@ trait HasPxUser
         }
 
         if (app()->runningInConsole() && ! app()->runningUnitTests()) {
-            //
-            resolve(PxUserAdminCachedApiService::class)->getUser($this->getPxUserId());
+            // Pass the user, so PX looks them up in their own tenant and domain
+            resolve(PxUserAdminCachedApiService::class)->getUser($this instanceof PxUser ? $this : $this->getPxUserId());
 
             return;
         }
