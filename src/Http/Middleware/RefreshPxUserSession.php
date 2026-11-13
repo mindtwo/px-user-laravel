@@ -20,9 +20,9 @@ class RefreshPxUserSession
     /**
      * Refresh the authenticated user's PX tokens when they are about to expire.
      *
-     * Logs the user out of a stateful guard when no token can be refreshed and passes the
-     * request on as a guest, so the authentication middleware after it answers as it does
-     * for any guest. Aborts with 401 for a guard it cannot log out of.
+     * When no token can be refreshed, it ends the session, runs `failedRefresh()` and then
+     * `unauthenticated()`, which aborts with 401 on a guard without a session and otherwise
+     * passes the request on as a guest for the authentication middleware after it.
      *
      * @param  Closure(Request): (Response)  $next
      * @param  string|null  $guard  - The guard the user is authenticated with, the default guard if null
@@ -35,6 +35,7 @@ class RefreshPxUserSession
         if ($user instanceof ContractsPxUser && ! $this->pxUser->refreshSession($user)) {
             $this->endSession($request, $guard);
             $this->failedRefresh($request, $user, $guard);
+            $this->unauthenticated($request, $guard);
         }
 
         return $next($request);
@@ -43,8 +44,8 @@ class RefreshPxUserSession
     /**
      * Handle a refresh that left the user without a valid token, after the session has ended.
      *
-     * Does nothing by default. Override it to add handling, or throw to answer the request
-     * yourself instead of passing it on as a guest.
+     * Does nothing by default and runs for every guard. Override it to add handling, or throw
+     * to answer the request yourself instead of the 401 or passing it on as a guest.
      *
      * @param  string|null  $guard  - The guard the user was authenticated with, the default guard if null
      */
@@ -54,14 +55,16 @@ class RefreshPxUserSession
     }
 
     /**
-     * End the web session, the same way a logout does.
+     * Log the user out and end the web session, the same way a logout does.
+     *
+     * Does nothing for a guard without a session, such as a bearer token guard.
      */
     protected function endSession(Request $request, ?string $guard): void
     {
         $authGuard = $this->auth->guard($guard);
 
         if (! $authGuard instanceof StatefulGuard) {
-            abort(401);
+            return;
         }
 
         $authGuard->logout();
@@ -69,6 +72,16 @@ class RefreshPxUserSession
         if ($request->hasSession()) {
             $request->session()->invalidate();
             $request->session()->regenerateToken();
+        }
+    }
+
+    /**
+     * Abort with 401 on a guard without a session; on a stateful guard the request passes on as a guest.
+     */
+    protected function unauthenticated(Request $request, ?string $guard): void
+    {
+        if (! $this->auth->guard($guard) instanceof StatefulGuard) {
+            abort(401);
         }
     }
 }
