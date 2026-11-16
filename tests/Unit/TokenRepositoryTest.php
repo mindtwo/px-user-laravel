@@ -108,3 +108,29 @@ test('canRefreshCurrentToken reflects refresh token presence', function () {
 
     expect($tokens->canRefreshCurrentToken($user))->toBeTrue();
 });
+
+test('refreshToken returns the token saved last when tokens are saved in the same second', function () {
+    $this->freezeSecond();
+    $user = User::factory()->create(['px_user_id' => 'user-123']);
+
+    app(PxUserTokens::class)->save($user, makeTokenData(['refresh_token' => 'superseded']));
+    app(PxUserTokens::class)->save($user, makeTokenData(['refresh_token' => 'current']));
+
+    expect(app(PxUserTokens::class)->refreshToken($user))->toBe('current');
+});
+
+test('accessToken returns the token stored last among valid tokens of the same second', function () {
+    $this->freezeSecond();
+    $user = User::factory()->create(['px_user_id' => 'user-123']);
+
+    foreach (['first', 'second'] as $accessToken) {
+        PxUserToken::query()->create([
+            'authenticatable_type' => get_class($user),
+            'authenticatable_id' => $user->getAuthIdentifier(),
+            'token_data' => makeTokenData(['access_token' => $accessToken]),
+            'valid_until' => now()->addHour(),
+        ]);
+    }
+
+    expect(app(PxUserTokens::class)->accessToken($user))->toBe('second');
+});
