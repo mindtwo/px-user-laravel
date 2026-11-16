@@ -137,6 +137,14 @@ class FakePxUser extends PxUser
     }
 
     /**
+     * Return the faked user data instead of calling px-user after a token refresh.
+     */
+    protected function refreshedUserData(string $accessToken): ?DataTransferPxUserDataWithPermissions
+    {
+        return self::getOrCreateCachedDto();
+    }
+
+    /**
      * Mock the PxUserCachedApiService to return fake data.
      */
     protected static function mockApiService(): void

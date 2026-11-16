@@ -230,9 +230,32 @@ class PxUser
             return false;
         }
 
-        event(new PxUserTokenRefreshEvent($user, $newTokens['access_token']));
+        event(new PxUserTokenRefreshEvent(
+            $user,
+            $newTokens['access_token'],
+            $this->refreshedUserData($newTokens['access_token']),
+        ));
 
         return true;
+    }
+
+    /**
+     * Fetch the user's px-user data live with a freshly refreshed access token.
+     *
+     * Bypasses PxUserCachedApiService so listeners see current roles and permissions.
+     * Returns null when the lookup fails: the new tokens are stored already.
+     */
+    protected function refreshedUserData(string $accessToken): ?PxUserDataWithPermissions
+    {
+        try {
+            return app(PxUserClient::class)
+                ->setAccessToken($accessToken)
+                ->getUserWithPermissions((bool) config('px-user.extended_products_on_login', false));
+        } catch (Throwable $e) {
+            Log::debug('PX-User: '.$e->getMessage());
+
+            return null;
+        }
     }
 
     /**

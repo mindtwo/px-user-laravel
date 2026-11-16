@@ -8,6 +8,7 @@ Updates should follow the [Keep a CHANGELOG](http://keepachangelog.com/) princip
 
 ### Added
 - `RefreshPxUserSession::failedRefresh()`, a no-op hook that runs after a failed refresh has ended the session; override it to add handling
+- `PxUserTokenRefreshEvent::$userData`: the user's `PxUserDataWithPermissions`, fetched live (not from the px-user data cache) with the new access token after a refresh, honouring `extended_products_on_login`. Listeners can pick up changed roles and permissions without calling PX themselves. It is `null` when that lookup fails; the refresh still succeeds and the new tokens are stored. The constructor parameter is optional, so existing `new PxUserTokenRefreshEvent($user, $token)` calls keep working. `FakePxUser` passes the faked user data
 
 ### Deprecated
 - Nothing

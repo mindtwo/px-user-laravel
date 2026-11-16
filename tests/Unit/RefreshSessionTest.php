@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Sleep;
+use mindtwo\PxUserLaravel\DataTransfer\PxUserDataWithPermissions;
 use mindtwo\PxUserLaravel\Events\PxUserTokenRefreshEvent;
 use mindtwo\PxUserLaravel\Models\PxUserToken;
 use mindtwo\PxUserLaravel\PxUser;
@@ -31,12 +32,39 @@ function userWithToken(array $tokenData): User
     return $user;
 }
 
-function fakePxRefresh(string $accessToken = 'refreshed'): void
+function pxUserResponse(array $overrides = []): array
+{
+    return ['response' => ['user' => array_merge([
+        'id' => 'user-123',
+        'correlated_id' => 'correlated-123',
+        'email' => 'user@example.com',
+        'preferred_username' => 'user',
+        'tenant_code' => 'test-tenant',
+        'domain_code' => 'test-domain',
+        'is_enabled' => true,
+        'is_confirmed' => true,
+        'suspended' => false,
+        'is_human' => true,
+        'firstname' => 'Test',
+        'lastname' => 'User',
+        'gender' => 'unknown',
+        'last_login_at' => null,
+        'last_activity_at' => null,
+        'source' => 'test',
+        'locale' => 'en',
+        'products' => [],
+        'capabilities' => null,
+        'roles' => [],
+    ], $overrides)]];
+}
+
+function fakePxRefresh(string $accessToken = 'refreshed', ?array $userResponse = null): void
 {
     Http::fake([
         '*v1/refresh-tokens' => Http::response([
             'response' => makeTokenData(['access_token' => $accessToken]),
         ]),
+        '*v1/user-with-permissions*' => Http::response($userResponse ?? pxUserResponse()),
     ]);
 }
 
@@ -58,6 +86,51 @@ test('refreshes an expired token and dispatches the refresh event', function () 
     Event::assertNotDispatched(Login::class);
 });
 
+test('dispatches the refresh event with the user data fetched live with the new token', function (bool $extendedProducts) {
+    config(['px-user.extended_products_on_login' => $extendedProducts]);
+    Event::fake([PxUserTokenRefreshEvent::class]);
+    $user = userWithToken(makeTokenData([
+        'access_token_expiration_utc' => now()->subMinute()->toIso8601String(),
+    ]));
+    fakePxRefresh(userResponse: pxUserResponse(['firstname' => 'Fresh']));
+
+    expect(resolve(PxUser::class)->refreshSession($user))->toBeTrue();
+
+    Http::assertSent(fn (Request $request) => str_contains($request->url(), 'v1/user-with-permissions')
+        && $request->hasHeader('Authorization', 'Bearer refreshed')
+        && $request['withExtendedProducts'] == $extendedProducts);
+    Event::assertDispatched(PxUserTokenRefreshEvent::class, fn (PxUserTokenRefreshEvent $event) => $event->userData instanceof PxUserDataWithPermissions
+        && $event->userData->id === 'user-123'
+        && $event->userData->firstname === 'Fresh');
+})->with([
+    'without extended products' => false,
+    'with extended products' => true,
+]);
+
+test('still refreshes and dispatches the event without user data when the user lookup fails', function () {
+    Event::fake([PxUserTokenRefreshEvent::class]);
+    $user = userWithToken(makeTokenData([
+        'access_token_expiration_utc' => now()->subMinute()->toIso8601String(),
+    ]));
+    Http::fake([
+        '*v1/refresh-tokens' => Http::response(['response' => makeTokenData(['access_token' => 'refreshed'])]),
+        '*v1/user-with-permissions*' => Http::response(status: 500),
+    ]);
+
+    expect(resolve(PxUser::class)->refreshSession($user))->toBeTrue()
+        ->and((new PxUserTokens)->accessToken($user))->toBe('refreshed')
+        ->and((new PxUserTokens)->isCurrentTokenValid($user))->toBeTrue();
+
+    Event::assertDispatched(PxUserTokenRefreshEvent::class, fn (PxUserTokenRefreshEvent $event) => $event->newAccessToken === 'refreshed'
+        && $event->userData === null);
+});
+
+test('keeps the refresh event constructible without user data', function () {
+    $event = new PxUserTokenRefreshEvent(User::factory()->make(), 'token');
+
+    expect($event->userData)->toBeNull();
+});
+
 test('refreshes a token that expires within the leeway', function () {
     $user = userWithToken(makeTokenData([
         'access_token_expiration_utc' => now()->addSeconds(30)->toIso8601String(),
@@ -66,7 +139,7 @@ test('refreshes a token that expires within the leeway', function () {
 
     expect(resolve(PxUser::class)->refreshSession($user))->toBeTrue();
 
-    Http::assertSentCount(1);
+    Http::assertSentCount(2);
 });
 
 test('does not lock or call px while the token is fresh', function () {
