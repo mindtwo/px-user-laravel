@@ -162,7 +162,10 @@ class RefreshAdminSession extends RefreshPxUserSession
 ```
 
 Concurrent requests refresh only once, and the user is not logged in again, so the
-session id stays the same. Each refresh dispatches `PxUserTokenRefreshEvent`.
+session id stays the same. Each refresh dispatches `PxUserTokenRefreshEvent`. Its
+`$userData` holds the user's px-user data fetched live with the new token, so a listener
+can sync changed roles. When that lookup fails, no event is dispatched and the refresh counts
+as failed, so the session ends.
 
 Keep `CheckPxUserSession` instead where a client holds its own PX refresh token (e.g. an
 SPA calling a token-based API): a server-side refresh rotates that token and leaves the

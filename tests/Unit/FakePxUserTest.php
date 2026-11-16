@@ -1,6 +1,9 @@
 <?php
 
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Http;
+use mindtwo\PxUserLaravel\Events\PxUserTokenRefreshEvent;
 use mindtwo\PxUserLaravel\PxUser;
 use mindtwo\PxUserLaravel\Testing\FakePxUser;
 use mindtwo\PxUserLaravel\Tests\Fake\User;
@@ -77,4 +80,17 @@ test('fakePxUserData writes to the same cache key actAs uses', function () {
 
     expect(Cache::get($user->cachedAttributeKey()))
         ->toMatchArray(['email' => 'seeded@example.com']);
+});
+
+test('fake passes the faked user data to the refresh event', function () {
+    Event::fake([PxUserTokenRefreshEvent::class]);
+    $user = FakePxUser::actAs(User::factory()->create(['px_user_id' => 'actor-1']), ['firstname' => 'Refreshed']);
+    Http::fake(['*v1/refresh-tokens' => Http::response(['response' => makeTokenData(['access_token' => 'refreshed'])])]);
+    $this->travel(2)->hours();
+
+    expect(resolve(PxUser::class)->refreshSession($user))->toBeTrue();
+
+    Http::assertSentCount(1);
+    Event::assertDispatched(PxUserTokenRefreshEvent::class, fn (PxUserTokenRefreshEvent $event) => $event->userData->id === 'actor-1'
+        && $event->userData->firstname === 'Refreshed');
 });
