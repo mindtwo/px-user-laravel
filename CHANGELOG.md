@@ -9,11 +9,18 @@ Updates should follow the [Keep a CHANGELOG](http://keepachangelog.com/) princip
 ### Added
 - `RefreshPxUserSession::failedRefresh()`, a no-op hook that runs after a failed refresh has ended the session; override it to add handling
 - `PxUserTokenRefreshEvent::$userData`: the user's `PxUserDataWithPermissions`, fetched live (not from the px-user data cache) with the new access token after a refresh, honouring `extended_products_on_login`. Listeners can pick up changed roles and permissions without calling PX themselves. The constructor requires it as third argument, so code that creates the event itself must pass it. When the lookup fails the new tokens stay stored, but no event is dispatched and `refreshSession()` returns false, so `RefreshPxUserSession` ends the session as for any failed refresh. `FakePxUser` passes the faked user data
+- `FakePxUser` fakes the package's HTTP clients (`PxUserClient`, `PxUserAdminClient`, `PxUserOidcClient`) instead of mocking `PxUserCachedApiService`, so `login()`, `refresh()`, `refreshSession()`, `logout()`, `oidcLogin()`, user details, the admin lookup and Scout searches run without HTTP requests. It answers from a set of PX users kept per test
+- `FakePxUser::user()`, `forget()`, `nextLogin()`, `session()`, `tokens()` and `expireSession()` to set up PX users and sessions, `fail()` / `succeed()` with the `PxUserEndpoint` enum to let an endpoint fail with a status code or exception, `recorded()`, `assertSent()` and `assertNotSent()` to assert calls, and `restore()` to stop faking
+- `PxUserData::payload()` and `PxUserDataWithPermissions::payload()` in `Testing` build the snake_case user payloads PX answers with
 
 ### Deprecated
-- Nothing
+- `FakePxUser::clear()`, replaced by `FakePxUser::restore()`
 
 ### Fixed
+- `FakePxUser` keeps each user's PX data apart. It answered every user with one DTO, shared by all tests, and `getUsersDetails()` returned a single user for a list of ids
+- `FakePxUser` answers user-token calls (e.g. loading the attributes of a user not seeded with `FakePxUser::user()`) only for an authenticated user and aborts with 401 otherwise, like the real client. The mock answered them without one
+- `FakePxUser` caches users' attributes as `PxUserData`, so the real `PxUserCachedApiService::getUsersDetails()` reads them instead of fetching them again
+- `Testing\PxUserData::fake()` and `Testing\PxUserDataWithPermissions::fake()` accept snake_case and camelCase overrides. Each read only one of them and silently ignored the other, so a DTO passed to `FakePxUser::actAs()` lost its snake_case fields. Their defaults are now fixed values derived from the id instead of random ones
 - `PxUserAdminClient::getUser()` requests `v1/user/{id}`. It requested `user/{id}` without the API version, which PX answers with 404, so `HasPxUser` attributes (e.g. `email`) resolved empty in console context such as queue workers. Up to 2.x the version was part of the base URL
 - The console lookup of `HasPxUser` attributes sends the user's tenant and domain (`x-context-tenant-code`, `x-context-domain-code`). Without them PX answered 404 for users outside the default tenant, so their attributes (e.g. `email`) resolved empty in queue workers. `PxUserAdminClient::getUser()` and `PxUserAdminCachedApiService::getUser()` now take `($userId, $tenantCode, $domainCode)`, all required, and `HasPxUser` passes `getPxUserTenantCode()` and `getPxUserDomainCode()`. Direct callers of either method must pass both codes now
 - `RefreshPxUserSession` logs the user out and ends the session when the PX session cannot be refreshed, and passes the request on to the authentication middleware as a guest. Its 401 kept the user logged in, so guest-only login routes redirected straight back into it. It takes the guard as an optional parameter
