@@ -200,6 +200,49 @@ skipped and not counted. `get()` honours `take()`, `paginate()` and `simplePagin
 over the local users. A PX 404 means no matches; other PX errors are rethrown. Searches
 need an authenticated PX user.
 
+### Testing
+
+`FakePxUser::fake()` replaces the package's HTTP clients (`PxUserClient`, `PxUserAdminClient`,
+`PxUserOidcClient`) with fakes that answer from a set of PX users kept per test. Everything
+else runs as in production: `PxUser::login()`, `refresh()`, `refreshSession()`, `logout()` and
+`oidcLogin()`, the cached services, the middleware and the Scout engine. No HTTP request is
+sent. Every helper below fakes the API first, so calling `fake()` yourself is optional:
+
+```php
+use mindtwo\PxUserLaravel\Testing\FakePxUser;
+use mindtwo\PxUserLaravel\Testing\PxUserEndpoint;
+
+// Add a user to PX, cache their attributes, store a valid session and let the next login resolve to them
+FakePxUser::actAs($user, ['firstname' => 'Ada', 'roles' => ['lms' => ['admin']]]);
+$this->actingAs($user);
+
+FakePxUser::user($other, ['email' => 'other@example.com']); // PX data and cached attributes only
+FakePxUser::user($other, cache: false);                       // PX data; the app loads the attributes on first read
+FakePxUser::forget($unknown);                                 // a user PX does not know
+FakePxUser::nextLogin($user);                                 // the next login or OIDC code resolves to them
+FakePxUser::session($user);                                   // a valid token row, nothing else
+FakePxUser::tokens($user);                                    // a token pair PX issued, not stored by the app
+FakePxUser::expireSession($user, refreshable: false);         // an expired session
+
+FakePxUser::fail(PxUserEndpoint::RefreshTokens, 401);         // a status code throws a RequestException
+FakePxUser::fail(PxUserEndpoint::Logout, new ConnectionException('down'));
+
+FakePxUser::assertSent(PxUserEndpoint::UsersDetails, fn (array $call) => $call['user_ids'] === ['a', 'b']);
+FakePxUser::assertNotSent(PxUserEndpoint::RefreshTokens);
+```
+
+A local user PX was not told about is answered with defaults derived from the model: email
+`{px_user_id}@example.com`, name `Test User`, the model's tenant and domain codes. Data passed
+to the helpers may use the API's snake_case keys or the DTOs' camelCase ones, and is merged
+into what PX already knows about the user. An access token PX did not issue resolves to the
+`nextLogin()` user, or to a new user when there is none. A refresh token is accepted when the
+fake issued it or the app stored it, e.g. from a login request.
+
+Call `FakePxUser::restore()` to send real requests again, e.g. to test against `Http::fake()`.
+Every other helper fakes the API again, so restore after the test's PX setup.
+`PxUserData::payload()` and `PxUserDataWithPermissions::payload()` build the user payloads PX
+answers with for that.
+
 ### Changelog
 
 Please see [CHANGELOG](CHANGELOG.md) for more information what has changed recently.
