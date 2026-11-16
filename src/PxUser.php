@@ -165,7 +165,8 @@ class PxUser
     /**
      * Refresh the user's PX tokens when they expire within the refresh leeway.
      *
-     * Returns whether the user holds a valid token afterwards. Does not log the user in.
+     * Returns whether the user holds a valid token afterwards, and false when the user's
+     * px-user data could not be fetched after a refresh. Does not log the user in.
      */
     public function refreshSession(Authenticatable $user): bool
     {
@@ -176,13 +177,11 @@ class PxUser
         $lockKey = 'px-user:refresh:'.md5(get_class($user)).':'.$user->getAuthIdentifier();
 
         try {
-            $refreshed = Cache::lock($lockKey, $this->refreshLockSeconds())
+            return Cache::lock($lockKey, $this->refreshLockSeconds())
                 ->block(10, fn () => $this->refreshUnlessFresh($user));
         } catch (LockTimeoutException) {
-            $refreshed = false;
+            return app(PxUserTokens::class)->isCurrentTokenValid($user);
         }
-
-        return $refreshed || app(PxUserTokens::class)->isCurrentTokenValid($user);
     }
 
     /**
@@ -198,6 +197,9 @@ class PxUser
 
     /**
      * Refresh the user's PX tokens unless another request already did.
+     *
+     * A failed token refresh keeps a still valid token usable. A failed user lookup after
+     * the refresh returns false and dispatches no event.
      */
     protected function refreshUnlessFresh(Authenticatable $user): bool
     {
@@ -205,29 +207,10 @@ class PxUser
             return true;
         }
 
-        // A new instance each time, since PxUserTokens keeps the rows it loaded.
-        $tokens = app(PxUserTokens::class);
+        $newTokens = $this->refreshStoredTokens($user);
 
-        try {
-            // refreshToken() first: it also loads an expired row, which refreshTokenValidUntil() then reads.
-            $refreshToken = $tokens->refreshToken($user);
-            $refreshValidUntil = $tokens->refreshTokenValidUntil($user);
-
-            if (empty($refreshToken) || $refreshValidUntil?->isPast()) {
-                return false;
-            }
-
-            $newTokens = app(PxUserClient::class)->refreshTokens($refreshToken);
-
-            if (! $this->validateToken($newTokens)) {
-                return false;
-            }
-
-            $tokens->save($user, $newTokens);
-        } catch (Throwable $e) {
-            Log::debug('PX-User: '.$e->getMessage());
-
-            return false;
+        if ($newTokens === null) {
+            return app(PxUserTokens::class)->isCurrentTokenValid($user);
         }
 
         $userData = $this->refreshedUserData($newTokens['access_token']);
@@ -239,6 +222,41 @@ class PxUser
         event(new PxUserTokenRefreshEvent($user, $newTokens['access_token'], $userData));
 
         return true;
+    }
+
+    /**
+     * Exchange the user's refresh token for new tokens and store them.
+     *
+     * Returns null when there is no usable refresh token or PX rejects it.
+     */
+    protected function refreshStoredTokens(Authenticatable $user): ?array
+    {
+        // A new instance each time, since PxUserTokens keeps the rows it loaded.
+        $tokens = app(PxUserTokens::class);
+
+        try {
+            // refreshToken() first: it also loads an expired row, which refreshTokenValidUntil() then reads.
+            $refreshToken = $tokens->refreshToken($user);
+            $refreshValidUntil = $tokens->refreshTokenValidUntil($user);
+
+            if (empty($refreshToken) || $refreshValidUntil?->isPast()) {
+                return null;
+            }
+
+            $newTokens = app(PxUserClient::class)->refreshTokens($refreshToken);
+
+            if (! $this->validateToken($newTokens)) {
+                return null;
+            }
+
+            $tokens->save($user, $newTokens);
+        } catch (Throwable $e) {
+            Log::debug('PX-User: '.$e->getMessage());
+
+            return null;
+        }
+
+        return $newTokens;
     }
 
     /**

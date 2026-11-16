@@ -105,7 +105,7 @@ test('dispatches the refresh event with the user data fetched live with the new 
     'with extended products' => true,
 ]);
 
-test('keeps the refreshed tokens but dispatches no event when the user lookup fails', function () {
+test('returns false and dispatches no event when the user lookup fails', function () {
     Event::fake([PxUserTokenRefreshEvent::class]);
     $user = userWithToken(makeTokenData([
         'access_token_expiration_utc' => now()->subMinute()->toIso8601String(),
@@ -115,26 +115,10 @@ test('keeps the refreshed tokens but dispatches no event when the user lookup fa
         '*v1/user-with-permissions*' => Http::response(status: 500),
     ]);
 
-    expect(resolve(PxUser::class)->refreshSession($user))->toBeTrue()
-        ->and((new PxUserTokens)->accessToken($user))->toBe('refreshed')
-        ->and((new PxUserTokens)->isCurrentTokenValid($user))->toBeTrue();
+    expect(resolve(PxUser::class)->refreshSession($user))->toBeFalse()
+        ->and((new PxUserTokens)->accessToken($user))->toBe('refreshed');
 
     Event::assertNotDispatched(PxUserTokenRefreshEvent::class);
-});
-
-test('reports a refresh without user data as not refreshed', function () {
-    $user = userWithToken(makeTokenData([
-        'access_token_expiration_utc' => now()->subMinute()->toIso8601String(),
-    ]));
-    Http::fake([
-        '*v1/refresh-tokens' => Http::response(['response' => makeTokenData(['access_token' => 'refreshed'])]),
-        '*v1/user-with-permissions*' => Http::response(status: 500),
-    ]);
-
-    $refreshed = (fn () => $this->refreshUnlessFresh($user))->call(resolve(PxUser::class));
-
-    expect($refreshed)->toBeFalse()
-        ->and((new PxUserTokens)->accessToken($user))->toBe('refreshed');
 });
 
 test('refreshes a token that expires within the leeway', function () {
@@ -257,7 +241,7 @@ test('keeps the lock for a refresh as slow as the client allows', function () {
         $lockHeldDuringSlowCall = ! Cache::lock(refreshLockKey($user), 1)->get();
 
         return Http::response(['response' => makeTokenData()]);
-    }]);
+    }, '*v1/user-with-permissions*' => Http::response(pxUserResponse())]);
 
     expect(resolve(PxUser::class)->refreshSession($user))->toBeTrue()
         ->and($lockHeldDuringSlowCall)->toBeTrue();
