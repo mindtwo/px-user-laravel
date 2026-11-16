@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Contracts\Auth\Factory as AuthFactory;
+use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use mindtwo\PxUserLaravel\Contracts\PxUser as ContractsPxUser;
@@ -119,10 +120,17 @@ test('calls failedRefresh after ending the session when the session cannot be re
         }
     };
 
-    $middleware->handle(sessionRequest(), fn () => response('OK'));
+    $userSeenByNext = $user;
+    $response = $middleware->handle(sessionRequest(), function (Request $request) use (&$userSeenByNext) {
+        $userSeenByNext = $request->user();
+
+        return response('OK');
+    });
 
     expect($middleware->failedFor?->is($user))->toBeTrue()
-        ->and($middleware->wasGuest)->toBeTrue();
+        ->and($middleware->wasGuest)->toBeTrue()
+        ->and($response->getContent())->toBe('OK')
+        ->and($userSeenByNext)->toBeNull();
 });
 
 test('does not call failedRefresh when the session is refreshed', function () {
@@ -157,4 +165,74 @@ test('aborts with 401 when the session cannot be refreshed on a guard it cannot 
 
     expect(fn () => resolve(RefreshPxUserSession::class)->handle(sessionRequest(), fn () => response('OK'), 'token'))
         ->toThrow(fn (HttpException $e) => expect($e->getStatusCode())->toBe(401));
+});
+
+test('calls failedRefresh before aborting with 401 on a guard it cannot log out of', function () {
+    Http::fake(['*v1/refresh-tokens' => Http::response(status: 401)]);
+    config(['auth.guards.token' => ['driver' => 'token', 'provider' => 'users']]);
+    $user = User::factory()->create(['px_user_id' => 'user-123']);
+    (new PxUserTokens)->save($user, makeTokenData([
+        'access_token_expiration_utc' => now()->subMinute()->toIso8601String(),
+    ]));
+    auth()->guard('token')->setUser($user);
+
+    $middleware = new class(resolve(PxUser::class), resolve(AuthFactory::class)) extends RefreshPxUserSession
+    {
+        public ?ContractsPxUser $failedFor = null;
+
+        public ?string $failedOnGuard = null;
+
+        protected function failedRefresh(Request $request, ContractsPxUser $user, ?string $guard): void
+        {
+            $this->failedFor = $user;
+            $this->failedOnGuard = $guard;
+        }
+    };
+
+    expect(fn () => $middleware->handle(sessionRequest(), fn () => response('OK'), 'token'))
+        ->toThrow(fn (HttpException $e) => expect($e->getStatusCode())->toBe(401))
+        ->and($middleware->failedFor?->is($user))->toBeTrue()
+        ->and($middleware->failedOnGuard)->toBe('token');
+});
+
+test('answers with the response failedRefresh throws after ending the web session', function () {
+    Http::fake(['*v1/refresh-tokens' => Http::response(status: 401)]);
+    $user = User::factory()->create(['px_user_id' => 'user-123']);
+    (new PxUserTokens)->save($user, makeTokenData([
+        'access_token_expiration_utc' => now()->subMinute()->toIso8601String(),
+    ]));
+    $this->actingAs($user, 'web');
+
+    $middleware = new class(resolve(PxUser::class), resolve(AuthFactory::class)) extends RefreshPxUserSession
+    {
+        protected function failedRefresh(Request $request, ContractsPxUser $user, ?string $guard): void
+        {
+            throw new HttpResponseException(response('Handled', 403));
+        }
+    };
+
+    expect(fn () => $middleware->handle(sessionRequest(), fn () => response('OK')))
+        ->toThrow(fn (HttpResponseException $e) => expect($e->getResponse()->getContent())->toBe('Handled'))
+        ->and(auth()->guard('web')->guest())->toBeTrue();
+});
+
+test('answers with the response failedRefresh throws instead of the 401 on a guard it cannot log out of', function () {
+    Http::fake(['*v1/refresh-tokens' => Http::response(status: 401)]);
+    config(['auth.guards.token' => ['driver' => 'token', 'provider' => 'users']]);
+    $user = User::factory()->create(['px_user_id' => 'user-123']);
+    (new PxUserTokens)->save($user, makeTokenData([
+        'access_token_expiration_utc' => now()->subMinute()->toIso8601String(),
+    ]));
+    auth()->guard('token')->setUser($user);
+
+    $middleware = new class(resolve(PxUser::class), resolve(AuthFactory::class)) extends RefreshPxUserSession
+    {
+        protected function failedRefresh(Request $request, ContractsPxUser $user, ?string $guard): void
+        {
+            throw new HttpResponseException(response('Handled', 403));
+        }
+    };
+
+    expect(fn () => $middleware->handle(sessionRequest(), fn () => response('OK'), 'token'))
+        ->toThrow(fn (HttpResponseException $e) => expect($e->getResponse()->getContent())->toBe('Handled'));
 });

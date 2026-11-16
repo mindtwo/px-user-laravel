@@ -142,8 +142,9 @@ It uses the default guard; pass another one as a parameter (`RefreshPxUserSessio
 On a guard without a session to end, it aborts with 401 instead.
 
 To add handling for a failed refresh, extend the middleware and override `failedRefresh()`.
-It runs after the session has ended and does nothing by default; throw from it to answer
-the request yourself instead of passing it on. Add the subclass to the middleware priority
+It runs on every guard after the session has ended, before the 401 on a guard without a
+session, and does nothing by default; throw from it to answer the request yourself instead
+of the 401 or passing it on. Add the subclass to the middleware priority
 before `AuthenticatesRequests` too, since the package only prioritizes its own class:
 
 ```php
