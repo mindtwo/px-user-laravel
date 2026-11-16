@@ -105,7 +105,7 @@ class PxUserTokens
     }
 
     /**
-     * Get the token model for the authenticatable.
+     * Get the authenticatable's token stored last; the id decides between tokens of the same second.
      */
     protected function getToken(Authenticatable $authenticatable, bool $includeInvalid = false): ?PxUserToken
     {
@@ -117,6 +117,7 @@ class PxUserTokens
             ->forAuthenticatable($authenticatable)
             ->when(! $includeInvalid, fn ($q) => $q->valid())
             ->latest()
+            ->latest('id')
             ->first();
 
         throw_if(! $token, new RuntimeException('No token found for authenticatable'));
