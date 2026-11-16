@@ -13,12 +13,11 @@ class PxUserTokenRefreshEvent
     /**
      * Create a new event instance.
      *
-     * `$userData` is the user's px-user data fetched live with the new access token,
-     * or null when that lookup failed. The refresh itself succeeded either way.
+     * `$userData` is the user's px-user data fetched live with the new access token.
      */
     public function __construct(
         public Authenticatable $user,
         public string $newAccessToken,
-        public ?PxUserDataWithPermissions $userData = null,
+        public PxUserDataWithPermissions $userData,
     ) {}
 }

@@ -91,6 +91,6 @@ test('fake passes the faked user data to the refresh event', function () {
     expect(resolve(PxUser::class)->refreshSession($user))->toBeTrue();
 
     Http::assertSentCount(1);
-    Event::assertDispatched(PxUserTokenRefreshEvent::class, fn (PxUserTokenRefreshEvent $event) => $event->userData?->id === 'actor-1'
+    Event::assertDispatched(PxUserTokenRefreshEvent::class, fn (PxUserTokenRefreshEvent $event) => $event->userData->id === 'actor-1'
         && $event->userData->firstname === 'Refreshed');
 });

@@ -6,7 +6,6 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Sleep;
-use mindtwo\PxUserLaravel\DataTransfer\PxUserDataWithPermissions;
 use mindtwo\PxUserLaravel\Events\PxUserTokenRefreshEvent;
 use mindtwo\PxUserLaravel\Models\PxUserToken;
 use mindtwo\PxUserLaravel\PxUser;
@@ -99,15 +98,14 @@ test('dispatches the refresh event with the user data fetched live with the new 
     Http::assertSent(fn (Request $request) => str_contains($request->url(), 'v1/user-with-permissions')
         && $request->hasHeader('Authorization', 'Bearer refreshed')
         && $request['withExtendedProducts'] == $extendedProducts);
-    Event::assertDispatched(PxUserTokenRefreshEvent::class, fn (PxUserTokenRefreshEvent $event) => $event->userData instanceof PxUserDataWithPermissions
-        && $event->userData->id === 'user-123'
+    Event::assertDispatched(PxUserTokenRefreshEvent::class, fn (PxUserTokenRefreshEvent $event) => $event->userData->id === 'user-123'
         && $event->userData->firstname === 'Fresh');
 })->with([
     'without extended products' => false,
     'with extended products' => true,
 ]);
 
-test('still refreshes and dispatches the event without user data when the user lookup fails', function () {
+test('still refreshes but dispatches no event when the user lookup fails', function () {
     Event::fake([PxUserTokenRefreshEvent::class]);
     $user = userWithToken(makeTokenData([
         'access_token_expiration_utc' => now()->subMinute()->toIso8601String(),
@@ -121,14 +119,7 @@ test('still refreshes and dispatches the event without user data when the user l
         ->and((new PxUserTokens)->accessToken($user))->toBe('refreshed')
         ->and((new PxUserTokens)->isCurrentTokenValid($user))->toBeTrue();
 
-    Event::assertDispatched(PxUserTokenRefreshEvent::class, fn (PxUserTokenRefreshEvent $event) => $event->newAccessToken === 'refreshed'
-        && $event->userData === null);
-});
-
-test('keeps the refresh event constructible without user data', function () {
-    $event = new PxUserTokenRefreshEvent(User::factory()->make(), 'token');
-
-    expect($event->userData)->toBeNull();
+    Event::assertNotDispatched(PxUserTokenRefreshEvent::class);
 });
 
 test('refreshes a token that expires within the leeway', function () {
