@@ -8,7 +8,7 @@ Updates should follow the [Keep a CHANGELOG](http://keepachangelog.com/) princip
 
 ### Added
 - `RefreshPxUserSession::failedRefresh()`, a no-op hook that runs after a failed refresh has ended the session; override it to add handling
-- `PxUserTokenRefreshEvent::$userData`: the user's `PxUserDataWithPermissions`, fetched live (not from the px-user data cache) with the new access token after a refresh, honouring `extended_products_on_login`. Listeners can pick up changed roles and permissions without calling PX themselves. The constructor requires it as third argument, so code that creates the event itself must pass it. When the lookup fails the refresh still succeeds and the new tokens are stored, but no event is dispatched. `FakePxUser` passes the faked user data
+- `PxUserTokenRefreshEvent::$userData`: the user's `PxUserDataWithPermissions`, fetched live (not from the px-user data cache) with the new access token after a refresh, honouring `extended_products_on_login`. Listeners can pick up changed roles and permissions without calling PX themselves. The constructor requires it as third argument, so code that creates the event itself must pass it. When the lookup fails the new tokens stay stored, but no event is dispatched and the refresh counts as failed; `refreshSession()` still returns true while the stored token is valid. `FakePxUser` passes the faked user data
 
 ### Deprecated
 - Nothing

@@ -105,7 +105,7 @@ test('dispatches the refresh event with the user data fetched live with the new 
     'with extended products' => true,
 ]);
 
-test('still refreshes but dispatches no event when the user lookup fails', function () {
+test('keeps the refreshed tokens but dispatches no event when the user lookup fails', function () {
     Event::fake([PxUserTokenRefreshEvent::class]);
     $user = userWithToken(makeTokenData([
         'access_token_expiration_utc' => now()->subMinute()->toIso8601String(),
@@ -120,6 +120,21 @@ test('still refreshes but dispatches no event when the user lookup fails', funct
         ->and((new PxUserTokens)->isCurrentTokenValid($user))->toBeTrue();
 
     Event::assertNotDispatched(PxUserTokenRefreshEvent::class);
+});
+
+test('reports a refresh without user data as not refreshed', function () {
+    $user = userWithToken(makeTokenData([
+        'access_token_expiration_utc' => now()->subMinute()->toIso8601String(),
+    ]));
+    Http::fake([
+        '*v1/refresh-tokens' => Http::response(['response' => makeTokenData(['access_token' => 'refreshed'])]),
+        '*v1/user-with-permissions*' => Http::response(status: 500),
+    ]);
+
+    $refreshed = (fn () => $this->refreshUnlessFresh($user))->call(resolve(PxUser::class));
+
+    expect($refreshed)->toBeFalse()
+        ->and((new PxUserTokens)->accessToken($user))->toBe('refreshed');
 });
 
 test('refreshes a token that expires within the leeway', function () {

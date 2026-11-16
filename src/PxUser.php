@@ -232,9 +232,11 @@ class PxUser
 
         $userData = $this->refreshedUserData($newTokens['access_token']);
 
-        if ($userData !== null) {
-            event(new PxUserTokenRefreshEvent($user, $newTokens['access_token'], $userData));
+        if ($userData === null) {
+            return false;
         }
+
+        event(new PxUserTokenRefreshEvent($user, $newTokens['access_token'], $userData));
 
         return true;
     }
@@ -243,7 +245,7 @@ class PxUser
      * Fetch the user's px-user data live with a freshly refreshed access token.
      *
      * Bypasses PxUserCachedApiService so listeners see current roles and permissions.
-     * Returns null when the lookup fails; the refresh stands, but no event is dispatched.
+     * Returns null when the lookup fails; the new tokens stay stored, but no event is dispatched.
      */
     protected function refreshedUserData(string $accessToken): ?PxUserDataWithPermissions
     {
